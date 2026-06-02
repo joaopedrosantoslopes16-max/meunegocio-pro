@@ -101,6 +101,17 @@ export interface Business {
   secondary_color: string;
   visual_style: VisualStyle;
   slug: string;
+  cover_image_url: string | null;
+  logo_url: string | null;
+  professional_photo_url: string | null;
+  gallery_images_json: string[];
+  custom_links_json: { label: string; url: string; type: string }[];
+  benefits_json: string[];
+  testimonials_json: { text: string; author: string }[];
+  short_description: string | null;
+  opening_hours_json: Record<string, string>;
+  google_maps_url: string | null;
+  services_json: string[];
   created_at: string;
   updated_at: string;
 }
@@ -292,6 +303,75 @@ export interface NicheConfig {
     prova: string;
     chamadaFinal: string;
   };
+}
+
+export type ContentFormat = "reels" | "carrossel" | "story" | "post" | "whatsapp";
+export type ImageType = "cover" | "logo" | "professional" | "post" | "story" | "general";
+
+export interface Narrative {
+  title: string;
+  angle: string;
+  description: string;
+}
+
+export interface ReelsScript {
+  title: string;
+  scenes: { scene: number; description: string; fala: string }[];
+  screen_text: string;
+  caption: string;
+  cta: string;
+  whatsapp_message: string;
+}
+
+export interface CarouselContent {
+  theme: string;
+  slides: { slide: number; text: string }[];
+  caption: string;
+  whatsapp_message: string;
+}
+
+export interface StorySequence {
+  stories: { story: number; text: string; type?: string }[];
+  cta: string;
+  whatsapp_message: string;
+}
+
+export interface ContentGeneration {
+  id: string;
+  user_id: string;
+  business_id: string;
+  topic: string;
+  format: ContentFormat;
+  narrative_json: Narrative[] | null;
+  headlines_json: string[] | null;
+  script_json: ReelsScript | null;
+  carousel_json: CarouselContent | null;
+  stories_json: StorySequence | null;
+  caption: string | null;
+  whatsapp_message: string | null;
+  selected_narrative: string | null;
+  selected_headline: string | null;
+  created_at: string;
+}
+
+export interface ImageGallery {
+  id: string;
+  user_id: string;
+  business_id: string;
+  image_url: string;
+  storage_path: string;
+  image_type: ImageType;
+  is_favorite: boolean;
+  used_for: string | null;
+  file_name: string | null;
+  file_size: number | null;
+  created_at: string;
+}
+
+export interface ThemePreference {
+  user_id: string;
+  theme: "light" | "dark";
+  updated_at: string;
 }
 
 export interface BusinessFormData {

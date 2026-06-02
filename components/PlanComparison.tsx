@@ -26,20 +26,26 @@ const NICHE_EMOJIS: Record<string, string[]> = {
 
 const ESSENCIAL_FEATURES = [
   "Mini site profissional ativo",
+  "Botão de WhatsApp em destaque",
   "5 posts por mês",
   "5 legendas por mês",
   "5 mensagens WhatsApp/mês",
   "Calendário de postagem básico",
+  "Gerador básico de conteúdo",
 ]
 
 const PRO_FEATURES = [
-  "Mini site completo com mais seções",
+  "Tudo do Essencial",
+  "Foto/logo e capa personalizada",
   "Galeria de fotos no mini site",
-  "Avaliações e depoimentos editáveis",
+  "Links personalizados no site",
   "15 posts · 15 legendas · 15 mensagens",
-  'Botão "Gerar post de hoje"',
+  "Gerador de Narrativas Magnéticas",
+  "Roteiros para Reels",
+  "Sequência de Stories",
+  "Carrosséis completos",
   "Campanhas prontas mensais",
-  "Recuperação de clientes inativos",
+  "Mensagens para recuperar clientes",
 ]
 
 // ── Essencial: mini site simples e profissional ──────────────
@@ -303,6 +309,9 @@ function PlanSlide({
   const isPro = plan === 'pro'
   const label = isPro ? 'Pro' : 'Essencial'
   const price = isPro ? '57' : '37'
+  const priceDesc = isPro
+    ? 'Mini site + conteúdos + Gerador Magnético'
+    : 'Mini site profissional ativo'
   const features = isPro ? PRO_FEATURES : ESSENCIAL_FEATURES
 
   return (
@@ -369,6 +378,7 @@ function PlanSlide({
             R$ {price}
           </span>
           <span className="text-gray-400 text-sm font-medium">/mês</span>
+          <p className="text-xs text-gray-400 mt-1">{priceDesc}</p>
         </div>
         <a
           href={checkoutUrl}
@@ -534,9 +544,9 @@ export default function PlanComparison({ preview, nicheKey, checkoutUrl, checkou
       <div className="mt-8 grid sm:grid-cols-2 gap-4">
         <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
           <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-1.5">Plano Essencial</p>
-          <p className="font-extrabold text-gray-800 text-sm mb-1">Perfeito para começar</p>
+          <p className="font-extrabold text-gray-800 text-sm mb-1">Para começar com presença online</p>
           <p className="text-sm text-gray-500 leading-relaxed">
-            Mini site profissional ativo e conteúdos básicos mensais para manter presença online.
+            Mini site profissional ativo com botão de WhatsApp e conteúdos básicos mensais para manter presença online.
           </p>
         </div>
         <div className="bg-violet-50 rounded-2xl p-5 border border-violet-100 relative overflow-hidden">
@@ -544,9 +554,9 @@ export default function PlanComparison({ preview, nicheKey, checkoutUrl, checkou
             Mais completo
           </span>
           <p className="text-[10px] font-extrabold text-violet-500 uppercase tracking-widest mb-1.5">Plano Pro</p>
-          <p className="font-extrabold text-gray-800 text-sm mb-1">Mais personalizado e completo</p>
+          <p className="font-extrabold text-gray-800 text-sm mb-1">Mini site + conteúdos + gerador</p>
           <p className="text-sm text-gray-500 leading-relaxed">
-            Mini site com mais seções, mais conteúdos e ferramentas para divulgar melhor todo mês.
+            Site personalizado, galeria de fotos, roteiros para Reels, Stories, carrosséis e mensagens para WhatsApp — tudo renovando todo mês.
           </p>
         </div>
       </div>

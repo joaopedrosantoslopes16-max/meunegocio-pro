@@ -8,6 +8,17 @@
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+
+  /* Dark mode via class strategy (ThemeProvider adiciona .dark na raiz) */
+  .dark body {
+    background-color: #0a0a0a;
+    color: #f3f4f6;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
 }
 
 @layer utilities {

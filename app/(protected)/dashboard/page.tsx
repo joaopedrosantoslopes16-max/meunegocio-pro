@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import DashboardClient from "./DashboardClient";
+import ThemeToggle from "@/components/ThemeToggle";
 import type { Kit, Business, Lead, Subscription, MonthlyContent, UserExtraPackage } from "@/types";
 
 const supabaseAdmin = createAdminClient(
@@ -42,7 +43,7 @@ export default async function DashboardPage() {
   // Fallback: verifica compra antiga (compatibilidade com clientes sem subscription ainda)
   const { data: purchase } = await supabaseAdmin
     .from("purchases")
-    .select("status")
+    .select("id, status")
     .eq("email", user.email)
     .order("purchased_at", { ascending: false })
     .limit(1)
@@ -139,7 +140,8 @@ export default async function DashboardPage() {
       <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="font-bold text-lg text-gradient">MeuNegócio Pro</Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
             <span className="text-sm text-gray-500 hidden sm:block">{user.email}</span>
             <form action="/api/auth/logout" method="POST">
               <button type="submit" className="text-sm text-gray-500 hover:text-red-500 transition">Sair</button>

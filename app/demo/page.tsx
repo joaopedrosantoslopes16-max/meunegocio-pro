@@ -37,6 +37,17 @@ const BUSINESS: Business = {
   secondary_color: "#6d28d9",
   visual_style:    "moderno" as VisualStyle,
   slug:            "barbearia-joao-sp",
+  cover_image_url:        null,
+  logo_url:               null,
+  professional_photo_url: null,
+  gallery_images_json:    [],
+  custom_links_json:      [],
+  benefits_json:          [],
+  testimonials_json:      [],
+  short_description:      null,
+  opening_hours_json:     {},
+  google_maps_url:        null,
+  services_json:          INPUT.services,
   created_at:      new Date().toISOString(),
   updated_at:      new Date().toISOString(),
 };
@@ -46,8 +57,8 @@ const KIT: Kit & { businesses: Business } = {
   user_id:             "demo-user-1",
   business_id:         BUSINESS.id,
   purchase_id:         null,
-  status:              "active",
-  release_stage:       "full",
+  status:              "ready" as const,
+  release_stage:       3 as const,
   purchase_approved_at: new Date().toISOString(),
   day_0_unlocked:      true,
   day_3_unlocked:      true,
@@ -132,6 +143,34 @@ export default function DemoPage() {
           </div>
         </div>
       </header>
+
+      {/* Atalhos de navegação do demo */}
+      <div className="max-w-5xl mx-auto px-4 pt-6 pb-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <Link href="/demo/gerar-post-hoje" className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:shadow-md hover:border-indigo-200 transition group">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-110 transition">✨</div>
+            <div>
+              <p className="font-bold text-gray-800 text-sm">Post de hoje</p>
+              <p className="text-xs text-gray-400">Gerar post para Instagram</p>
+            </div>
+          </Link>
+          <Link href="/demo/galeria" className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:shadow-md hover:border-indigo-200 transition group">
+            <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-110 transition">🖼️</div>
+            <div>
+              <p className="font-bold text-gray-800 text-sm">Galeria</p>
+              <p className="text-xs text-gray-400">Upload de imagens</p>
+            </div>
+          </Link>
+          <Link href="/demo/site" className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:shadow-md hover:border-indigo-200 transition group col-span-2 sm:col-span-1">
+            <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-110 transition">🌐</div>
+            <div>
+              <p className="font-bold text-gray-800 text-sm">Mini site</p>
+              <p className="text-xs text-gray-400">Barbearia · Estética</p>
+            </div>
+          </Link>
+        </div>
+        <div className="h-px bg-gray-100 mt-6" />
+      </div>
 
       {/* Dashboard completo com dados mock */}
       <DashboardClient
