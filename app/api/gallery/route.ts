@@ -5,21 +5,34 @@ import type { ImageType } from "@/types";
 const BUCKET = "business-gallery";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
+async function resolveUser(req: NextRequest, supabase: Awaited<ReturnType<typeof createClient>>) {
+  // Tenta Bearer token primeiro (mais confiável de client components)
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    const { data } = await supabase.auth.getUser(token);
+    if (data.user) return data.user;
+  }
+  // Fallback: cookie session
+  const { data: { user } } = await supabase.auth.getUser();
+  return user ?? null;
+}
+
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  const user = await resolveUser(req, supabase);
+  if (!user) return NextResponse.json({ error: "Sessão expirada. Faça login novamente." }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const business_id = searchParams.get("business_id");
 
-  const query = supabase
+  let query = supabase
     .from("image_gallery")
     .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  if (business_id) query.eq("business_id", business_id);
+  if (business_id) query = query.eq("business_id", business_id);
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -29,8 +42,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  const user = await resolveUser(req, supabase);
+  if (!user) return NextResponse.json({ error: "Sessão expirada. Faça login novamente." }, { status: 401 });
 
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
@@ -38,11 +51,16 @@ export async function POST(req: NextRequest) {
   const image_type = (formData.get("image_type") as ImageType) ?? "general";
 
   if (!file || !business_id) {
-    return NextResponse.json({ error: "file e business_id são obrigatórios." }, { status: 400 });
+    return NextResponse.json({ error: "Arquivo e negócio são obrigatórios." }, { status: 400 });
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    return NextResponse.json({ error: "Imagem muito grande. Máximo 5MB." }, { status: 400 });
+    return NextResponse.json({ error: "Imagem muito grande. Máximo 5MB por imagem." }, { status: 400 });
+  }
+
+  // Aceitar apenas imagens
+  if (!file.type.startsWith("image/")) {
+    return NextResponse.json({ error: "Apenas imagens são aceitas (JPG, PNG, WEBP)." }, { status: 400 });
   }
 
   // Verificar que o negócio pertence ao usuário
@@ -57,14 +75,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Negócio não encontrado." }, { status: 404 });
   }
 
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const storagePath = `${user.id}/${business_id}/${Date.now()}.${ext}`;
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const storagePath = `${user.id}/${business_id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
     .upload(storagePath, file, { contentType: file.type, upsert: false });
 
   if (uploadError) {
+    // Bucket não existe ainda
+    if (uploadError.message?.includes("Bucket not found") || uploadError.message?.includes("bucket")) {
+      return NextResponse.json({
+        error: 'O bucket de imagens ainda não foi criado. Acesse o Supabase Storage e crie o bucket "business-gallery" como público.',
+      }, { status: 500 });
+    }
     return NextResponse.json({ error: `Erro no upload: ${uploadError.message}` }, { status: 500 });
   }
 
@@ -85,6 +109,8 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (insertError) {
+    // Limpar arquivo do storage se insert falhar
+    await supabase.storage.from(BUCKET).remove([storagePath]);
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
@@ -93,8 +119,8 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  const user = await resolveUser(req, supabase);
+  if (!user) return NextResponse.json({ error: "Sessão expirada. Faça login novamente." }, { status: 401 });
 
   const body = await req.json();
   const { id, is_favorite, image_type, used_for } = body;
@@ -120,8 +146,8 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  const user = await resolveUser(req, supabase);
+  if (!user) return NextResponse.json({ error: "Sessão expirada. Faça login novamente." }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");

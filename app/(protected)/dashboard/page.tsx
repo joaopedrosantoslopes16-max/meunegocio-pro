@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import DashboardClient from "./DashboardClient";
 import ThemeToggle from "@/components/ThemeToggle";
-import type { Kit, Business, Lead, Subscription, MonthlyContent, UserExtraPackage } from "@/types";
+import type { Kit, Business, Lead, Subscription, MonthlyContent, UserExtraPackage, ImageGallery } from "@/types";
 
 const supabaseAdmin = createAdminClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -112,6 +112,15 @@ export default async function DashboardPage() {
     .eq("status", "active")
     .order("purchased_at", { ascending: false });
 
+  // Galeria de imagens do negócio
+  const { data: galleryImages } = await supabase
+    .from("image_gallery")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("business_id", kit.businesses.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
   // Leads do mini site
   const { data: leads } = await supabase
     .from("leads")
@@ -158,6 +167,7 @@ export default async function DashboardPage() {
         extraPackages={(extraPackages as UserExtraPackage[]) ?? []}
         displayName={displayName}
         userEmail={user.email ?? ""}
+        galleryImages={(galleryImages as ImageGallery[]) ?? []}
       />
     </div>
   );

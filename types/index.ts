@@ -94,18 +94,22 @@ export interface Business {
   city: string;
   whatsapp: string;
   instagram: string;
+  facebook?: string | null;
+  linktree?: string | null;
+  booking_url?: string | null;
   address: string;
   main_service: string;
   services: string[];
   primary_color: string;
   secondary_color: string;
   visual_style: VisualStyle;
+  font_style?: string | null;
   slug: string;
   cover_image_url: string | null;
   logo_url: string | null;
   professional_photo_url: string | null;
   gallery_images_json: string[];
-  custom_links_json: { label: string; url: string; type: string }[];
+  custom_links_json: { label: string; url: string; type: string; is_active?: boolean }[];
   benefits_json: string[];
   testimonials_json: { text: string; author: string }[];
   short_description: string | null;
@@ -366,6 +370,25 @@ export interface ImageGallery {
   file_name: string | null;
   file_size: number | null;
   created_at: string;
+}
+
+export interface GeneratedPost {
+  id: string;
+  user_id: string;
+  business_id: string;
+  template_type: string;
+  title: string;
+  subtitle: string;
+  cta: string;
+  caption: string | null;
+  whatsapp_message: string | null;
+  background_image_url: string | null;
+  primary_color: string;
+  overlay_opacity: number;
+  font_style: string;
+  goal: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ThemePreference {
