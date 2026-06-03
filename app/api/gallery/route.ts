@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import type { ImageType } from "@/types";
+
+const supabaseAdmin = createAdminClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 const BUCKET = "business-gallery";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -63,15 +69,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Apenas imagens são aceitas (JPG, PNG, WEBP)." }, { status: 400 });
   }
 
-  // Verificar que o negócio pertence ao usuário
-  const { data: business } = await supabase
-    .from("businesses")
-    .select("id")
-    .eq("id", business_id)
+  // Verificar ownership pelo kits (businesses não tem user_id direto)
+  const { data: kit } = await supabaseAdmin
+    .from("kits")
+    .select("business_id")
     .eq("user_id", user.id)
+    .eq("business_id", business_id)
     .single();
 
-  if (!business) {
+  if (!kit) {
     return NextResponse.json({ error: "Negócio não encontrado." }, { status: 404 });
   }
 

@@ -32,12 +32,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "business_id obrigatório" }, { status: 400 });
     }
 
-    // Verifica que o negócio pertence ao usuário
-    const { data: business } = await supabase
+    // Verifica ownership pelo kits (businesses não tem user_id direto)
+    const { data: kit } = await supabaseAdmin
+      .from("kits")
+      .select("business_id")
+      .eq("user_id", user.id)
+      .eq("business_id", businessId)
+      .single();
+
+    if (!kit) {
+      return NextResponse.json({ error: "Negócio não encontrado" }, { status: 404 });
+    }
+
+    const { data: business } = await supabaseAdmin
       .from("businesses")
       .select("id, business_name, niche, city, whatsapp, main_service, services")
       .eq("id", businessId)
-      .eq("user_id", user.id)
       .single();
 
     if (!business) {

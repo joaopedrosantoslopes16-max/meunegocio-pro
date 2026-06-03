@@ -1,15 +1,21 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import EditarSiteClient from "./EditarSiteClient";
 import type { Business, ImageGallery } from "@/types";
 import Link from "next/link";
+
+const supabaseAdmin = createAdminClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export default async function EditarSitePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: kit } = await supabase
+  const { data: kit } = await supabaseAdmin
     .from("kits")
     .select("*, businesses(*)")
     .eq("user_id", user.id)
@@ -21,7 +27,7 @@ export default async function EditarSitePage() {
 
   const business = kit.businesses as Business;
 
-  const { data: images } = await supabase
+  const { data: images } = await supabaseAdmin
     .from("image_gallery")
     .select("*")
     .eq("user_id", user.id)

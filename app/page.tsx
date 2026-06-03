@@ -14,6 +14,7 @@ import { buildWhatsAppLink } from "@/lib/whatsapp-utils";
 import { generateInstagramBio, generateCaptions, generateWhatsAppMessages } from "@/lib/kit-generator";
 import PostCard from "@/components/PostCard";
 import PlanComparison from "@/components/PlanComparison";
+import ThemeToggle from "@/components/ThemeToggle";
 import type { PreviewData } from "@/types";
 
 // ============================================================
@@ -153,14 +154,15 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans">
+    <div className="min-h-screen bg-white dark:bg-gray-950 font-sans transition-colors duration-200">
 
       {/* ── NAVBAR ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <span className="font-extrabold text-lg text-gradient-dark">MeuNegócio Pro</span>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-gray-600 hover:text-violet-700 font-medium transition hidden sm:block">
+            <ThemeToggle />
+            <Link href="/login" className="text-sm text-gray-600 dark:text-gray-300 hover:text-violet-700 font-medium transition hidden sm:block">
               Área do cliente
             </Link>
             <a href={CHECKOUT_URL} className="text-sm font-bold gradient-brand text-white px-4 py-2 rounded-xl transition shadow-sm hover:opacity-90">
@@ -352,11 +354,11 @@ export default function LandingPage() {
       </section>
 
       {/* ── COMO FUNCIONA ── */}
-      <section className="py-20 px-4 bg-white">
+      <section className="py-20 px-4 bg-white dark:bg-gray-900">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <span className="text-violet-600 text-xs font-bold uppercase tracking-widest">Simples assim</span>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mt-2">Como funciona em 3 passos</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mt-2">Como funciona em 3 passos</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-10">
             {[
@@ -368,9 +370,9 @@ export default function LandingPage() {
                 <div className="w-16 h-16 gradient-brand rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform">
                   <I size={26} strokeWidth={1.5} className="text-white" />
                 </div>
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1.5 w-6 h-6 bg-violet-100 text-violet-700 text-xs font-extrabold rounded-full flex items-center justify-center">{n}</div>
-                <h3 className="font-extrabold text-gray-900 text-lg mb-2">{title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1.5 w-6 h-6 bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 text-xs font-extrabold rounded-full flex items-center justify-center">{n}</div>
+                <h3 className="font-extrabold text-gray-900 dark:text-white text-lg mb-2">{title}</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -378,44 +380,44 @@ export default function LandingPage() {
       </section>
 
       {/* ── PRÉVIA GRÁTIS (FORMULÁRIO) ── */}
-      <section ref={formRef} className="py-20 px-4 bg-violet-50 scroll-mt-14">
+      <section ref={formRef} className="py-20 px-4 bg-violet-50 dark:bg-gray-900 scroll-mt-14">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-10">
-            <span className="inline-block bg-violet-100 text-violet-700 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-3">Teste grátis agora</span>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">Veja como ficaria o kit do seu negócio</h2>
-            <p className="text-gray-500">Preencha os dados e veja em segundos o mini site, o post e a legenda criados para você. Sem cadastro, sem compromisso.</p>
+            <span className="inline-block bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-3">Teste grátis agora</span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-3">Veja como ficaria o kit do seu negócio</h2>
+            <p className="text-gray-500 dark:text-gray-400">Preencha os dados e veja em segundos o mini site, o post e a legenda criados para você. Sem cadastro, sem compromisso.</p>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-xl border border-violet-100 p-6 md:p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-violet-100 dark:border-gray-700 p-6 md:p-8">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nome do negócio *</label>
-                  <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder="Ex: Barbearia do João, Clínica Sorriso" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition" />
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Nome do negócio *</label>
+                  <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder="Ex: Barbearia do João, Clínica Sorriso" className="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tipo de negócio *</label>
-                  <select name="niche" value={form.niche} onChange={handleChange} required className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition bg-white">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Tipo de negócio *</label>
+                  <select name="niche" value={form.niche} onChange={handleChange} required className="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition">
                     <option value="">Selecione o nicho...</option>
                     {NICHE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cidade *</label>
-                  <input name="city" value={form.city} onChange={handleChange} required placeholder="Ex: São Paulo – SP" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition" />
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Cidade *</label>
+                  <input name="city" value={form.city} onChange={handleChange} required placeholder="Ex: São Paulo – SP" className="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">WhatsApp *</label>
-                  <input name="whatsapp" value={form.whatsapp} onChange={handleChange} required placeholder="(11) 99999-9999" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition" />
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">WhatsApp *</label>
+                  <input name="whatsapp" value={form.whatsapp} onChange={handleChange} required placeholder="(11) 99999-9999" className="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Serviço principal *</label>
-                  <input name="main_service" value={form.main_service} onChange={handleChange} required placeholder="Ex: Corte masculino, Limpeza dental" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition" />
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Serviço principal *</label>
+                  <input name="main_service" value={form.main_service} onChange={handleChange} required placeholder="Ex: Corte masculino, Limpeza dental" className="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cor da marca</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Cor da marca</label>
                   <div className="flex items-center gap-3">
-                    <input type="color" name="primary_color" value={form.primary_color} onChange={handleChange} className="w-12 h-12 rounded-xl border border-gray-200 cursor-pointer" />
+                    <input type="color" name="primary_color" value={form.primary_color} onChange={handleChange} className="w-12 h-12 rounded-xl border border-gray-200 dark:border-gray-600 cursor-pointer" />
                     <span className="text-sm text-gray-400 font-mono">{form.primary_color}</span>
                   </div>
                 </div>
@@ -433,20 +435,20 @@ export default function LandingPage() {
 
       {/* ── RESULTADO DA PRÉVIA ── */}
       {preview && (
-        <section ref={previewRef} className="py-16 px-4 bg-white scroll-mt-14">
+        <section ref={previewRef} className="py-16 px-4 bg-white dark:bg-gray-900 scroll-mt-14">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
               <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm font-bold px-5 py-2.5 rounded-full mb-4">
                 <CheckCircle2 size={16} />
                 Prévia criada para {preview.business_name}
               </div>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900">É assim que ficaria o seu kit</h2>
-              <p className="text-gray-500 mt-2">Amostra do kit. O plano completo tem 30 posts, calendário, campanhas e muito mais.</p>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white">É assim que ficaria o seu kit</h2>
+              <p className="text-gray-500 dark:text-gray-400 mt-2">Amostra do kit. O plano completo tem 30 posts, calendário, campanhas e muito mais.</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               {/* MINI SITE PREVIEW — fiel ao design real */}
-              <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden">
                 {/* Browser bar */}
                 <div className="bg-gray-900 px-4 py-2.5 flex items-center gap-2">
                   <div className="flex gap-1.5">
@@ -512,7 +514,7 @@ export default function LandingPage() {
               </div>
 
               {/* POST PREVIEW — usa PostCard real */}
-              <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden">
                 <div className="px-5 py-3 border-b border-gray-50 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <ImageIcon size={14} className="text-gray-400" />
@@ -548,25 +550,25 @@ export default function LandingPage() {
 
             {/* Legenda + WhatsApp */}
             <div className="grid md:grid-cols-2 gap-4 mb-8">
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 bg-pink-50 rounded-xl flex items-center justify-center">
+                  <div className="w-8 h-8 bg-pink-50 dark:bg-pink-900/30 rounded-xl flex items-center justify-center">
                     <PenLine size={15} className="text-pink-500" />
                   </div>
-                  <p className="font-bold text-gray-800 text-sm">Legenda para o Instagram</p>
+                  <p className="font-bold text-gray-800 dark:text-white text-sm">Legenda para o Instagram</p>
                 </div>
-                <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-xl p-4">{preview.sample_caption}</p>
-                <p className="text-xs text-gray-400 mt-2.5">+ 29 legendas mensais no plano completo</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-gray-700 rounded-xl p-4">{preview.sample_caption}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2.5">+ 29 legendas mensais no plano completo</p>
               </div>
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 bg-green-50 rounded-xl flex items-center justify-center">
+                  <div className="w-8 h-8 bg-green-50 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
                     <MessageSquare size={15} className="text-green-500" />
                   </div>
-                  <p className="font-bold text-gray-800 text-sm">Mensagem pronta para WhatsApp</p>
+                  <p className="font-bold text-gray-800 dark:text-white text-sm">Mensagem pronta para WhatsApp</p>
                 </div>
-                <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-xl p-4">{preview.sample_whatsapp_message}</p>
-                <p className="text-xs text-gray-400 mt-2.5">+ mensagens para recuperar clientes no plano completo</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-gray-700 rounded-xl p-4">{preview.sample_whatsapp_message}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2.5">+ mensagens para recuperar clientes no plano completo</p>
               </div>
             </div>
 
@@ -587,21 +589,21 @@ export default function LandingPage() {
       )}
 
       {/* ── O QUE VOCÊ RECEBE ── */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="py-20 px-4 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <span className="text-violet-600 text-xs font-bold uppercase tracking-widest">Kit completo</span>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mt-2 mb-3">Tudo que você recebe todo mês</h2>
-            <p className="text-gray-500">Pare de depender de agência, designer ou ficar criando do zero.</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mt-2 mb-3">Tudo que você recebe todo mês</h2>
+            <p className="text-gray-500 dark:text-gray-400">Pare de depender de agência, designer ou ficar criando do zero.</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {KIT_CARDS.map(({ Icon: I, title, desc }) => (
-              <div key={title} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm card-hover">
-                <div className="w-11 h-11 bg-violet-100 rounded-xl flex items-center justify-center mb-4 text-violet-600">
+              <div key={title} className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm card-hover">
+                <div className="w-11 h-11 bg-violet-100 dark:bg-violet-900/40 rounded-xl flex items-center justify-center mb-4 text-violet-600 dark:text-violet-400">
                   <I size={20} strokeWidth={1.75} />
                 </div>
-                <h3 className="font-extrabold text-gray-900 mb-1.5 text-sm">{title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
+                <h3 className="font-extrabold text-gray-900 dark:text-white mb-1.5 text-sm">{title}</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -609,18 +611,18 @@ export default function LandingPage() {
       </section>
 
       {/* ── PARA QUEM É ── */}
-      <section className="py-20 px-4 bg-white">
+      <section className="py-20 px-4 bg-white dark:bg-gray-900">
         <div className="max-w-4xl mx-auto text-center">
           <span className="text-violet-600 text-xs font-bold uppercase tracking-widest">Funciona para você</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mt-2 mb-4">Para qualquer negócio local</h2>
-          <p className="text-gray-500 mb-10">O sistema adapta os posts, legendas e mensagens para o seu tipo de negócio automaticamente.</p>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mt-2 mb-4">Para qualquer negócio local</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-10">O sistema adapta os posts, legendas e mensagens para o seu tipo de negócio automaticamente.</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {NICHES.map(({ abbr, label, bg }) => (
-              <div key={label} className="bg-gray-50 hover:bg-violet-50 border border-gray-100 hover:border-violet-200 rounded-2xl p-4 text-center transition card-hover cursor-default">
+              <div key={label} className="bg-gray-50 dark:bg-gray-800 hover:bg-violet-50 dark:hover:bg-violet-900/30 border border-gray-100 dark:border-gray-700 hover:border-violet-200 rounded-2xl p-4 text-center transition card-hover cursor-default">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 text-sm font-extrabold ${bg}`}>
                   {abbr}
                 </div>
-                <p className="text-sm font-semibold text-gray-700">{label}</p>
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{label}</p>
               </div>
             ))}
           </div>
@@ -628,20 +630,20 @@ export default function LandingPage() {
       </section>
 
       {/* ── POR QUE ASSINAR ── */}
-      <section className="py-20 px-4 bg-violet-50">
+      <section className="py-20 px-4 bg-violet-50 dark:bg-gray-900">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-14">
             <span className="text-violet-600 text-xs font-bold uppercase tracking-widest">Valeu a pena?</span>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mt-2">Por que assinar o MeuNegócio Pro</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mt-2">Por que assinar o MeuNegócio Pro</h2>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {WHY_ITEMS.map(({ Icon: I, title, desc }) => (
-              <div key={title} className="bg-white rounded-2xl p-6 shadow-sm border border-violet-100 card-hover">
-                <div className="w-11 h-11 bg-violet-100 rounded-xl flex items-center justify-center mb-4 text-violet-600">
+              <div key={title} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-violet-100 dark:border-gray-700 card-hover">
+                <div className="w-11 h-11 bg-violet-100 dark:bg-violet-900/40 rounded-xl flex items-center justify-center mb-4 text-violet-600 dark:text-violet-400">
                   <I size={20} strokeWidth={1.75} />
                 </div>
-                <h3 className="font-extrabold text-gray-900 mb-2 text-sm">{title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
+                <h3 className="font-extrabold text-gray-900 dark:text-white mb-2 text-sm">{title}</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{desc}</p>
               </div>
             ))}
             {/* Card destaque preço */}
@@ -662,19 +664,19 @@ export default function LandingPage() {
       </section>
 
       {/* ── CONFIANÇA ── */}
-      <section className="py-16 px-4 bg-white">
+      <section className="py-16 px-4 bg-white dark:bg-gray-900">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900">Feito para você confiar</h2>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white">Feito para você confiar</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {TRUST_ITEMS.map(({ Icon: I, title, desc }) => (
               <div key={title} className="text-center p-4">
-                <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-3 text-gray-500">
+                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-3 text-gray-500 dark:text-gray-400">
                   <I size={22} strokeWidth={1.5} />
                 </div>
-                <h3 className="font-bold text-gray-900 text-sm mb-1.5">{title}</h3>
-                <p className="text-gray-500 text-xs leading-relaxed">{desc}</p>
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm mb-1.5">{title}</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -776,30 +778,30 @@ export default function LandingPage() {
       </section>
 
       {/* ── PACOTES EXTRAS ── */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="py-20 px-4 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-4">
-            <span className="inline-block bg-violet-100 text-violet-700 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-3">Opcionais</span>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2">Quer turbinar seu plano?</h2>
-            <p className="text-gray-500 text-base max-w-2xl mx-auto">
+            <span className="inline-block bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-3">Opcionais</span>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-2">Quer turbinar seu plano?</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-base max-w-2xl mx-auto">
               Adicione pacotes extras quando quiser para receber mais posts, stories ou mensagens para chamar clientes.
             </p>
-            <p className="text-gray-400 text-sm mt-2">Os pacotes extras são opcionais e não substituem os planos principais.</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Os pacotes extras são opcionais e não substituem os planos principais.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-5 mt-10">
 
             {/* INSTAGRAM EXTRA */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 hover:border-violet-200 hover:shadow-md transition card-hover flex flex-col">
-              <div className="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center mb-4 text-pink-500">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 hover:border-violet-200 dark:hover:border-violet-600 hover:shadow-md transition card-hover flex flex-col">
+              <div className="w-12 h-12 bg-pink-50 dark:bg-pink-900/30 rounded-xl flex items-center justify-center mb-4 text-pink-500">
                 <ImageIcon size={22} strokeWidth={1.75} />
               </div>
-              <h3 className="font-extrabold text-gray-900 mb-1">Pacote Instagram Extra</h3>
-              <p className="text-3xl font-extrabold text-violet-700 mb-3">R$ 19</p>
-              <p className="text-gray-500 text-sm leading-relaxed mb-4">
+              <h3 className="font-extrabold text-gray-900 dark:text-white mb-1">Pacote Instagram Extra</h3>
+              <p className="text-3xl font-extrabold text-violet-700 dark:text-violet-400 mb-3">R$ 19</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4">
                 Mais posts para movimentar o Instagram do seu negócio.
               </p>
-              <ul className="space-y-2 text-sm text-gray-600 flex-1 mb-5">
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 flex-1 mb-5">
                 {[
                   "20 posts extras para movimentar seu Instagram",
                   "20 legendas extras personalizadas",
@@ -813,22 +815,22 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <a href={CHECKOUT_INSTAGRAM} className="flex items-center justify-center gap-2 border-2 border-violet-200 text-violet-700 font-bold py-3 rounded-xl hover:bg-violet-50 transition text-sm">
+              <a href={CHECKOUT_INSTAGRAM} className="flex items-center justify-center gap-2 border-2 border-violet-200 dark:border-violet-700 text-violet-700 dark:text-violet-400 font-bold py-3 rounded-xl hover:bg-violet-50 dark:hover:bg-violet-900/30 transition text-sm">
                 Adicionar posts extras <ArrowRight size={14} />
               </a>
             </div>
 
             {/* STORIES */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 hover:border-violet-200 hover:shadow-md transition card-hover flex flex-col">
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 text-blue-500">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 hover:border-violet-200 dark:hover:border-violet-600 hover:shadow-md transition card-hover flex flex-col">
+              <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mb-4 text-blue-500">
                 <Smartphone size={22} strokeWidth={1.75} />
               </div>
-              <h3 className="font-extrabold text-gray-900 mb-1">Pacote Stories</h3>
-              <p className="text-3xl font-extrabold text-violet-700 mb-3">R$ 15</p>
-              <p className="text-gray-500 text-sm leading-relaxed mb-4">
+              <h3 className="font-extrabold text-gray-900 dark:text-white mb-1">Pacote Stories</h3>
+              <p className="text-3xl font-extrabold text-violet-700 dark:text-violet-400 mb-3">R$ 15</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4">
                 Stories prontos para divulgar promoções, avisos e chamadas rápidas.
               </p>
-              <ul className="space-y-2 text-sm text-gray-600 flex-1 mb-5">
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 flex-1 mb-5">
                 {[
                   "20 stories prontos para divulgar promoções e avisos",
                   "Chamadas rápidas para WhatsApp",
@@ -842,22 +844,22 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <a href={CHECKOUT_STORIES} className="flex items-center justify-center gap-2 border-2 border-violet-200 text-violet-700 font-bold py-3 rounded-xl hover:bg-violet-50 transition text-sm">
+              <a href={CHECKOUT_STORIES} className="flex items-center justify-center gap-2 border-2 border-violet-200 dark:border-violet-700 text-violet-700 dark:text-violet-400 font-bold py-3 rounded-xl hover:bg-violet-50 dark:hover:bg-violet-900/30 transition text-sm">
                 Adicionar stories <ArrowRight size={14} />
               </a>
             </div>
 
             {/* REATIVAÇÃO */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 hover:border-violet-200 hover:shadow-md transition card-hover flex flex-col">
-              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mb-4 text-green-600">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 hover:border-violet-200 dark:hover:border-violet-600 hover:shadow-md transition card-hover flex flex-col">
+              <div className="w-12 h-12 bg-green-50 dark:bg-green-900/30 rounded-xl flex items-center justify-center mb-4 text-green-600 dark:text-green-400">
                 <MessageSquare size={22} strokeWidth={1.75} />
               </div>
-              <h3 className="font-extrabold text-gray-900 mb-1">Reativação de Clientes</h3>
-              <p className="text-3xl font-extrabold text-violet-700 mb-3">R$ 19</p>
-              <p className="text-gray-500 text-sm leading-relaxed mb-4">
+              <h3 className="font-extrabold text-gray-900 dark:text-white mb-1">Reativação de Clientes</h3>
+              <p className="text-3xl font-extrabold text-violet-700 dark:text-violet-400 mb-3">R$ 19</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4">
                 Mensagens para trazer clientes de volta ao seu negócio.
               </p>
-              <ul className="space-y-2 text-sm text-gray-600 flex-1 mb-5">
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 flex-1 mb-5">
                 {[
                   "50 mensagens para trazer clientes de volta",
                   "Para clientes antigos e orçamentos que sumiram",
@@ -871,7 +873,7 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <a href={CHECKOUT_REATIVACAO} className="flex items-center justify-center gap-2 border-2 border-violet-200 text-violet-700 font-bold py-3 rounded-xl hover:bg-violet-50 transition text-sm">
+              <a href={CHECKOUT_REATIVACAO} className="flex items-center justify-center gap-2 border-2 border-violet-200 dark:border-violet-700 text-violet-700 dark:text-violet-400 font-bold py-3 rounded-xl hover:bg-violet-50 dark:hover:bg-violet-900/30 transition text-sm">
                 Adicionar mensagens de reativação <ArrowRight size={14} />
               </a>
             </div>
@@ -881,24 +883,24 @@ export default function LandingPage() {
       </section>
 
       {/* ── FAQ ── */}
-      <section className="py-20 px-4 bg-white">
+      <section className="py-20 px-4 bg-white dark:bg-gray-900">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <span className="text-violet-600 text-xs font-bold uppercase tracking-widest">Dúvidas</span>
-            <h2 className="text-3xl font-extrabold text-gray-900 mt-2">Perguntas frequentes</h2>
+            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mt-2">Perguntas frequentes</h2>
           </div>
           <div className="space-y-2">
             {FAQ_ITEMS.map((item, i) => (
-              <div key={i} className="border border-gray-200 rounded-2xl overflow-hidden">
+              <div key={i} className="border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full text-left px-6 py-4 flex items-center justify-between gap-4 font-semibold text-gray-800 hover:bg-gray-50 transition"
+                  className="w-full text-left px-6 py-4 flex items-center justify-between gap-4 font-semibold text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
                 >
                   <span className="text-sm">{item.q}</span>
                   <ChevronDown size={18} className={`text-violet-400 flex-shrink-0 transition-transform ${openFaq === i ? "rotate-180" : ""}`} />
                 </button>
                 {openFaq === i && (
-                  <div className="px-6 pb-5 text-gray-600 text-sm leading-relaxed border-t border-gray-100 pt-3">{item.a}</div>
+                  <div className="px-6 pb-5 text-gray-600 dark:text-gray-400 text-sm leading-relaxed border-t border-gray-100 dark:border-gray-700 pt-3">{item.a}</div>
                 )}
               </div>
             ))}
@@ -907,13 +909,13 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA FINAL ── */}
-      <section className="py-24 px-4 bg-gray-50">
+      <section className="py-24 px-4 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-violet-600 font-bold text-sm uppercase tracking-widest mb-3">Seu próximo passo</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
             Seu negócio merece uma presença profissional
           </h2>
-          <p className="text-gray-500 text-base mb-8 max-w-lg mx-auto">
+          <p className="text-gray-500 dark:text-gray-400 text-base mb-8 max-w-lg mx-auto">
             Comece com a prévia grátis e veja em segundos como ficaria o site e os posts do seu negócio.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

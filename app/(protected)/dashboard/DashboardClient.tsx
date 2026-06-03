@@ -13,7 +13,7 @@ import type { Kit, Business, Lead, Subscription, MonthlyContent, UserExtraPackag
 
 type TabId =
   | "inicio" | "gerador" | "posts" | "calendario"
-  | "campanhas" | "mensagens" | "galeria" | "extras" | "leads" | "aparencia";
+  | "campanhas" | "mensagens" | "extras" | "leads" | "aparencia";
 
 const VISUAL_STYLES: { id: VisualStyle; label: string; desc: string }[] = [
   { id: "moderno",     label: "Moderno",     desc: "Limpo e contemporâneo" },
@@ -93,7 +93,10 @@ export default function DashboardClient({
   const [secondaryColor, setSecondary]    = useState((kit.businesses as any).secondary_color ?? "#4f46e5");
   const [selectedStyle, setSelectedStyle] = useState<VisualStyle>((kit.businesses.visual_style as VisualStyle) ?? "moderno");
   const [selectedFont, setSelectedFont]   = useState<string>((kit.businesses as any).font_style ?? "inter");
-  const [previewBgUrl, setPreviewBgUrl]   = useState<string | undefined>();
+  const [textColor,     setTextColor]     = useState<string>("#ffffff");
+  const [previewBgUrl, setPreviewBgUrl]         = useState<string | undefined>();
+  const [previewImagePosY, setPreviewImagePosY] = useState(50);
+  const [previewTemplate, setPreviewTemplate]   = useState<TemplateId>("main_service");
 
   const business = kit.businesses;
   const siteUrl  = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/site/${kit.site_slug}`;
@@ -169,17 +172,16 @@ export default function DashboardClient({
     finally  { setGenerating(false); }
   }
 
-  const tabs: { id: TabId; label: string; icon: string }[] = [
-    { id: "inicio",     label: "Início",      icon: "🏠" },
-    { id: "gerador",    label: "Gerador",     icon: "✨" },
-    { id: "posts",      label: `Posts (${monthlyPosts.length}/${postsLimit})`, icon: "📸" },
-    { id: "calendario", label: "Calendário",  icon: "📅" },
-    { id: "campanhas",  label: "Campanhas",   icon: "🚀" },
-    { id: "mensagens",  label: "Mensagens",   icon: "💬" },
-    { id: "galeria",    label: "Galeria",     icon: "🖼️" },
-    { id: "extras",     label: `Extras${activeExtras.length > 0 ? ` (${activeExtras.length})` : ""}`, icon: "⚡" },
-    { id: "leads",      label: `Leads (${leads.length})`, icon: "🎯" },
-    { id: "aparencia",  label: "Aparência",   icon: "🎨" },
+  const tabs: { id: TabId; label: string }[] = [
+    { id: "inicio",     label: "Início"      },
+    { id: "gerador",    label: "Gerador"     },
+    { id: "posts",      label: `Posts (${monthlyPosts.length}/${postsLimit})` },
+    { id: "calendario", label: "Calendário"  },
+    { id: "campanhas",  label: "Campanhas"   },
+    { id: "mensagens",  label: "Mensagens"   },
+    { id: "extras",     label: `Extras${activeExtras.length > 0 ? ` (${activeExtras.length})` : ""}` },
+    { id: "leads",      label: `Leads (${leads.length})` },
+    { id: "aparencia",  label: "Aparência"   },
   ];
 
   return (
@@ -203,7 +205,7 @@ export default function DashboardClient({
         {/* HEADER */}
         <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Olá, {displayName}! 👋</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Olá, {displayName}!</h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Seu mini site fica ativo. Seus conteúdos renovam todo mês.</p>
           </div>
           <div className="flex items-center gap-2">
@@ -228,13 +230,16 @@ export default function DashboardClient({
         )}
 
         {/* TABS */}
-        <div className="flex gap-1.5 overflow-x-auto pb-2 mb-6 border-b border-gray-100 dark:border-gray-800 scrollbar-hide">
-          {tabs.map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${activeTab === tab.id ? "bg-violet-600 text-white shadow" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"}`}>
-              <span>{tab.icon}</span>
-              <span className="hidden sm:inline">{tab.label}</span>
-            </button>
-          ))}
+        <div className="relative mb-6">
+          <div className="flex gap-1 overflow-x-auto pb-2 border-b border-gray-100 dark:border-gray-800 scrollbar-hide scroll-smooth">
+            {tabs.map((tab) => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap ${activeTab === tab.id ? "bg-violet-600 text-white shadow" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"}`}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          {/* Fade direita — indica mais conteúdo na scroll */}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-2 w-10 bg-gradient-to-l from-white dark:from-gray-950 to-transparent" />
         </div>
 
         {/* ──────────────────── INÍCIO ──────────────────── */}
@@ -255,10 +260,10 @@ export default function DashboardClient({
               </div>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-xl px-4 py-2.5 font-mono text-sm text-gray-600 dark:text-gray-300 truncate mb-3">{siteUrl}</div>
               <div className="flex gap-2 flex-wrap">
-                <a href={`/site/${kit.site_slug}`} target="_blank" className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900 transition">🌐 Abrir site</a>
-                <button onClick={() => copy(siteUrl, "site")} className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition">{copied === "site" ? "✅ Copiado!" : "📋 Copiar link"}</button>
-                <a href={buildWhatsAppLink(business.whatsapp, `Estou enviando o link do meu site: ${siteUrl}`)} target="_blank" className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-green-100 transition">💬 Compartilhar</a>
-                <Link href="/editar-site" className="flex items-center gap-1.5 bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-violet-100 dark:hover:bg-violet-900 transition border border-violet-200 dark:border-violet-800">✏️ Editar site</Link>
+                <a href={`/site/${kit.site_slug}`} target="_blank" className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900 transition">Abrir site</a>
+                <button onClick={() => copy(siteUrl, "site")} className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition">{copied === "site" ? "Copiado!" : "Copiar link"}</button>
+                <a href={buildWhatsAppLink(business.whatsapp, `Estou enviando o link do meu site: ${siteUrl}`)} target="_blank" className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-green-100 transition">Compartilhar</a>
+                <Link href="/editar-site" className="flex items-center gap-1.5 bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-violet-100 dark:hover:bg-violet-900 transition border border-violet-200 dark:border-violet-800">Editar site</Link>
               </div>
             </div>
 
@@ -266,7 +271,7 @@ export default function DashboardClient({
             <Link href="/gerador-magnetico" className="block rounded-2xl p-5 hover:opacity-95 transition shadow-lg" style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%)" }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="inline-flex items-center gap-1.5 bg-white/20 rounded-full px-2.5 py-1 text-white/90 text-xs font-bold mb-2">✨ Novo</div>
+                  <div className="inline-flex items-center gap-1.5 bg-white/20 rounded-full px-2.5 py-1 text-white/90 text-xs font-bold mb-2">Novo</div>
                   <h2 className="text-xl font-extrabold text-white mb-1">Gerador de Conteúdos Magnéticos</h2>
                   <p className="text-white/75 text-sm leading-relaxed">Crie posts, Reels, Stories, carrosséis e mensagens em segundos.</p>
                 </div>
@@ -276,19 +281,17 @@ export default function DashboardClient({
 
             {/* Links rápidos */}
             <div className="grid grid-cols-2 gap-3">
-              <Link href="/galeria" className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 hover:border-violet-200 transition shadow-sm">
+              <Link href="/editar-site" className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 hover:border-violet-200 transition shadow-sm">
                 <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-wide font-bold mb-0.5">Galeria</p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Enviar imagens</p>
+                  <p className="text-xs text-gray-400 uppercase tracking-wide font-bold mb-0.5">Mini site</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Editar site</p>
                 </div>
-                <span className="text-xl">📸</span>
               </Link>
               <Link href="/gerar-post-hoje" className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 hover:border-violet-200 transition shadow-sm">
                 <div>
                   <p className="text-xs text-gray-400 uppercase tracking-wide font-bold mb-0.5">Post de hoje</p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Gerar agora</p>
                 </div>
-                <span className="text-xl">✨</span>
               </Link>
             </div>
 
@@ -300,7 +303,7 @@ export default function DashboardClient({
                   <h2 className="text-lg font-bold text-gray-900 dark:text-white">{monthLabel} {currentYear}</h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Plano {planLabel} · {postsLimit} posts · {captionsLimit} legendas · {messagesLimit} msgs</p>
                 </div>
-                {hasMonthlyContent && <span className="inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-full bg-green-100 text-green-700">✅ Gerado</span>}
+                {hasMonthlyContent && <span className="inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-full bg-green-100 text-green-700">Gerado</span>}
               </div>
 
               {hasMonthlyContent && (
@@ -320,15 +323,15 @@ export default function DashboardClient({
                 </div>
               ) : hasMonthlyContent ? (
                 <div className="flex gap-2 flex-wrap">
-                  <button onClick={() => setActiveTab("posts")} className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-indigo-100 transition">📸 Ver posts</button>
-                  <button onClick={() => setActiveTab("mensagens")} className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-green-100 transition">💬 Ver mensagens</button>
-                  {isPro && <button onClick={() => setActiveTab("campanhas")} className="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-purple-100 transition">🚀 Ver campanhas</button>}
+                  <button onClick={() => setActiveTab("posts")} className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-indigo-100 transition">Ver posts</button>
+                  <button onClick={() => setActiveTab("mensagens")} className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-green-100 transition">Ver mensagens</button>
+                  {isPro && <button onClick={() => setActiveTab("campanhas")} className="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-semibold text-sm px-4 py-2 rounded-xl hover:bg-purple-100 transition">Ver campanhas</button>}
                 </div>
               ) : (
                 <div className="space-y-3">
                   {contentError && <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-2">{contentError}</p>}
                   <button onClick={generateMonthlyContent} disabled={generatingContent} className="w-full gradient-brand text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition disabled:opacity-60 text-sm">
-                    {generatingContent ? "Gerando seus conteúdos…" : `✨ Gerar conteúdos de ${monthLabel}`}
+                    {generatingContent ? "Gerando seus conteúdos…" : `Gerar conteúdos de ${monthLabel}`}
                   </button>
                   <p className="text-xs text-gray-400 text-center">{postsLimit} posts · {captionsLimit} legendas · {messagesLimit} mensagens disponíveis</p>
                 </div>
@@ -338,7 +341,7 @@ export default function DashboardClient({
             {/* Leads resumo */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-bold text-gray-900 dark:text-white">🎯 Leads recebidos</h2>
+                <h2 className="font-bold text-gray-900 dark:text-white">Leads recebidos</h2>
                 <button onClick={() => setActiveTab("leads")} className="text-indigo-600 text-sm font-semibold hover:underline">Ver todos ({leads.length})</button>
               </div>
               {leads.length === 0 ? (
@@ -351,7 +354,7 @@ export default function DashboardClient({
                         <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{lead.name}</p>
                         {lead.interest && <p className="text-xs text-gray-500">{lead.interest}</p>}
                       </div>
-                      <a href={buildWhatsAppLink(lead.whatsapp, `Olá ${lead.name}! Vi que você se cadastrou no nosso site.`)} target="_blank" className="text-xs font-bold text-green-600 hover:underline">💬 Chamar</a>
+                      <a href={buildWhatsAppLink(lead.whatsapp, `Olá ${lead.name}! Vi que você se cadastrou no nosso site.`)} target="_blank" className="text-xs font-bold text-green-600 hover:underline">Chamar</a>
                     </div>
                   ))}
                 </div>
@@ -369,14 +372,14 @@ export default function DashboardClient({
             </div>
             <Link href="/gerador-magnetico" className="flex items-center justify-between rounded-2xl p-6 hover:opacity-95 transition shadow-lg" style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%)" }}>
               <div>
-                <h3 className="text-lg font-extrabold text-white mb-1">✨ Abrir Gerador Magnético</h3>
+                <h3 className="text-lg font-extrabold text-white mb-1">Abrir Gerador Magnético</h3>
                 <p className="text-white/75 text-sm">Tema → Narrativa → Headline → Formato → Resultado</p>
               </div>
               <span className="text-3xl text-white/80">→</span>
             </Link>
             <Link href="/gerar-post-hoje" className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 hover:border-violet-200 transition shadow-sm">
               <div>
-                <p className="font-bold text-gray-900 dark:text-white mb-0.5">⚡ Gerar post de hoje</p>
+                <p className="font-bold text-gray-900 dark:text-white mb-0.5">Gerar post de hoje</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Escolha um objetivo e receba post + legenda + mensagem WhatsApp</p>
               </div>
               <span className="text-gray-400 text-lg">→</span>
@@ -409,13 +412,12 @@ export default function DashboardClient({
                 <p className="text-gray-500 dark:text-gray-400 text-sm">{monthlyPosts.length} de {postsLimit} disponíveis.</p>
               </div>
               <Link href="/gerar-post-hoje" className="flex items-center gap-1.5 gradient-brand text-white font-bold text-xs px-4 py-2 rounded-xl hover:opacity-90 transition">
-                ✨ Gerar post de hoje
+                Gerar post de hoje
               </Link>
             </div>
 
             {!hasMonthlyContent ? (
               <div className="bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl p-12 text-center">
-                <div className="text-4xl mb-3">📸</div>
                 <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-2">Posts não gerados ainda</h3>
                 <p className="text-sm text-gray-500 mb-4">Vá para Início e clique em "Gerar conteúdos deste mês".</p>
                 <button onClick={() => setActiveTab("inicio")} className="inline-block gradient-brand text-white font-bold py-2.5 px-6 rounded-xl text-sm hover:opacity-90 transition">Ir para Início →</button>
@@ -449,7 +451,7 @@ export default function DashboardClient({
                             onClick={() => setEditingPost(post)}
                             className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold hover:text-violet-600 transition"
                           >
-                            ✏️ Editar
+                            Editar
                           </button>
                         )}
                       </div>
@@ -483,7 +485,7 @@ export default function DashboardClient({
                         <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{entry.caption_snippet}</p>
                       </div>
                       <button onClick={() => copy(entry.caption_snippet, `cal-${week}-${i}`)} className="flex-shrink-0 text-violet-600 text-xs font-semibold hover:underline self-start">
-                        {copied === `cal-${week}-${i}` ? "✅" : "Copiar"}
+                        {copied === `cal-${week}-${i}` ? "Copiado" : "Copiar"}
                       </button>
                     </div>
                   ))}
@@ -502,7 +504,6 @@ export default function DashboardClient({
             </div>
             {!isPro ? (
               <div className="bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl p-12 text-center">
-                <div className="text-4xl mb-3">🚀</div>
                 <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-2">Disponível no plano Pro</h3>
                 <p className="text-sm text-gray-500 mb-4">Campanhas prontas fazem parte do plano Pro (R$ 57/mês).</p>
                 <a href={process.env.NEXT_PUBLIC_CHECKOUT_URL_PRO ?? "#"} className="inline-block gradient-brand text-white font-bold py-2.5 px-6 rounded-xl text-sm hover:opacity-90 transition">Fazer upgrade para Pro →</a>
@@ -512,7 +513,6 @@ export default function DashboardClient({
                 {campaigns.map((campaign) => (
                   <div key={campaign.id} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-2xl">{campaign.emoji}</span>
                       <h3 className="font-bold text-gray-900 dark:text-white">{campaign.name}</h3>
                     </div>
                     <div className="space-y-2">
@@ -553,7 +553,7 @@ export default function DashboardClient({
                         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{msg}</p>
                       </div>
                       <button onClick={() => copy(msg, `wa-msg-${i}`)} className="flex-shrink-0 text-green-600 text-sm font-semibold hover:underline">
-                        {copied === `wa-msg-${i}` ? "✅" : "Copiar"}
+                        {copied === `wa-msg-${i}` ? "Copiado" : "Copiar"}
                       </button>
                     </div>
                   ))}
@@ -568,53 +568,17 @@ export default function DashboardClient({
                   {recoveryMessages.map((msg) => (
                     <div key={msg.id} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <span>{msg.emoji}</span>
                         <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{msg.situation}</p>
                       </div>
                       <div className="flex items-start justify-between gap-3">
                         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{msg.message}</p>
                         <button onClick={() => copy(msg.message, `rec-${msg.id}`)} className="flex-shrink-0 text-violet-600 text-sm font-semibold hover:underline">
-                          {copied === `rec-${msg.id}` ? "✅" : "Copiar"}
+                          {copied === `rec-${msg.id}` ? "Copiado" : "Copiar"}
                         </button>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ──────────────────── GALERIA ──────────────────── */}
-        {activeTab === "galeria" && (
-          <div className="space-y-5">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Minha galeria de imagens</h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Envie e organize fotos do negócio para posts, site e stories.</p>
-            </div>
-            <Link href="/galeria" className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 hover:border-violet-200 transition shadow-sm">
-              <div>
-                <p className="font-bold text-gray-900 dark:text-white mb-1">📸 Abrir galeria completa</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Envie imagens, defina capa, logo e fotos profissionais</p>
-                <p className="text-xs text-gray-400 mt-1">{galleryImages.length} imagem{galleryImages.length !== 1 ? "s" : ""} enviada{galleryImages.length !== 1 ? "s" : ""}</p>
-              </div>
-              <span className="text-gray-400 text-lg">→</span>
-            </Link>
-            {galleryImages.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                {galleryImages.slice(0, 6).map((img) => (
-                  <div key={img.id} className="aspect-square rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={img.image_url} alt="" className="w-full h-full object-cover" />
-                  </div>
-                ))}
-              </div>
-            )}
-            {!isPro && (
-              <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-5">
-                <p className="font-bold text-yellow-800 dark:text-yellow-300 text-sm mb-1">Galeria e imagens nos posts disponíveis no Pro</p>
-                <p className="text-xs text-yellow-700 dark:text-yellow-400 mb-2">No Pro você usa imagens reais nos posts e no mini site com capa personalizada.</p>
-                <a href={process.env.NEXT_PUBLIC_CHECKOUT_URL_PRO ?? "#"} className="text-xs font-bold text-yellow-800 dark:text-yellow-300 underline">Fazer upgrade para Pro →</a>
               </div>
             )}
           </div>
@@ -663,7 +627,7 @@ export default function DashboardClient({
                   <ul className="space-y-1.5 text-xs text-gray-600 dark:text-gray-400 flex-1 mb-4">
                     {pkg.benefits.map((b) => <li key={b} className="flex items-center gap-1.5"><span className="text-violet-400">✓</span> {b}</li>)}
                   </ul>
-                  {pkg.active ? <div className="text-center py-2 text-sm text-green-600 font-bold">✅ Já adicionado</div> : <a href={pkg.checkoutUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 gradient-brand text-white font-bold py-2.5 rounded-xl hover:opacity-90 transition text-xs">{pkg.cta} →</a>}
+                  {pkg.active ? <div className="text-center py-2 text-sm text-green-600 font-bold">Já adicionado</div> : <a href={pkg.checkoutUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 gradient-brand text-white font-bold py-2.5 rounded-xl hover:opacity-90 transition text-xs">{pkg.cta} →</a>}
                 </div>
               ))}
             </div>
@@ -679,10 +643,9 @@ export default function DashboardClient({
             </div>
             {leads.length === 0 ? (
               <div className="bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl p-12 text-center">
-                <div className="text-4xl mb-3">🎯</div>
                 <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-2">Nenhum lead ainda</h3>
                 <p className="text-sm text-gray-500 mb-4">Compartilhe o link do seu site no Instagram, WhatsApp e Google.</p>
-                <button onClick={() => copy(siteUrl, "site-leads")} className="inline-block gradient-brand text-white font-bold py-2.5 px-6 rounded-xl text-sm hover:opacity-90 transition">{copied === "site-leads" ? "✅ Copiado!" : "📋 Copiar link do site"}</button>
+                <button onClick={() => copy(siteUrl, "site-leads")} className="inline-block gradient-brand text-white font-bold py-2.5 px-6 rounded-xl text-sm hover:opacity-90 transition">{copied === "site-leads" ? "Copiado!" : "Copiar link do site"}</button>
               </div>
             ) : (
               <div className="space-y-3">
@@ -694,7 +657,7 @@ export default function DashboardClient({
                       {lead.interest && <p className="text-xs text-gray-400">Interesse: {lead.interest}</p>}
                       <p className="text-xs text-gray-300 dark:text-gray-600 mt-0.5">{new Date(lead.created_at).toLocaleDateString("pt-BR")}</p>
                     </div>
-                    <a href={buildWhatsAppLink(lead.whatsapp, `Olá ${lead.name}! Vi que você se cadastrou no site da ${business.business_name}.`)} target="_blank" className="flex items-center gap-2 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 font-bold text-sm px-4 py-2 rounded-xl hover:bg-green-100 transition">💬 Chamar</a>
+                    <a href={buildWhatsAppLink(lead.whatsapp, `Olá ${lead.name}! Vi que você se cadastrou no site da ${business.business_name}.`)} target="_blank" className="flex items-center gap-2 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 font-bold text-sm px-4 py-2 rounded-xl hover:bg-green-100 transition">Chamar</a>
                   </div>
                 ))}
               </div>
@@ -706,62 +669,109 @@ export default function DashboardClient({
         {activeTab === "aparencia" && (
           <div>
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Editar aparência</h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Personalize cores, fontes e estilos dos seus posts e mini site.</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Aparência do mini site</h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Edite cores, fonte, imagens e conteúdo do seu site.</p>
             </div>
 
+            <Link href="/editar-site" className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 hover:border-violet-300 hover:shadow-sm transition shadow-sm mb-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl gradient-brand flex items-center justify-center flex-shrink-0">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">Editar mini site</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Cor, fonte, imagens, serviços, horários, depoimentos e mais</p>
+                </div>
+              </div>
+              <span className="text-gray-400 text-lg">→</span>
+            </Link>
+
+            <a href={`/site/${kit.site_slug}`} target="_blank" className="flex items-center justify-between bg-indigo-50 dark:bg-indigo-950 rounded-2xl border border-indigo-100 dark:border-indigo-900 p-5 hover:border-indigo-300 transition">
+              <div>
+                <p className="font-bold text-indigo-800 dark:text-indigo-200">Ver site ao vivo</p>
+                <p className="text-sm text-indigo-600 dark:text-indigo-400 mt-0.5 font-mono truncate max-w-xs">/site/{kit.site_slug}</p>
+              </div>
+              <span className="text-indigo-500 text-lg">↗</span>
+            </a>
+
+            {/* Bloco antigo (oculto) — mantido apenas para preservar os estados */}
+            <div className="hidden">
+
             <div className="grid md:grid-cols-5 gap-6">
-              {/* Controles */}
-              <div className="md:col-span-3 space-y-6">
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+              {/* ── Controles (esquerda, 2 cols) ── */}
+              <div className="md:col-span-2 space-y-5">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm space-y-5">
 
                   {/* Cor principal */}
-                  <div className="mb-5">
-                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-3">Cor principal</label>
-                    <div className="flex flex-wrap gap-2 mb-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Cor principal</label>
+                    <div className="flex flex-wrap gap-2 mb-2">
                       {COLOR_PRESETS.map((c) => (
-                        <button key={c.value} onClick={() => setPrimaryColor(c.value)} className={`w-9 h-9 rounded-xl transition border-2 hover:scale-110 ${primaryColor === c.value ? "border-gray-800 dark:border-white scale-110" : "border-transparent"}`} style={{ background: c.value }} title={c.label} />
+                        <button key={c.value} onClick={() => setPrimaryColor(c.value)} className={`w-8 h-8 rounded-lg transition border-2 hover:scale-110 ${primaryColor === c.value ? "border-gray-800 dark:border-white scale-110" : "border-transparent"}`} style={{ background: c.value }} title={c.label} />
                       ))}
                     </div>
-                    <div className="flex items-center gap-3">
-                      <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-12 h-12 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer" />
-                      <div>
-                        <p className="text-xs text-gray-400 mb-0.5">Cor escolhida</p>
-                        <span className="text-sm text-gray-700 dark:text-gray-200 font-mono font-bold">{primaryColor}</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer" />
+                      <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{primaryColor}</span>
                     </div>
                   </div>
 
                   {/* Cor secundária */}
-                  <div className="mb-5">
-                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-3">Cor secundária</label>
-                    <div className="flex items-center gap-3">
-                      <input type="color" value={secondaryColor} onChange={(e) => setSecondary(e.target.value)} className="w-12 h-12 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer" />
-                      <span className="text-sm text-gray-700 dark:text-gray-200 font-mono">{secondaryColor}</span>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Cor secundária</label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={secondaryColor} onChange={(e) => setSecondary(e.target.value)} className="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer" />
+                      <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{secondaryColor}</span>
+                    </div>
+                  </div>
+
+                  {/* Cor do texto nos posts */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Cor do texto (posts)</label>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {["#ffffff","#f0f0f0","#111111","#333333","#ffdd57","#f97316","#22d3ee"].map((c) => (
+                        <button key={c} onClick={() => setTextColor(c)} className={`w-8 h-8 rounded-lg border-2 transition hover:scale-110 ${textColor === c ? "border-gray-800 dark:border-white scale-110" : "border-gray-200 dark:border-gray-600"}`} style={{ background: c }} />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer" />
+                      <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{textColor}</span>
                     </div>
                   </div>
 
                   {/* Fonte */}
-                  <div className="mb-5">
-                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-3">Estilo de fonte</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Fonte</label>
+                    <div className="grid grid-cols-2 gap-1.5">
                       {FONT_STYLES.map((f) => (
-                        <button key={f.id} onClick={() => setSelectedFont(f.id)} className={`border-2 rounded-xl px-3 py-3 text-left transition ${selectedFont === f.id ? "border-violet-500 bg-violet-50 dark:bg-violet-950" : "border-gray-200 dark:border-gray-700 hover:border-gray-300"}`}>
-                          <p className="font-bold text-lg text-gray-800 dark:text-gray-200 mb-0.5" style={{ fontFamily: f.css }}>{f.sample}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{f.label}</p>
+                        <button key={f.id} onClick={() => setSelectedFont(f.id)} className={`border-2 rounded-xl px-2 py-2.5 text-left transition ${selectedFont === f.id ? "border-violet-500 bg-violet-50 dark:bg-violet-950" : "border-gray-200 dark:border-gray-700 hover:border-gray-300"}`}>
+                          <p className="font-bold text-gray-800 dark:text-gray-200 text-base leading-none mb-0.5" style={{ fontFamily: f.css }}>{f.sample}</p>
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400">{f.label}</p>
                         </button>
                       ))}
                     </div>
                   </div>
 
                   {/* Estilo visual */}
-                  <div className="mb-5">
-                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-3">Estilo visual</label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Estilo visual</label>
+                    <div className="grid grid-cols-2 gap-1.5">
                       {VISUAL_STYLES.map((style) => (
-                        <button key={style.id} onClick={() => setSelectedStyle(style.id)} className={`border-2 rounded-xl p-3 text-left transition ${selectedStyle === style.id ? "border-violet-500 bg-violet-50 dark:bg-violet-950" : "border-gray-200 dark:border-gray-700 hover:border-gray-300"}`}>
-                          <p className="font-bold text-gray-800 dark:text-gray-200 text-sm">{style.label}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{style.desc}</p>
+                        <button key={style.id} onClick={() => setSelectedStyle(style.id)} className={`border-2 rounded-xl p-2.5 text-left transition ${selectedStyle === style.id ? "border-violet-500 bg-violet-50 dark:bg-violet-950" : "border-gray-200 dark:border-gray-700 hover:border-gray-300"}`}>
+                          <p className="font-bold text-gray-800 dark:text-gray-200 text-xs">{style.label}</p>
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">{style.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Template selecionado para preview */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Template do preview</label>
+                    <div className="grid grid-cols-3 gap-1">
+                      {(["main_service","whatsapp_cta","promotion","foto_fundo","strong_cta","depoimento"] as TemplateId[]).map((t) => (
+                        <button key={t} onClick={() => setPreviewTemplate(t)} className={`py-1.5 px-1 text-[10px] font-semibold rounded-lg border transition text-center ${previewTemplate === t ? "border-violet-500 bg-violet-50 dark:bg-violet-950 text-violet-700" : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-violet-300"}`}>
+                          {t === "main_service" ? "Serviço" : t === "whatsapp_cta" ? "WhatsApp" : t === "promotion" ? "Promoção" : t === "foto_fundo" ? "Foto" : t === "strong_cta" ? "CTA" : "Depoimento"}
                         </button>
                       ))}
                     </div>
@@ -769,109 +779,179 @@ export default function DashboardClient({
 
                   {/* Imagem de fundo no preview */}
                   <div>
-                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Imagem de fundo (preview)</label>
-                    <p className="text-xs text-gray-400 mb-3">Veja como o post fica com foto do seu negócio.</p>
-                    {galleryImages.length > 0 ? (
-                      <div className="grid grid-cols-4 gap-2">
-                        <button
-                          onClick={() => setPreviewBgUrl(undefined)}
-                          className={`aspect-square rounded-xl border-2 flex items-center justify-center text-xs font-semibold transition ${!previewBgUrl ? "border-violet-500 bg-violet-50 dark:bg-violet-950 text-violet-600" : "border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-300"}`}
-                        >
-                          Sem foto
-                        </button>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Foto de fundo (preview)</label>
+                    <label className="flex items-center gap-3 cursor-pointer border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl py-3 px-4 hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/20 transition mb-2">
+                      <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 dark:text-gray-300">Carregar foto</p>
+                        <p className="text-[10px] text-gray-400">JPG, PNG, WEBP</p>
+                      </div>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { if (ev.target?.result) setPreviewBgUrl(ev.target.result as string); }; reader.readAsDataURL(file); e.target.value = ""; }} />
+                    </label>
+                    {galleryImages.length > 0 && (
+                      <div className="grid grid-cols-4 gap-1.5 mb-2">
+                        <button onClick={() => setPreviewBgUrl(undefined)} className={`aspect-square rounded-lg border-2 flex items-center justify-center text-[10px] font-semibold transition ${!previewBgUrl ? "border-violet-500 bg-violet-50 dark:bg-violet-950 text-violet-600" : "border-gray-200 dark:border-gray-700 text-gray-400"}`}>Sem</button>
                         {galleryImages.slice(0, 7).map((img) => (
-                          <button
-                            key={img.id}
-                            onClick={() => setPreviewBgUrl(img.image_url)}
-                            className={`aspect-square rounded-xl overflow-hidden border-2 transition hover:scale-105 ${previewBgUrl === img.image_url ? "border-violet-500 scale-105" : "border-transparent"}`}
-                          >
+                          <button key={img.id} onClick={() => setPreviewBgUrl(img.image_url)} className={`aspect-square rounded-lg overflow-hidden border-2 transition ${previewBgUrl === img.image_url ? "border-violet-500" : "border-transparent hover:border-violet-300"}`}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={img.image_url} alt="" className="w-full h-full object-cover" />
                           </button>
                         ))}
                       </div>
-                    ) : (
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 text-center">
-                        <p className="text-xs text-gray-400 mb-2">Nenhuma imagem na galeria ainda.</p>
-                        <Link href="/galeria" className="text-xs font-bold text-violet-600 hover:underline">Ir para galeria →</Link>
+                    )}
+                    {previewBgUrl && (
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] text-gray-500">Posição</span>
+                          <span className="text-[10px] text-violet-500 font-bold">{previewImagePosY}%</span>
+                        </div>
+                        <input type="range" min="0" max="100" step="1" value={previewImagePosY} onChange={(e) => setPreviewImagePosY(Number(e.target.value))} className="w-full accent-violet-600" />
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="flex gap-3">
-                  <button onClick={saveAppearance} disabled={savingAppearance} className="flex-1 gradient-brand text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition disabled:opacity-60 text-sm">
-                    {savingAppearance ? "Salvando…" : appearanceSaved ? "✅ Aparência salva!" : "Salvar aparência"}
-                  </button>
-                  <Link href="/editar-site" className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border-2 border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 font-bold text-sm hover:bg-violet-50 dark:hover:bg-violet-950 transition">
-                    ✏️ Editar mini site
+                {/* Quick site config */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Mini site</p>
+                  <p className="text-xs text-gray-400 mb-4">Configure links, imagens e informações do site no editor completo.</p>
+                  <Link href="/editar-site" className="flex items-center justify-between w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:border-violet-400 hover:text-violet-600 transition">
+                    <span>Editar mini site</span>
+                    <span className="text-gray-400">→</span>
                   </Link>
+                  <p className="text-[10px] text-gray-400 mt-2">Links, serviços, imagens, logo, horários e avaliações</p>
                 </div>
+
+                {/* Salvar */}
+                <button onClick={saveAppearance} disabled={savingAppearance} className="w-full gradient-brand text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition disabled:opacity-60 text-sm">
+                  {savingAppearance ? "Salvando…" : appearanceSaved ? "Aparência salva!" : "Salvar aparência"}
+                </button>
               </div>
 
-              {/* Preview */}
-              <div className="md:col-span-2 space-y-4">
+              {/* ── Preview (direita, 3 cols) ── */}
+              <div className="md:col-span-3 space-y-5">
                 <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Preview</p>
 
-                {/* Preview post — template varia conforme estilo visual */}
+                {/* Mini site preview — completo, largo */}
                 <div>
-                  <p className="text-[10px] text-gray-400 mb-1.5">Post ({FONT_STYLES.find(f => f.id === selectedFont)?.label})</p>
-                  <div className="max-w-[260px]">
-                    <PostCard
-                      template_type={STYLE_PREVIEW_TEMPLATE[selectedStyle] ?? "main_service"}
-                      title={business.business_name}
-                      subtitle={business.main_service}
-                      cta="Fale no WhatsApp"
-                      business_name={business.business_name}
-                      primary_color={primaryColor}
-                      niche={business.niche}
-                      city={business.city}
-                      fontFamily={FONT_STYLES.find(f => f.id === selectedFont)?.css}
-                      backgroundImageUrl={previewBgUrl}
-                    />
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Mini site</p>
+                  <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                    {/* Header */}
+                    <div style={{ background: `linear-gradient(135deg, ${primaryColor}f0 0%, ${secondaryColor}cc 100%)`, padding: "20px" }}>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, color: "#fff", fontSize: 18, flexShrink: 0 }}>
+                          {business.business_name[0]?.toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-white font-extrabold text-sm leading-tight">{business.business_name}</p>
+                          <p className="text-white/60 text-xs">{business.city} · {business.niche}</p>
+                        </div>
+                      </div>
+                      <div style={{ background: "#25D366", borderRadius: 10, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: "#fff" }}>Chamar no WhatsApp</span>
+                      </div>
+                    </div>
+                    {/* Serviços */}
+                    <div className="bg-white dark:bg-gray-800 px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                      <p style={{ fontSize: 9, fontWeight: 800, color: primaryColor, letterSpacing: "0.18em", textTransform: "uppercase" as const, marginBottom: 8 }}>Serviços</p>
+                      {((business as any).services_json ?? (business as any).services ?? [business.main_service]).slice(0, 3).map((svc: string, i: number) => (
+                        <div key={i} style={{ background: `${primaryColor}10`, border: `1px solid ${primaryColor}30`, borderRadius: 8, padding: "7px 12px", marginBottom: 6 }}>
+                          <p style={{ fontSize: 12, fontWeight: 700 }} className="text-gray-900 dark:text-white">{svc}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Links */}
+                    <div className="bg-white dark:bg-gray-800 px-4 py-3">
+                      <p style={{ fontSize: 9, fontWeight: 800, color: primaryColor, letterSpacing: "0.18em", textTransform: "uppercase" as const, marginBottom: 8 }}>Links</p>
+                      <div className="flex gap-2">
+                        {["WhatsApp","Localização","Instagram"].map((l) => (
+                          <div key={l} style={{ flex: 1, background: secondaryColor + "18", border: `1px solid ${secondaryColor}35`, borderRadius: 8, padding: "7px 0", textAlign: "center" as const }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: primaryColor }}>{l}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Preview WhatsApp */}
+                {/* Posts preview — 2 lado a lado, tamanho maior */}
                 <div>
-                  <p className="text-[10px] text-gray-400 mb-1.5">WhatsApp CTA</p>
-                  <div className="max-w-[260px]">
-                    <PostCard
-                      template_type="whatsapp_cta"
-                      title="Agenda aberta"
-                      subtitle={`Marque seu horário em ${business.city}`}
-                      cta="Agendar pelo WhatsApp"
-                      business_name={business.business_name}
-                      primary_color={primaryColor}
-                      niche={business.niche}
-                      city={business.city}
-                      fontFamily={FONT_STYLES.find(f => f.id === selectedFont)?.css}
-                    />
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Posts</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[10px] text-gray-400 mb-1.5">{FONT_STYLES.find(f => f.id === selectedFont)?.label} · {VISUAL_STYLES.find(s => s.id === selectedStyle)?.label}</p>
+                      <PostCard
+                        template_type={previewTemplate}
+                        title={business.business_name}
+                        subtitle={business.main_service}
+                        cta="Fale no WhatsApp"
+                        business_name={business.business_name}
+                        primary_color={primaryColor}
+                        secondaryColor={secondaryColor}
+                        niche={business.niche}
+                        city={business.city}
+                        fontFamily={FONT_STYLES.find(f => f.id === selectedFont)?.css}
+                        backgroundImageUrl={previewBgUrl}
+                        imagePositionY={previewImagePosY}
+                        textColor={textColor}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 mb-1.5">Promoção (gradiente)</p>
+                      <PostCard
+                        template_type="promotion"
+                        title="Oferta especial"
+                        subtitle={`Para novos clientes em ${business.city}`}
+                        cta="Aproveitar agora"
+                        business_name={business.business_name}
+                        primary_color={primaryColor}
+                        secondaryColor={secondaryColor}
+                        fontFamily={FONT_STYLES.find(f => f.id === selectedFont)?.css}
+                        textColor={textColor}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Preview promoção */}
-                <div>
-                  <p className="text-[10px] text-gray-400 mb-1.5">Promoção</p>
-                  <div className="max-w-[260px]">
-                    <PostCard
-                      template_type="promotion"
-                      title="Oferta especial"
-                      subtitle={`Para novos clientes em ${business.city}`}
-                      cta="Aproveitar agora"
-                      business_name={business.business_name}
-                      primary_color={primaryColor}
-                      fontFamily={FONT_STYLES.find(f => f.id === selectedFont)?.css}
-                    />
+                {/* Preview com foto — quando tiver imagem */}
+                {previewBgUrl && (
+                  <div>
+                    <p className="text-[10px] text-gray-400 mb-1.5">Com sua foto</p>
+                    <div className="max-w-[280px]">
+                      <PostCard
+                        template_type="foto_fundo"
+                        title={business.business_name}
+                        subtitle={business.main_service}
+                        cta="Fale no WhatsApp"
+                        business_name={business.business_name}
+                        primary_color={primaryColor}
+                        secondaryColor={secondaryColor}
+                        fontFamily={FONT_STYLES.find(f => f.id === selectedFont)?.css}
+                        backgroundImageUrl={previewBgUrl}
+                        imagePositionY={previewImagePosY}
+                        textColor={textColor}
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
+            </div>{/* fecha hidden */}
           </div>
         )}
 
-        <div className="mt-10 text-center">
-          <Link href="/suporte" className="text-sm text-gray-400 hover:text-violet-500 transition">Precisa de ajuda? Acesse o suporte</Link>
+        {/* Rodapé */}
+        <div className="mt-10 border-t border-gray-100 dark:border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-xs text-gray-400 dark:text-gray-600">
+            MeuNegócio Pro · Plano <span className="font-bold text-violet-500">{planLabel}</span>
+          </p>
+          <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-600">
+            <Link href="/suporte" className="hover:text-violet-500 transition">Suporte</Link>
+            <a href={`/site/${kit.site_slug}`} target="_blank" className="hover:text-violet-500 transition">Ver meu site</a>
+            <Link href="/editar-site" className="hover:text-violet-500 transition">Editar site</Link>
+          </div>
         </div>
       </div>
     </>
@@ -887,7 +967,7 @@ function CopyRow({ label, text, copyKey, copied, onCopy, green }: { label: strin
           <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">{text}</p>
         </div>
         <button onClick={() => onCopy(text, copyKey)} className={`flex-shrink-0 text-xs font-bold ${green ? "text-green-600" : "text-violet-600"}`}>
-          {copied === copyKey ? "✅" : "Copiar"}
+          {copied === copyKey ? "Copiado" : "Copiar"}
         </button>
       </div>
     </div>

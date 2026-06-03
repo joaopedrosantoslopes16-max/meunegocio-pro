@@ -1,7 +1,24 @@
+import type React from "react";
 import LeadForm from "./LeadForm";
 import { buildWhatsAppLink } from "@/lib/whatsapp-utils";
 import { NICHE_CONFIG } from "@/lib/niche-config";
 import type { Business } from "@/types";
+
+// ── Font map ───────────────────────────────────────────────
+const FONT_IMPORTS: Record<string, string> = {
+  inter:      "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap",
+  poppins:    "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap",
+  montserrat: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap",
+  opensans:   "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800;900&display=swap",
+  nunito:     "https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap",
+};
+const FONT_FAMILY: Record<string, string> = {
+  inter:      "'Inter', system-ui, sans-serif",
+  poppins:    "'Poppins', sans-serif",
+  montserrat: "'Montserrat', sans-serif",
+  opensans:   "'Open Sans', sans-serif",
+  nunito:     "'Nunito', sans-serif",
+};
 
 // ── Ícones SVG inline ──────────────────────────────────────
 const IconWA = ({ size = 20 }: { size?: number }) => (
@@ -24,13 +41,8 @@ const IconClock = () => (
     <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
   </svg>
 );
-const IconCheck = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"/>
-  </svg>
-);
-const IconStar = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+const IconStar = ({ filled = true }: { filled?: boolean }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5">
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
   </svg>
 );
@@ -83,21 +95,67 @@ interface SiteBodyProps {
 }
 
 export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
-  const cfg          = NICHE_CONFIG[business.niche] ?? NICHE_CONFIG.outro;
-  const color        = business.primary_color ?? "#7c3aed";
-  const initial      = business.business_name[0].toUpperCase();
-  const waMain       = buildWhatsAppLink(business.whatsapp, `Olá! Vim pelo site da ${business.business_name} e quero saber mais sobre ${business.main_service}.`);
-  const rawServices: string[] = Array.isArray(business.services) && business.services.length > 0
+  const cfg           = NICHE_CONFIG[business.niche] ?? NICHE_CONFIG.outro;
+  const color         = business.primary_color ?? "#7c3aed";
+  const initial       = business.business_name[0].toUpperCase();
+
+  // font_style pode ser string simples ("inter") ou JSON com config completa
+  let fontKey = "inter", siteBgColor = "#ffffff", siteTextColor = "#111111", siteBgImg = "";
+  try {
+    const raw = (business as any).font_style ?? "inter";
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      fontKey       = parsed.font   ?? "inter";
+      siteBgColor   = parsed.bg     ?? "#ffffff";
+      siteTextColor = parsed.text   ?? "#111111";
+      siteBgImg     = parsed.bgImg  ?? "";
+    } else {
+      fontKey = raw;
+    }
+  } catch {
+    fontKey = (business as any).font_style ?? "inter";
+  }
+
+  const fontFamily    = FONT_FAMILY[fontKey]   ?? FONT_FAMILY.inter;
+  const fontImport    = FONT_IMPORTS[fontKey]  ?? FONT_IMPORTS.inter;
+  const waMain        = buildWhatsAppLink(business.whatsapp, `Olá! Vim pelo site da ${business.business_name} e quero saber mais sobre ${business.main_service}.`);
+
+  // Instagram: aceita @handle ou URL completa
+  const igRaw = business.instagram ?? "";
+  const igUrl = igRaw.startsWith("http")
+    ? igRaw
+    : igRaw ? `https://instagram.com/${igRaw.replace("@", "")}` : "";
+  const igHandle = igRaw.startsWith("http")
+    ? `@${igRaw.split("instagram.com/").pop()?.split("/")[0] ?? ""}`
+    : igRaw;
+  const rawServices: string[] = Array.isArray(business.services_json) && business.services_json.length > 0
+    ? business.services_json
+    : Array.isArray(business.services) && business.services.length > 0
     ? business.services
     : cfg.services ?? [];
-  const serviceEmojis = NICHE_SERVICE_EMOJIS[business.niche] ?? NICHE_SERVICE_EMOJIS.outro;
-  const cover        = NICHE_COVER[business.niche] ?? NICHE_COVER.outro;
-  const aboutText    = buildAboutText(business.business_name, business.niche, business.city, business.main_service);
+  const serviceEmojis  = NICHE_SERVICE_EMOJIS[business.niche] ?? NICHE_SERVICE_EMOJIS.outro;
+  const cover          = NICHE_COVER[business.niche] ?? NICHE_COVER.outro;
+  const aboutText      = buildAboutText(business.business_name, business.niche, business.city, business.main_service);
+  const benefits       = (business.benefits_json ?? []).filter(Boolean);
+  const testimonials   = ((business.testimonials_json ?? []) as { text: string; author: string; stars?: number }[]).filter((t) => t.text);
+  const hoursEntries   = Object.entries(business.opening_hours_json ?? {});
+  const coverPosY      = (business as any).cover_image_position_y ?? 50;
+  const proPhotoPosY   = (business as any).professional_photo_position_y ?? 50;
+
+  // Cover image style
+  const coverImgStyle = business.cover_image_url
+    ? { backgroundImage: `url(${business.cover_image_url})`, backgroundSize: "cover", backgroundPosition: `center ${coverPosY}%` }
+    : { background: cover.bg };
+
+  // Site background
+  const siteRootStyle: React.CSSProperties = siteBgImg
+    ? { background: siteBgColor, backgroundImage: `url(${siteBgImg})`, backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed", backgroundBlendMode: "overlay" }
+    : { background: siteBgColor };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#fff", fontFamily: "'Inter', system-ui, sans-serif", WebkitFontSmoothing: "antialiased", color: "#111", paddingBottom: "80px" }}>
+    <div style={{ minHeight: "100vh", ...siteRootStyle, fontFamily, WebkitFontSmoothing: "antialiased", color: siteTextColor, paddingBottom: "80px" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        @import url('${fontImport}');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root { --c: ${color}; }
         a { text-decoration: none; color: inherit; }
@@ -115,20 +173,22 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
       <section style={{ position: "relative", overflow: "hidden" }}>
 
         {/* CAPA */}
-        <div style={{ height: "260px", position: "relative", overflow: "hidden", background: cover.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ fontSize: "120px", opacity: 0.12, userSelect: "none", position: "absolute", right: "24px", bottom: "-10px" }}>
-            {cover.emoji}
-          </div>
+        <div style={{ height: "260px", position: "relative", overflow: "hidden", ...coverImgStyle, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.55) 100%)" }} />
+          {!business.cover_image_url && (
+            <div style={{ fontSize: "120px", opacity: 0.12, userSelect: "none", position: "absolute", right: "24px", bottom: "-10px" }}>
+              {cover.emoji}
+            </div>
+          )}
           <div style={{ position: "absolute", top: "20px", left: "20px" }}>
             <div style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: "100px", padding: "5px 12px" }}>
               <span style={{ color: "#fff", fontSize: "12px", fontWeight: 700, letterSpacing: "0.10em", textTransform: "uppercase" }}>{cfg.label}</span>
             </div>
           </div>
-          {business.instagram && (
-            <a href={`https://instagram.com/${business.instagram.replace("@","")}`} target="_blank" rel="noopener noreferrer"
+          {igUrl && (
+            <a href={igUrl} target="_blank" rel="noopener noreferrer"
                style={{ position: "absolute", top: "20px", right: "20px", display: "flex", alignItems: "center", gap: "6px", background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: "100px", padding: "5px 12px", color: "#fff", fontSize: "12px", fontWeight: 700 }}>
-              <IconIG /> {business.instagram}
+              <IconIG /> {igHandle}
             </a>
           )}
           <div style={{ position: "absolute", bottom: "20px", left: "20px", display: "flex", alignItems: "center", gap: "6px", color: "rgba(255,255,255,0.85)", fontSize: "13px", fontWeight: 600 }}>
@@ -138,15 +198,20 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
 
         {/* PERFIL */}
         <div style={{ position: "relative", padding: "0 20px", maxWidth: "560px", margin: "0 auto" }}>
-          <div style={{ marginTop: "-52px", marginBottom: "16px", position: "relative", display: "inline-block" }}>
-            <div style={{ position: "absolute", inset: "-6px", borderRadius: "28px", background: color, opacity: 0.25, animation: "pulse-ring 2.8s ease-out infinite" }} />
-            <div style={{ width: "104px", height: "104px", borderRadius: "24px", background: `linear-gradient(135deg, ${color} 0%, ${color}bb 100%)`, border: "4px solid #fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "44px", fontWeight: 900, color: "#fff", boxShadow: `0 8px 32px ${color}40`, position: "relative" }}>
-              {initial}
-            </div>
+          <div style={{ marginTop: "16px", marginBottom: "16px", position: "relative", display: "inline-block" }}>
+            <div style={{ position: "absolute", inset: "-6px", borderRadius: "50%", background: color, opacity: 0.25, animation: "pulse-ring 2.8s ease-out infinite" }} />
+            {business.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={business.logo_url} alt={business.business_name} style={{ width: "104px", height: "104px", borderRadius: "50%", border: "4px solid #fff", objectFit: "cover", boxShadow: `0 8px 32px ${color}40`, position: "relative" }} />
+            ) : (
+              <div style={{ width: "104px", height: "104px", borderRadius: "50%", background: `linear-gradient(135deg, ${color} 0%, ${color}bb 100%)`, border: "4px solid #fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "44px", fontWeight: 900, color: "#fff", boxShadow: `0 8px 32px ${color}40`, position: "relative" }}>
+                {initial}
+              </div>
+            )}
           </div>
 
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", flexWrap: "wrap", marginBottom: "6px" }}>
-            <h1 style={{ fontSize: "clamp(24px,7vw,34px)", fontWeight: 900, color: "#111", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+            <h1 style={{ fontSize: "clamp(24px,7vw,34px)", fontWeight: 900, color: siteTextColor, letterSpacing: "-0.03em", lineHeight: 1.1 }}>
               {business.business_name}
             </h1>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "100px", padding: "4px 10px", flexShrink: 0, marginTop: "4px" }}>
@@ -155,9 +220,13 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
             </div>
           </div>
 
-          <p style={{ fontSize: "15px", fontWeight: 600, color: "#777", marginBottom: "16px" }}>
+          <p style={{ fontSize: "15px", fontWeight: 600, color: "#777", marginBottom: "8px" }}>
             {cfg.label} · {business.city}
           </p>
+
+          {business.short_description && (
+            <p style={{ fontSize: "14px", color: "#555", lineHeight: 1.6, marginBottom: "14px" }}>{business.short_description}</p>
+          )}
 
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: `${color}10`, border: `1px solid ${color}30`, borderRadius: "12px", padding: "8px 14px", marginBottom: "20px" }}>
             <div style={{ width: "8px", height: "8px", borderRadius: "2px", background: color, transform: "rotate(45deg)", flexShrink: 0 }} />
@@ -169,9 +238,9 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
               <IconWA size={20} />
               {cfg.cta} pelo WhatsApp
             </a>
-            {business.instagram && (
-              <a href={`https://instagram.com/${business.instagram.replace("@","")}`} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", background: "#fff", border: "1.5px solid #e5e7eb", color: "#333", fontWeight: 700, fontSize: "15px", padding: "14px 24px", borderRadius: "16px", transition: "border-color .2s" }}>
-                <IconIG /> Ver no Instagram
+            {igUrl && (
+              <a href={igUrl} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", background: "#fff", border: "1.5px solid #e5e7eb", color: "#333", fontWeight: 700, fontSize: "15px", padding: "14px 24px", borderRadius: "16px", transition: "border-color .2s" }}>
+                <IconIG /> {igHandle || "Ver no Instagram"}
               </a>
             )}
           </div>
@@ -186,6 +255,19 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
         <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "12px" }}>
           Sobre a {business.business_name}
         </h2>
+
+        {/* Foto profissional */}
+        {business.professional_photo_url && (
+          <div style={{ borderRadius: "20px", overflow: "hidden", marginBottom: "16px", maxHeight: "300px" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={business.professional_photo_url}
+              alt={business.business_name}
+              style={{ width: "100%", objectFit: "cover", objectPosition: `center ${proPhotoPosY}%`, maxHeight: "300px", display: "block" }}
+            />
+          </div>
+        )}
+
         <p style={{ fontSize: "15px", color: "#555", lineHeight: 1.75, marginBottom: "20px" }}>{aboutText}</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
           {[`📍 ${business.city}`, `✅ ${cfg.label}`, "💬 Resposta rápida"].map((pill) => (
@@ -235,28 +317,42 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
         </div>
       </section>
 
-      {/* ══ POR QUE ESCOLHER ══════════════════════════════════ */}
+      {/* ══ BENEFÍCIOS / POR QUE ESCOLHER ═══════════════════ */}
       <section style={{ padding: "48px 20px", background: "#fff" }}>
         <div style={{ maxWidth: "560px", margin: "0 auto" }}>
           <p style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: color, marginBottom: "8px" }}>Por que a gente</p>
           <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "20px" }}>Por que escolher a {business.business_name}?</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {[
-              { icon: "⚡", title: "Atendimento fácil e direto", desc: `Fale direto pelo WhatsApp com a equipe da ${business.business_name}. Sem fila, sem secretária eletrônica.` },
-              { icon: "🎯", title: `Especialistas em ${business.main_service}`, desc: `A ${business.business_name} é focada em ${business.main_service} e entende as necessidades de quem busca esse serviço em ${business.city}.` },
-              { icon: "📍", title: `Presente em ${business.city}`, desc: `Atendimento local, perto de você. A ${business.business_name} atende em ${business.city} e conhece bem o que o cliente da região precisa.` },
-            ].map((item) => (
-              <div key={item.title} className="card-lift" style={{ display: "flex", gap: "16px", alignItems: "flex-start", background: "#fafafa", borderRadius: "18px", padding: "20px", border: "1.5px solid #f0f0f0", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "all .2s" }}>
-                <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `${color}12`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>
-                  {item.icon}
+
+          {benefits.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {benefits.map((benefit, i) => (
+                <div key={i} className="card-lift" style={{ display: "flex", gap: "16px", alignItems: "flex-start", background: "#fafafa", borderRadius: "18px", padding: "18px 20px", border: "1.5px solid #f0f0f0", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "all .2s" }}>
+                  <div style={{ width: "44px", height: "44px", borderRadius: "14px", background: `${color}12`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", flexShrink: 0 }}>
+                    {["⚡", "🎯", "📍", "✅", "💡", "🏆", "⭐", "🔥"][i % 8]}
+                  </div>
+                  <p style={{ fontSize: "14px", color: "#444", lineHeight: 1.65, paddingTop: "4px" }}>{benefit}</p>
                 </div>
-                <div>
-                  <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#111", marginBottom: "4px" }}>{item.title}</h3>
-                  <p style={{ fontSize: "13px", color: "#666", lineHeight: 1.65 }}>{item.desc}</p>
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {[
+                { icon: "⚡", title: "Atendimento fácil e direto", desc: `Fale direto pelo WhatsApp com a equipe da ${business.business_name}. Sem fila, sem secretária eletrônica.` },
+                { icon: "🎯", title: `Especialistas em ${business.main_service}`, desc: `A ${business.business_name} é focada em ${business.main_service} e entende as necessidades de quem busca esse serviço em ${business.city}.` },
+                { icon: "📍", title: `Presente em ${business.city}`, desc: `Atendimento local, perto de você. A ${business.business_name} atende em ${business.city} e conhece bem o que o cliente da região precisa.` },
+              ].map((item) => (
+                <div key={item.title} className="card-lift" style={{ display: "flex", gap: "16px", alignItems: "flex-start", background: "#fafafa", borderRadius: "18px", padding: "20px", border: "1.5px solid #f0f0f0", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "all .2s" }}>
+                  <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `${color}12`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>
+                    {item.icon}
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#111", marginBottom: "4px" }}>{item.title}</h3>
+                    <p style={{ fontSize: "13px", color: "#666", lineHeight: 1.65 }}>{item.desc}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -266,19 +362,34 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
           <p style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: color, marginBottom: "8px" }}>Funcionamento</p>
           <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "20px" }}>Horário de atendimento</h2>
           <div style={{ background: "#fff", borderRadius: "20px", overflow: "hidden", border: "1.5px solid #f0f0f0", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
-            {[
-              { day: "Segunda a Sexta", hours: "Consulte disponibilidade", open: true },
-              { day: "Sábado",          hours: "Consulte disponibilidade", open: true },
-              { day: "Domingo",         hours: "Fechado",                  open: false },
-            ].map((row, i) => (
-              <div key={row.day} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: i < 2 ? "1px solid #f5f5f5" : "none" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: row.open ? "#22c55e" : "#d1d5db", flexShrink: 0 }} />
-                  <span style={{ fontSize: "14px", fontWeight: 600, color: "#333" }}>{row.day}</span>
+            {hoursEntries.length > 0 ? (
+              hoursEntries.map(([day, hours], i) => {
+                const closed = hours.toLowerCase().includes("fechad");
+                return (
+                  <div key={day} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: i < hoursEntries.length - 1 ? "1px solid #f5f5f5" : "none" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: closed ? "#d1d5db" : "#22c55e", flexShrink: 0 }} />
+                      <span style={{ fontSize: "14px", fontWeight: 600, color: "#333" }}>{day}</span>
+                    </div>
+                    <span style={{ fontSize: "14px", fontWeight: 700, color: closed ? "#aaa" : "#111" }}>{hours}</span>
+                  </div>
+                );
+              })
+            ) : (
+              [
+                { day: "Segunda a Sexta", hours: "Consulte disponibilidade", open: true },
+                { day: "Sábado",          hours: "Consulte disponibilidade", open: true },
+                { day: "Domingo",         hours: "Fechado",                  open: false },
+              ].map((row, i) => (
+                <div key={row.day} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: i < 2 ? "1px solid #f5f5f5" : "none" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: row.open ? "#22c55e" : "#d1d5db", flexShrink: 0 }} />
+                    <span style={{ fontSize: "14px", fontWeight: 600, color: "#333" }}>{row.day}</span>
+                  </div>
+                  <span style={{ fontSize: "14px", fontWeight: 700, color: row.open ? "#111" : "#aaa" }}>{row.hours}</span>
                 </div>
-                <span style={{ fontSize: "14px", fontWeight: 700, color: row.open ? "#111" : "#aaa" }}>{row.hours}</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           <a href={waMain} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "14px", padding: "13px 16px", background: `${color}0c`, borderRadius: "12px", border: `1px solid ${color}20`, color: color, fontSize: "13px", fontWeight: 700 }}>
             <IconClock /> Confirme horários pelo WhatsApp
@@ -286,26 +397,58 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
         </div>
       </section>
 
+      {/* ══ DEPOIMENTOS ═══════════════════════════════════════ */}
+      {testimonials.length > 0 && (
+        <section style={{ padding: "48px 20px", background: "#fff" }}>
+          <div style={{ maxWidth: "560px", margin: "0 auto" }}>
+            <p style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: color, marginBottom: "8px" }}>O que falam de nós</p>
+            <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "20px" }}>Depoimentos</h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              {testimonials.map((t, i) => (
+                <div key={i} className="card-lift" style={{ background: "#fafafa", borderRadius: "20px", padding: "22px", border: "1.5px solid #f0f0f0", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "all .2s" }}>
+                  {(t.stars ?? 5) > 0 && (
+                    <div style={{ display: "flex", gap: "3px", marginBottom: "12px" }}>
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <span key={s} style={{ color: s <= (t.stars ?? 5) ? "#FFD700" : "#e0e0e0" }}>
+                          <IconStar filled={s <= (t.stars ?? 5)} />
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <p style={{ fontSize: "15px", color: "#444", lineHeight: 1.7, fontStyle: "italic", marginBottom: "12px" }}>"{t.text}"</p>
+                  <p style={{ fontSize: "13px", fontWeight: 700, color: color }}>— {t.author}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ══ LOCALIZAÇÃO ═══════════════════════════════════════ */}
-      <section style={{ padding: "48px 20px", background: "#fff" }}>
+      <section style={{ padding: "48px 20px", background: "#f9f9f9" }}>
         <div style={{ maxWidth: "560px", margin: "0 auto" }}>
           <p style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: color, marginBottom: "8px" }}>Onde estamos</p>
           <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "20px" }}>Localização</h2>
-          <div style={{ background: "#f9f9f9", borderRadius: "20px", padding: "24px", border: "1.5px solid #f0f0f0" }}>
+          <div style={{ background: "#fff", borderRadius: "20px", padding: "24px", border: "1.5px solid #f0f0f0" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: "14px", marginBottom: "20px" }}>
               <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `${color}14`, display: "flex", alignItems: "center", justifyContent: "center", color: color, flexShrink: 0 }}>
                 <IconPin />
               </div>
               <div>
                 <p style={{ fontSize: "16px", fontWeight: 800, color: "#111", marginBottom: "2px" }}>
-                  {business.address ?? business.city}
+                  {business.address || business.city}
                 </p>
                 <p style={{ fontSize: "14px", color: "#777", fontWeight: 500 }}>{business.city}</p>
               </div>
             </div>
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-              {business.address && (
-                <a href={`https://maps.google.com/?q=${encodeURIComponent(`${business.address}, ${business.city}`)}`} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: "140px", background: "#fff", border: "1.5px solid #e5e7eb", borderRadius: "12px", padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: "#333", justifyContent: "center" }}>
+              {(business.google_maps_url || business.address) && (
+                <a
+                  href={business.google_maps_url ?? `https://maps.google.com/?q=${encodeURIComponent(`${business.address}, ${business.city}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: "140px", background: "#fff", border: "1.5px solid #e5e7eb", borderRadius: "12px", padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: "#333", justifyContent: "center" }}
+                >
                   📍 Ver no mapa
                 </a>
               )}
@@ -340,7 +483,7 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
         </div>
       </section>
 
-      {/* ══ LEAD FORM / DEMO PLACEHOLDER ════════════════════════ */}
+      {/* ══ LEAD FORM ════════════════════════════════════════ */}
       <section style={{ padding: "48px 20px", background: "#f9f9f9" }}>
         <div style={{ maxWidth: "560px", margin: "0 auto" }}>
           <div style={{ background: "#fff", borderRadius: "24px", padding: "28px", boxShadow: "0 8px 32px rgba(0,0,0,0.06)", border: "1.5px solid #f0f0f0" }}>
@@ -368,7 +511,7 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
       {/* ══ FOOTER ════════════════════════════════════════════ */}
       <footer style={{ background: "#0a0a0a", padding: "36px 20px" }}>
         <div style={{ maxWidth: "560px", margin: "0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", textAlign: "center" }}>
-          <div style={{ width: "52px", height: "52px", borderRadius: "16px", background: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: 900, color: "#fff" }}>
+          <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: 900, color: "#fff" }}>
             {initial}
           </div>
           <div>
@@ -379,8 +522,8 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
             <a href={waMain} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "#25D366", color: "#fff", fontWeight: 700, fontSize: "13px", padding: "10px 18px", borderRadius: "10px" }}>
               <IconWA size={15} /> WhatsApp
             </a>
-            {business.instagram && (
-              <a href={`https://instagram.com/${business.instagram.replace("@","")}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "#1a1a1a", border: "1px solid #333", color: "#fff", fontWeight: 700, fontSize: "13px", padding: "10px 18px", borderRadius: "10px" }}>
+            {igUrl && (
+              <a href={igUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "#1a1a1a", border: "1px solid #333", color: "#fff", fontWeight: 700, fontSize: "13px", padding: "10px 18px", borderRadius: "10px" }}>
                 <IconIG /> Instagram
               </a>
             )}

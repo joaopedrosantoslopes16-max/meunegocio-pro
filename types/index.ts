@@ -111,7 +111,9 @@ export interface Business {
   gallery_images_json: string[];
   custom_links_json: { label: string; url: string; type: string; is_active?: boolean }[];
   benefits_json: string[];
-  testimonials_json: { text: string; author: string }[];
+  testimonials_json: { text: string; author: string; stars?: number }[];
+  cover_image_position_y?: number | null;
+  professional_photo_position_y?: number | null;
   short_description: string | null;
   opening_hours_json: Record<string, string>;
   google_maps_url: string | null;
