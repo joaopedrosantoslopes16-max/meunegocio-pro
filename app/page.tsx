@@ -110,6 +110,38 @@ export default function LandingPage() {
   const formRef = useRef<HTMLDivElement>(null);
   const plansRef = useRef<HTMLDivElement>(null);
 
+  // Pro customization preview state
+  const [proMode, setProMode] = useState(false);
+  const [proColor, setProColor] = useState("#7c3aed");
+  const [proFont, setProFont] = useState("inter");
+  const [proCoverImg, setProCoverImg] = useState("");
+  const [proCoverPosY, setProCoverPosY] = useState(50);
+  const [proLogoImg, setProLogoImg] = useState("");
+
+  const proFonts = [
+    { key: "inter",      label: "Inter",       style: "'Inter', sans-serif" },
+    { key: "poppins",    label: "Poppins",      style: "'Poppins', sans-serif" },
+    { key: "montserrat", label: "Montserrat",   style: "'Montserrat', sans-serif" },
+    { key: "nunito",     label: "Nunito",       style: "'Nunito', sans-serif" },
+    { key: "opensans",   label: "Open Sans",    style: "'Open Sans', sans-serif" },
+  ];
+
+  function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setProCoverImg(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setProLogoImg(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
   useEffect(() => {
     fetch("/api/stats")
       .then((r) => r.json())
@@ -459,58 +491,52 @@ export default function LandingPage() {
                   <span className="text-gray-400 text-xs ml-1 truncate">
                     meunegocio.pro/site/{preview.business_name.toLowerCase().replace(/\s+/g, "-")}
                   </span>
+                  {proMode && <span className="ml-auto text-xs bg-violet-600 text-white font-bold px-2 py-0.5 rounded-full">Pro</span>}
                 </div>
 
-                {/* Mini site real — hero com gradiente */}
-                <div style={{ background: `linear-gradient(160deg, ${preview.primary_color}f0, ${preview.primary_color}bb)`, padding: "28px 20px 36px", position: "relative", overflow: "hidden" }}>
-                  <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "160px", height: "160px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.12)" }} />
-                  <div className="text-center" style={{ position: "relative", zIndex: 1 }}>
-                    <div style={{
-                      width: "56px", height: "56px", borderRadius: "16px", margin: "0 auto 12px",
-                      background: "rgba(255,255,255,0.20)", backdropFilter: "blur(8px)",
-                      border: "2px solid rgba(255,255,255,0.30)", display: "flex",
-                      alignItems: "center", justifyContent: "center",
-                      fontSize: "22px", fontWeight: 900, color: "#fff"
-                    }}>
-                      {preview.business_name[0]}
-                    </div>
-                    <p style={{ fontSize: "17px", fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", marginBottom: "3px" }}>
-                      {preview.business_name}
-                    </p>
-                    <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.65)", fontWeight: 600, marginBottom: "16px" }}>
-                      {preview.niche} · {preview.city}
-                    </p>
-                    <a href={buildWhatsAppLink(preview.whatsapp)} target="_blank" rel="noopener noreferrer" style={{
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: "7px",
-                      background: "#25D366", color: "#fff", fontWeight: 800, fontSize: "13px",
-                      padding: "11px 0", borderRadius: "10px", textDecoration: "none",
-                      boxShadow: "0 4px 16px rgba(37,211,102,0.40)"
-                    }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                      Chamar no WhatsApp
-                    </a>
-                  </div>
-                  {/* Wave */}
-                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "28px", background: "#fff", clipPath: "ellipse(55% 100% at 50% 100%)" }} />
-                </div>
-
-                {/* Seção de serviços mini */}
-                <div style={{ padding: "16px 20px 20px", background: "#fff" }}>
-                  <p style={{ fontSize: "10px", fontWeight: 700, color: preview.primary_color, letterSpacing: "0.20em", textTransform: "uppercase", marginBottom: "8px" }}>
-                    Serviços
-                  </p>
-                  <div style={{ background: `${preview.primary_color}10`, border: `1px solid ${preview.primary_color}25`, borderRadius: "10px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: preview.primary_color, flexShrink: 0 }} />
-                    <p style={{ fontSize: "13px", fontWeight: 800, color: "#111" }}>{preview.main_service}</p>
-                  </div>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    {["Contato", "WhatsApp", "Instagram"].map((s) => (
-                      <div key={s} style={{ background: "#f5f5f5", borderRadius: "6px", padding: "5px 8px" }}>
-                        <p style={{ fontSize: "10px", fontWeight: 600, color: "#555" }}>{s}</p>
+                {/* Mini site — capa */}
+                {(() => {
+                  const color = proMode ? proColor : preview.primary_color;
+                  const fontFamily = proMode ? (proFonts.find(f => f.key === proFont)?.style ?? "'Inter',sans-serif") : "'Inter',sans-serif";
+                  return (
+                    <>
+                      <div style={{
+                        height: "120px", position: "relative", overflow: "hidden",
+                        ...(proMode && proCoverImg
+                          ? { backgroundImage: `url(${proCoverImg})`, backgroundSize: "cover", backgroundPosition: `center ${proCoverPosY}%` }
+                          : { background: `linear-gradient(160deg, ${color}f0, ${color}bb)` })
+                      }}>
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.45) 100%)" }} />
+                        <div style={{ position: "absolute", bottom: "10px", left: "14px", fontSize: "11px", fontWeight: 700, color: "#fff", fontFamily }}>
+                          {preview.city}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
+
+                      <div style={{ padding: "0 16px 16px", background: "#fff", fontFamily }}>
+                        <div style={{ marginTop: "-28px", marginBottom: "10px" }}>
+                          {proMode && proLogoImg ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={proLogoImg} alt="" style={{ width: "56px", height: "56px", borderRadius: "14px", border: "3px solid #fff", objectFit: "cover", boxShadow: `0 4px 16px ${color}40` }} />
+                          ) : (
+                            <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: `linear-gradient(135deg, ${color}, ${color}bb)`, border: "3px solid #fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: 900, color: "#fff", boxShadow: `0 4px 16px ${color}40` }}>
+                              {preview.business_name[0]}
+                            </div>
+                          )}
+                        </div>
+                        <p style={{ fontSize: "16px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "2px" }}>{preview.business_name}</p>
+                        <p style={{ fontSize: "11px", color: "#888", fontWeight: 600, marginBottom: "10px" }}>{preview.niche} · {preview.city}</p>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: `${color}10`, border: `1px solid ${color}25`, borderRadius: "8px", padding: "5px 10px", marginBottom: "10px" }}>
+                          <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: color }} />
+                          <p style={{ fontSize: "11px", fontWeight: 700, color: color }}>{preview.main_service}</p>
+                        </div>
+                        <a href={buildWhatsAppLink(preview.whatsapp)} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", background: "#25D366", color: "#fff", fontWeight: 800, fontSize: "12px", padding: "9px 0", borderRadius: "9px", textDecoration: "none" }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                          Chamar no WhatsApp
+                        </a>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
 
               {/* POST PREVIEW — usa PostCard real */}
@@ -570,6 +596,95 @@ export default function LandingPage() {
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-gray-700 rounded-xl p-4">{preview.sample_whatsapp_message}</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-2.5">+ mensagens para recuperar clientes no plano completo</p>
               </div>
+            </div>
+
+            {/* ── SELETOR DE PLANO + PAINEL PRO ── */}
+            <div className="mb-8">
+              <p className="text-center text-sm font-bold text-gray-500 dark:text-gray-400 mb-4">Veja como fica com cada plano</p>
+              <div className="flex gap-2 justify-center mb-6">
+                <button onClick={() => setProMode(false)} className={`px-6 py-2.5 rounded-xl font-bold text-sm transition ${!proMode ? "bg-gray-900 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200"}`}>
+                  Essencial — R$ 37/mês
+                </button>
+                <button onClick={() => { setProMode(true); setProColor(preview.primary_color); }} className={`px-6 py-2.5 rounded-xl font-bold text-sm transition ${proMode ? "gradient-brand text-white shadow-md" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200"}`}>
+                  Pro — R$ 57/mês ✦
+                </button>
+              </div>
+
+              {!proMode && (
+                <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 text-center">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">O plano Essencial inclui mini site, 5 posts e legendas mensais prontos para postar.</p>
+                  <p className="text-xs text-gray-400 mt-2">Personalização avançada disponível no plano Pro.</p>
+                </div>
+              )}
+
+              {proMode && (
+                <div className="bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800 rounded-2xl p-6 space-y-5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-2 h-2 rounded-full bg-violet-500" />
+                    <p className="text-sm font-extrabold text-violet-700 dark:text-violet-400">Personalização Pro — veja em tempo real</p>
+                  </div>
+
+                  {/* Cor */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Cor principal</p>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {["#7c3aed","#2563eb","#dc2626","#16a34a","#d97706","#db2777","#0891b2","#111827"].map(c => (
+                        <button key={c} onClick={() => setProColor(c)} style={{ background: c }} className={`w-8 h-8 rounded-full border-2 transition ${proColor === c ? "border-gray-900 dark:border-white scale-110" : "border-transparent"}`} />
+                      ))}
+                      <input type="color" value={proColor} onChange={e => setProColor(e.target.value)} className="w-8 h-8 rounded-full border border-gray-200 cursor-pointer" title="Cor personalizada" />
+                    </div>
+                  </div>
+
+                  {/* Fonte */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Fonte</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {proFonts.map(f => (
+                        <button key={f.key} onClick={() => setProFont(f.key)} style={{ fontFamily: f.style }} className={`px-3 py-1.5 rounded-lg text-sm border transition ${proFont === f.key ? "border-violet-500 bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 font-bold" : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-violet-300"}`}>
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Imagem de capa */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Foto de capa</p>
+                    <label className="flex items-center gap-3 cursor-pointer bg-white dark:bg-gray-800 border border-dashed border-violet-300 dark:border-violet-700 rounded-xl px-4 py-3 hover:border-violet-500 transition w-fit">
+                      <ImageIcon size={16} className="text-violet-500" />
+                      <span className="text-sm font-semibold text-violet-600 dark:text-violet-400">{proCoverImg ? "Trocar imagem" : "Adicionar foto de capa"}</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                    </label>
+                    {proCoverImg && (
+                      <div className="mt-3 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-gray-500">Posição vertical</p>
+                          <span className="text-xs font-bold text-violet-600">{proCoverPosY}%</span>
+                        </div>
+                        <input type="range" min={0} max={100} value={proCoverPosY} onChange={e => setProCoverPosY(Number(e.target.value))} className="w-full accent-violet-600" />
+                        <div className="flex justify-between text-[10px] text-gray-400"><span>Topo</span><span>Centro</span><span>Base</span></div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Logo */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Logo / foto do perfil</p>
+                    <label className="flex items-center gap-3 cursor-pointer bg-white dark:bg-gray-800 border border-dashed border-violet-300 dark:border-violet-700 rounded-xl px-4 py-3 hover:border-violet-500 transition w-fit">
+                      <ImageIcon size={16} className="text-violet-500" />
+                      <span className="text-sm font-semibold text-violet-600 dark:text-violet-400">{proLogoImg ? "Trocar logo" : "Adicionar logo"}</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                    </label>
+                  </div>
+
+                  <div className="pt-2 border-t border-violet-200 dark:border-violet-800">
+                    <p className="text-xs text-violet-600 dark:text-violet-400 font-semibold mb-3">Gostou? Assine o Pro e personalize tudo no painel completo.</p>
+                    <a href={CHECKOUT_URL_PRO} className="inline-flex items-center gap-2 gradient-brand text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition">
+                      Assinar Pro por R$ 57/mês <ArrowRight size={14} />
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Comparação visual entre planos */}
