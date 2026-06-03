@@ -469,16 +469,29 @@ export default function LandingPage() {
       {preview && (
         <section ref={previewRef} className="py-16 px-4 bg-white dark:bg-gray-900 scroll-mt-14">
           <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-10">
+            <div className="text-center mb-6">
               <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm font-bold px-5 py-2.5 rounded-full mb-4">
                 <CheckCircle2 size={16} />
                 Prévia criada para {preview.business_name}
               </div>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white">É assim que ficaria o seu kit</h2>
-              <p className="text-gray-500 dark:text-gray-400 mt-2">Amostra do kit. O plano completo tem 30 posts, calendário, campanhas e muito mais.</p>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white">Veja como fica o seu site</h2>
+              <p className="text-gray-500 dark:text-gray-400 mt-2">Escolha o plano e veja a diferença em tempo real.</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+            {/* Seletor de plano — topo da prévia */}
+            <div className="flex justify-center mb-6">
+              <div className="inline-flex bg-gray-100 dark:bg-gray-800 rounded-2xl p-1 gap-1">
+                <button onClick={() => setProMode(false)} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition ${!proMode ? "bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white" : "text-gray-400 hover:text-gray-600"}`}>
+                  Essencial <span className="text-gray-400 font-normal">R$ 37/mês</span>
+                </button>
+                <button onClick={() => { setProMode(true); setProColor(preview.primary_color); }} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 ${proMode ? "gradient-brand text-white shadow-lg" : "text-gray-400 hover:text-gray-600"}`}>
+                  Pro <span className={proMode ? "opacity-80 font-normal" : "text-gray-400 font-normal"}>R$ 57/mês</span>
+                  <span className="text-xs bg-yellow-400 text-yellow-900 font-extrabold px-1.5 py-0.5 rounded-full">✦</span>
+                </button>
+              </div>
+            </div>
+
+            <div className={`grid gap-6 mb-6 ${proMode ? "lg:grid-cols-[1fr_320px]" : "md:grid-cols-2"}`}>
               {/* MINI SITE PREVIEW — fiel ao design real */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden">
                 {/* Browser bar */}
@@ -539,27 +552,96 @@ export default function LandingPage() {
                 })()}
               </div>
 
-              {/* POST PREVIEW — usa PostCard real */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden">
-                <div className="px-5 py-3 border-b border-gray-50 flex items-center justify-between">
+              {/* POST ou PAINEL PRO */}
+              {proMode ? (
+                <div className="bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800 rounded-2xl p-5 space-y-5 self-start sticky top-4">
                   <div className="flex items-center gap-2">
-                    <ImageIcon size={14} className="text-gray-400" />
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Post de exemplo</span>
+                    <div className="w-2 h-2 rounded-full bg-violet-500" />
+                    <p className="text-sm font-extrabold text-violet-700 dark:text-violet-400">Personalização Pro</p>
                   </div>
-                  <span className="text-xs bg-violet-50 text-violet-600 font-bold px-2 py-0.5 rounded-full">1080×1080</span>
+
+                  {/* Cor */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Cor principal</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {["#7c3aed","#2563eb","#dc2626","#16a34a","#d97706","#db2777","#0891b2","#111827"].map(c => (
+                        <button key={c} onClick={() => setProColor(c)} style={{ background: c }} className={`w-7 h-7 rounded-full border-2 transition ${proColor === c ? "border-white scale-110 shadow-md" : "border-transparent"}`} />
+                      ))}
+                      <input type="color" value={proColor} onChange={e => setProColor(e.target.value)} className="w-7 h-7 rounded-full border border-gray-200 cursor-pointer" title="Cor personalizada" />
+                    </div>
+                  </div>
+
+                  {/* Fonte */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Fonte</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {proFonts.map(f => (
+                        <button key={f.key} onClick={() => setProFont(f.key)} style={{ fontFamily: f.style }} className={`px-3 py-1 rounded-lg text-xs border transition ${proFont === f.key ? "border-violet-500 bg-violet-100 dark:bg-violet-900/40 text-violet-700 font-bold" : "border-gray-200 dark:border-gray-600 text-gray-500 hover:border-violet-300"}`}>
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Capa */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Foto de capa</p>
+                    <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-gray-800 border border-dashed border-violet-300 rounded-xl px-3 py-2 hover:border-violet-500 transition w-fit">
+                      <ImageIcon size={14} className="text-violet-500" />
+                      <span className="text-xs font-semibold text-violet-600">{proCoverImg ? "Trocar imagem" : "Adicionar capa"}</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                    </label>
+                    {proCoverImg && (
+                      <div className="mt-2 space-y-1">
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Posição vertical</span>
+                          <span className="font-bold text-violet-600">{proCoverPosY}%</span>
+                        </div>
+                        <input type="range" min={0} max={100} value={proCoverPosY} onChange={e => setProCoverPosY(Number(e.target.value))} className="w-full accent-violet-600" />
+                        <div className="flex justify-between text-[10px] text-gray-400"><span>Topo</span><span>Centro</span><span>Base</span></div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Logo */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Logo / foto do perfil</p>
+                    <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-gray-800 border border-dashed border-violet-300 rounded-xl px-3 py-2 hover:border-violet-500 transition w-fit">
+                      <ImageIcon size={14} className="text-violet-500" />
+                      <span className="text-xs font-semibold text-violet-600">{proLogoImg ? "Trocar logo" : "Adicionar logo"}</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                    </label>
+                  </div>
+
+                  <div className="pt-3 border-t border-violet-200 dark:border-violet-800">
+                    <p className="text-xs text-violet-600 dark:text-violet-400 font-semibold mb-3">Gostou? Assine o Pro e personalize tudo no painel.</p>
+                    <a href={CHECKOUT_URL_PRO} className="flex items-center justify-center gap-2 gradient-brand text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:opacity-90 transition">
+                      Assinar Pro — R$ 57/mês <ArrowRight size={13} />
+                    </a>
+                  </div>
                 </div>
-                <PostCard
-                  template_type="main_service"
-                  title={preview.sample_post_title}
-                  subtitle={preview.sample_post_subtitle}
-                  cta={preview.cta}
-                  business_name={preview.business_name}
-                  primary_color={preview.primary_color}
-                  niche={preview.niche}
-                  city={preview.city}
-                  unlocked={true}
-                />
-              </div>
+              ) : (
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden">
+                  <div className="px-5 py-3 border-b border-gray-50 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ImageIcon size={14} className="text-gray-400" />
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Post de exemplo</span>
+                    </div>
+                    <span className="text-xs bg-violet-50 text-violet-600 font-bold px-2 py-0.5 rounded-full">1080×1080</span>
+                  </div>
+                  <PostCard
+                    template_type="main_service"
+                    title={preview.sample_post_title}
+                    subtitle={preview.sample_post_subtitle}
+                    cta={preview.cta}
+                    business_name={preview.business_name}
+                    primary_color={preview.primary_color}
+                    niche={preview.niche}
+                    city={preview.city}
+                    unlocked={true}
+                  />
+                </div>
+              )}
             </div>
 
             {/* GRADE DE POSTS EXTRAS */}
@@ -596,95 +678,6 @@ export default function LandingPage() {
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-gray-700 rounded-xl p-4">{preview.sample_whatsapp_message}</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-2.5">+ mensagens para recuperar clientes no plano completo</p>
               </div>
-            </div>
-
-            {/* ── SELETOR DE PLANO + PAINEL PRO ── */}
-            <div className="mb-8">
-              <p className="text-center text-sm font-bold text-gray-500 dark:text-gray-400 mb-4">Veja como fica com cada plano</p>
-              <div className="flex gap-2 justify-center mb-6">
-                <button onClick={() => setProMode(false)} className={`px-6 py-2.5 rounded-xl font-bold text-sm transition ${!proMode ? "bg-gray-900 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200"}`}>
-                  Essencial — R$ 37/mês
-                </button>
-                <button onClick={() => { setProMode(true); setProColor(preview.primary_color); }} className={`px-6 py-2.5 rounded-xl font-bold text-sm transition ${proMode ? "gradient-brand text-white shadow-md" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200"}`}>
-                  Pro — R$ 57/mês ✦
-                </button>
-              </div>
-
-              {!proMode && (
-                <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 text-center">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">O plano Essencial inclui mini site, 5 posts e legendas mensais prontos para postar.</p>
-                  <p className="text-xs text-gray-400 mt-2">Personalização avançada disponível no plano Pro.</p>
-                </div>
-              )}
-
-              {proMode && (
-                <div className="bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800 rounded-2xl p-6 space-y-5">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-2 h-2 rounded-full bg-violet-500" />
-                    <p className="text-sm font-extrabold text-violet-700 dark:text-violet-400">Personalização Pro — veja em tempo real</p>
-                  </div>
-
-                  {/* Cor */}
-                  <div>
-                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Cor principal</p>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      {["#7c3aed","#2563eb","#dc2626","#16a34a","#d97706","#db2777","#0891b2","#111827"].map(c => (
-                        <button key={c} onClick={() => setProColor(c)} style={{ background: c }} className={`w-8 h-8 rounded-full border-2 transition ${proColor === c ? "border-gray-900 dark:border-white scale-110" : "border-transparent"}`} />
-                      ))}
-                      <input type="color" value={proColor} onChange={e => setProColor(e.target.value)} className="w-8 h-8 rounded-full border border-gray-200 cursor-pointer" title="Cor personalizada" />
-                    </div>
-                  </div>
-
-                  {/* Fonte */}
-                  <div>
-                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Fonte</p>
-                    <div className="flex gap-2 flex-wrap">
-                      {proFonts.map(f => (
-                        <button key={f.key} onClick={() => setProFont(f.key)} style={{ fontFamily: f.style }} className={`px-3 py-1.5 rounded-lg text-sm border transition ${proFont === f.key ? "border-violet-500 bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 font-bold" : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-violet-300"}`}>
-                          {f.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Imagem de capa */}
-                  <div>
-                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Foto de capa</p>
-                    <label className="flex items-center gap-3 cursor-pointer bg-white dark:bg-gray-800 border border-dashed border-violet-300 dark:border-violet-700 rounded-xl px-4 py-3 hover:border-violet-500 transition w-fit">
-                      <ImageIcon size={16} className="text-violet-500" />
-                      <span className="text-sm font-semibold text-violet-600 dark:text-violet-400">{proCoverImg ? "Trocar imagem" : "Adicionar foto de capa"}</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
-                    </label>
-                    {proCoverImg && (
-                      <div className="mt-3 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-gray-500">Posição vertical</p>
-                          <span className="text-xs font-bold text-violet-600">{proCoverPosY}%</span>
-                        </div>
-                        <input type="range" min={0} max={100} value={proCoverPosY} onChange={e => setProCoverPosY(Number(e.target.value))} className="w-full accent-violet-600" />
-                        <div className="flex justify-between text-[10px] text-gray-400"><span>Topo</span><span>Centro</span><span>Base</span></div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Logo */}
-                  <div>
-                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Logo / foto do perfil</p>
-                    <label className="flex items-center gap-3 cursor-pointer bg-white dark:bg-gray-800 border border-dashed border-violet-300 dark:border-violet-700 rounded-xl px-4 py-3 hover:border-violet-500 transition w-fit">
-                      <ImageIcon size={16} className="text-violet-500" />
-                      <span className="text-sm font-semibold text-violet-600 dark:text-violet-400">{proLogoImg ? "Trocar logo" : "Adicionar logo"}</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-                    </label>
-                  </div>
-
-                  <div className="pt-2 border-t border-violet-200 dark:border-violet-800">
-                    <p className="text-xs text-violet-600 dark:text-violet-400 font-semibold mb-3">Gostou? Assine o Pro e personalize tudo no painel completo.</p>
-                    <a href={CHECKOUT_URL_PRO} className="inline-flex items-center gap-2 gradient-brand text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition">
-                      Assinar Pro por R$ 57/mês <ArrowRight size={14} />
-                    </a>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Comparação visual entre planos */}
