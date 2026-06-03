@@ -11,7 +11,10 @@ export default async function GeradorMagneticoPage() {
   if (!user) redirect("/login");
 
   // Buscar kit e negócio
-  const { data: kit } = await supabase
+  const { data: kit } = await createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
     .from("kits")
     .select("*, businesses(*)")
     .eq("user_id", user.id)

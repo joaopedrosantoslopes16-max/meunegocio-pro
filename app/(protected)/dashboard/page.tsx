@@ -57,7 +57,7 @@ export default async function DashboardPage() {
   }
 
   // Kit mais recente
-  const { data: kitRaw } = await supabase
+  const { data: kitRaw } = await supabaseAdmin
     .from("kits")
     .select("*, businesses(*)")
     .eq("user_id", user.id)
@@ -113,7 +113,7 @@ export default async function DashboardPage() {
     .order("purchased_at", { ascending: false });
 
   // Galeria de imagens do negócio
-  const { data: galleryImages } = await supabase
+  const { data: galleryImages } = await supabaseAdmin
     .from("image_gallery")
     .select("*")
     .eq("user_id", user.id)
@@ -122,7 +122,7 @@ export default async function DashboardPage() {
     .limit(20);
 
   // Leads do mini site
-  const { data: leads } = await supabase
+  const { data: leads } = await supabaseAdmin
     .from("leads")
     .select("*")
     .eq("business_id", kit.businesses.id)

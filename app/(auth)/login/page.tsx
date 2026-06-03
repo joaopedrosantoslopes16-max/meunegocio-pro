@@ -1,33 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const params = useSearchParams();
+  const params  = useSearchParams();
   const redirect = params.get("redirect") ?? "/dashboard";
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      setError("E-mail ou senha incorretos. Tente novamente.");
-      return;
-    }
-    router.push(redirect);
-    router.refresh();
-  }
+  const hasError = params.get("error") === "1";
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -40,13 +19,14 @@ export default function LoginPage() {
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form method="POST" action="/api/auth/login" className="space-y-4">
+              <input type="hidden" name="redirect" value={redirect} />
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">E-mail</label>
                 <input
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  name="email"
                   required
                   placeholder="seuemail@gmail.com"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
@@ -56,26 +36,24 @@ export default function LoginPage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Senha</label>
                 <input
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  name="password"
                   required
                   placeholder="••••••••"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
                 />
               </div>
 
-              {error && (
+              {hasError && (
                 <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
-                  {error}
+                  E-mail ou senha incorretos. Tente novamente.
                 </div>
               )}
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full gradient-brand text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition disabled:opacity-60"
+                className="w-full gradient-brand text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition"
               >
-                {loading ? "Entrando..." : "Entrar"}
+                Entrar
               </button>
             </form>
 

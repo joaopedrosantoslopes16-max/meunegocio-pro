@@ -74,11 +74,23 @@ export default function CadastroPosCompraPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
           <div className="text-5xl mb-4">📧</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Verifique seu e-mail</h1>
-          <p className="text-gray-600 mb-6">Enviamos um link de confirmação para <strong>{email}</strong>. Clique no link e depois acesse o dashboard.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Confirme seu e-mail</h1>
+          <p className="text-gray-600 mb-6">
+            Enviamos um link de confirmação para <strong>{email}</strong>.
+          </p>
+          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 text-left mb-6 space-y-3">
+            <p className="font-bold text-blue-800 text-sm">Próximos passos:</p>
+            <ol className="space-y-2 text-sm text-blue-700">
+              <li className="flex items-start gap-2"><span className="font-bold">1.</span> Abra o e-mail que acabamos de enviar para <strong>{email}</strong></li>
+              <li className="flex items-start gap-2"><span className="font-bold">2.</span> Clique no botão <strong>"Confirmar e-mail"</strong> dentro do e-mail</li>
+              <li className="flex items-start gap-2"><span className="font-bold">3.</span> Volte aqui e clique em <strong>"Entrar na minha conta"</strong> abaixo</li>
+              <li className="flex items-start gap-2"><span className="font-bold">4.</span> Preencha os dados do seu negócio para gerar seu kit</li>
+            </ol>
+          </div>
           <Link href="/login" className="inline-block gradient-brand text-white font-bold py-3 px-8 rounded-xl hover:opacity-90 transition">
-            Ir para o login
+            Entrar na minha conta
           </Link>
+          <p className="text-xs text-gray-400 mt-4">Não recebeu? Verifique a caixa de spam ou fale com o suporte.</p>
         </div>
       </div>
     );

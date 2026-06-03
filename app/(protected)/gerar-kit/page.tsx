@@ -3,9 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { NICHE_OPTIONS, NICHE_CONFIG } from "@/lib/niche-config";
-import { generatePosts, generateCaptions, generateWhatsAppMessages, generateInstagramBio, generateSlug } from "@/lib/kit-generator";
 import type { BusinessFormData } from "@/types";
 
 export default function GerarKitPage() {
@@ -26,7 +24,14 @@ export default function GerarKitPage() {
   const [error, setError] = useState("");
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    let { name, value } = e.target;
+    if (name === "whatsapp") {
+      value = value.replace(/\D/g, "").slice(0, 11);
+      if (value.length > 6) value = `(${value.slice(0,2)}) ${value.slice(2,7)}-${value.slice(7)}`;
+      else if (value.length > 2) value = `(${value.slice(0,2)}) ${value.slice(2)}`;
+      else if (value.length > 0) value = `(${value}`;
+    }
+    setForm((prev) => ({ ...prev, [name]: value }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -39,90 +44,24 @@ export default function GerarKitPage() {
     setLoading(true);
 
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/login"); return; }
-
-      // Verifica compra
-      const purchaseRes = await fetch("/api/check-purchase", {
+      const res = await fetch("/api/kit/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email }),
+        body: JSON.stringify(form),
       });
-      const { approved, status: purchaseStatus, purchase_id } = await purchaseRes.json();
 
-      if (!approved) {
-        if (purchaseStatus === "refunded" || purchaseStatus === "chargeback" || purchaseStatus === "cancelled") {
-          router.push("/acesso-bloqueado");
-          return;
-        }
-        setError("Nenhuma compra aprovada encontrada. Se você acabou de comprar, aguarde alguns minutos.");
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error ?? "Erro ao gerar o kit.");
         setLoading(false);
         return;
       }
 
-      const services = form.services.split(",").map((s) => s.trim()).filter(Boolean);
-      const slug = generateSlug(form.business_name);
-      const cfg = NICHE_CONFIG[form.niche] ?? NICHE_CONFIG.outro;
-      const input = { ...form, services };
-
-      const posts = generatePosts(input);
-      const captions = generateCaptions(input);
-      const messages = generateWhatsAppMessages(input);
-      const bio = generateInstagramBio(input);
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-
-      // Salva negócio
-      const { data: business, error: bizError } = await supabase.from("businesses").insert({
-        user_id: user.id,
-        business_name: form.business_name,
-        niche: form.niche,
-        city: form.city,
-        whatsapp: form.whatsapp,
-        instagram: form.instagram,
-        address: form.address,
-        main_service: form.main_service,
-        services,
-        primary_color: form.primary_color,
-        slug,
-      }).select().single();
-
-      if (bizError) throw bizError;
-
-      // Salva kit
-      const { data: kit, error: kitError } = await supabase.from("kits").insert({
-        user_id: user.id,
-        business_id: business.id,
-        purchase_id: purchase_id ?? null,
-        status: "ready",
-        release_stage: 1,
-        purchase_approved_at: new Date().toISOString(),
-        day_0_unlocked: true,
-        day_3_unlocked: false,
-        day_7_unlocked: false,
-        site_slug: slug,
-        site_url: `${appUrl}/site/${slug}`,
-        posts_json: posts,
-        captions_json: captions,
-        whatsapp_messages_json: messages,
-        instagram_bio: bio,
-      }).select().single();
-
-      if (kitError) throw kitError;
-
-      // Log
-      await supabase.from("access_logs").insert({
-        user_id: user.id,
-        kit_id: kit.id,
-        purchase_id: purchase_id ?? null,
-        action: "generate_kit",
-        metadata: { niche: form.niche, city: form.city },
-      });
-
-      router.push(`/kit/${kit.id}`);
-    } catch (err) {
+      window.location.href = "/dashboard";
+    } catch (err: any) {
       console.error(err);
-      setError("Erro ao gerar o kit. Tente novamente.");
+      setError(err?.message ?? "Erro inesperado.");
       setLoading(false);
     }
   }
