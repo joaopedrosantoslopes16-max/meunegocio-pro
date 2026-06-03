@@ -70,10 +70,10 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
 
   // Imagens + posição (posição não salva no DB, afeta preview)
   const [coverImg,     setCoverImg]     = useState(business.cover_image_url ?? "");
-  const [coverImgPosY, setCoverImgPosY] = useState<number>(50);
+  const [coverImgPosY, setCoverImgPosY] = useState<number>(business.cover_image_position_y ?? 50);
   const [logoImg,      setLogoImg]      = useState(business.logo_url ?? "");
   const [proImg,       setProImg]       = useState(business.professional_photo_url ?? "");
-  const [proImgPosY,   setProImgPosY]   = useState<number>(50);
+  const [proImgPosY,   setProImgPosY]   = useState<number>(business.professional_photo_position_y ?? 50);
 
   // Benefícios
   const [benefitItems, setBenefitItems] = useState<string[]>(
@@ -142,6 +142,8 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
         cover_image_url:        coverImg || null,
         logo_url:               logoImg || null,
         professional_photo_url: proImg  || null,
+        cover_image_position_y:        coverImgPosY,
+        professional_photo_position_y: proImgPosY,
         benefits_json:     benefitItems.filter(Boolean),
         opening_hours_json: hours,
         custom_links_json: customLinks,
