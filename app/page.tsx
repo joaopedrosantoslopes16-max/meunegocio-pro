@@ -19,11 +19,11 @@ import type { PreviewData } from "@/types";
 
 // ============================================================
 // LINKS DE CHECKOUT — configure no .env.local
-const CHECKOUT_URL        = process.env.NEXT_PUBLIC_CHECKOUT_URL                 ?? "https://SEU-LINK-CHECKOUT-ESSENCIAL-AQUI.com";
-const CHECKOUT_URL_PRO    = process.env.NEXT_PUBLIC_CHECKOUT_URL_PRO             ?? "https://SEU-LINK-CHECKOUT-PRO-AQUI.com";
-const CHECKOUT_INSTAGRAM  = process.env.NEXT_PUBLIC_CHECKOUT_INSTAGRAM_EXTRA     ?? "#";
-const CHECKOUT_STORIES    = process.env.NEXT_PUBLIC_CHECKOUT_STORIES             ?? "#";
-const CHECKOUT_REATIVACAO = process.env.NEXT_PUBLIC_CHECKOUT_REATIVACAO          ?? "#";
+const CHECKOUT_URL        = process.env.NEXT_PUBLIC_CHECKOUT_URL                 ?? "https://pay.kiwify.com.br/dglZsdE";
+const CHECKOUT_URL_PRO    = process.env.NEXT_PUBLIC_CHECKOUT_URL_PRO             ?? "https://pay.kiwify.com.br/1fAPOyu";
+const CHECKOUT_INSTAGRAM  = process.env.NEXT_PUBLIC_CHECKOUT_INSTAGRAM_EXTRA     ?? "https://pay.kiwify.com.br/9JTBA7c";
+const CHECKOUT_STORIES    = process.env.NEXT_PUBLIC_CHECKOUT_STORIES             ?? "https://pay.kiwify.com.br/SDlVYKr";
+const CHECKOUT_REATIVACAO = process.env.NEXT_PUBLIC_CHECKOUT_REATIVACAO          ?? "https://pay.kiwify.com.br/Ao7MCfe";
 const PRICE_ESSENTIAL     = "R$ 37/mês";
 const PRICE_PRO           = "R$ 57/mês";
 const PRICE               = PRICE_ESSENTIAL;
