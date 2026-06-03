@@ -7,7 +7,7 @@ import { generateCalendar } from "@/lib/calendar-generator";
 import { generateCampaigns } from "@/lib/campaign-generator";
 import { generateRecoveryMessages } from "@/lib/recovery-messages";
 import { buildWhatsAppLink } from "@/lib/whatsapp-utils";
-import PostCard from "@/components/PostCard";
+import PostCard, { type TemplateId } from "@/components/PostCard";
 import PostEditor, { type EditedPost } from "@/components/PostEditor";
 import type { Kit, Business, Lead, Subscription, MonthlyContent, UserExtraPackage, Post, VisualStyle, ImageGallery } from "@/types";
 
@@ -37,12 +37,20 @@ const COLOR_PRESETS = [
 ];
 
 const FONT_STYLES = [
-  { id: "inter",      label: "Moderna",   sample: "Aa" },
-  { id: "poppins",    label: "Elegante",  sample: "Aa" },
-  { id: "montserrat", label: "Forte",     sample: "Aa" },
-  { id: "opensans",   label: "Clean",     sample: "Aa" },
-  { id: "nunito",     label: "Amigável",  sample: "Aa" },
+  { id: "inter",      label: "Moderna",   sample: "Aa", css: "'Inter', sans-serif" },
+  { id: "poppins",    label: "Elegante",  sample: "Aa", css: "'Poppins', sans-serif" },
+  { id: "montserrat", label: "Forte",     sample: "Aa", css: "'Montserrat', sans-serif" },
+  { id: "opensans",   label: "Clean",     sample: "Aa", css: "'Open Sans', sans-serif" },
+  { id: "nunito",     label: "Amigável",  sample: "Aa", css: "'Nunito', sans-serif" },
 ];
+
+const STYLE_PREVIEW_TEMPLATE: Record<VisualStyle, TemplateId> = {
+  moderno:     "main_service",
+  elegante:    "whatsapp_cta",
+  clean:       "authority",
+  chamativo:   "promotion",
+  minimalista: "location",
+};
 
 const MONTH_NAMES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -85,6 +93,7 @@ export default function DashboardClient({
   const [secondaryColor, setSecondary]    = useState((kit.businesses as any).secondary_color ?? "#4f46e5");
   const [selectedStyle, setSelectedStyle] = useState<VisualStyle>((kit.businesses.visual_style as VisualStyle) ?? "moderno");
   const [selectedFont, setSelectedFont]   = useState<string>((kit.businesses as any).font_style ?? "inter");
+  const [previewBgUrl, setPreviewBgUrl]   = useState<string | undefined>();
 
   const business = kit.businesses;
   const siteUrl  = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/site/${kit.site_slug}`;
@@ -587,7 +596,7 @@ export default function DashboardClient({
               <div>
                 <p className="font-bold text-gray-900 dark:text-white mb-1">📸 Abrir galeria completa</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Envie imagens, defina capa, logo e fotos profissionais</p>
-                <p className="text-xs text-gray-400 mt-1">{galleryImages.length} imagem{galleryImages.length !== 1 ? "ns" : ""} enviada{galleryImages.length !== 1 ? "s" : ""}</p>
+                <p className="text-xs text-gray-400 mt-1">{galleryImages.length} imagem{galleryImages.length !== 1 ? "s" : ""} enviada{galleryImages.length !== 1 ? "s" : ""}</p>
               </div>
               <span className="text-gray-400 text-lg">→</span>
             </Link>
@@ -738,7 +747,7 @@ export default function DashboardClient({
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {FONT_STYLES.map((f) => (
                         <button key={f.id} onClick={() => setSelectedFont(f.id)} className={`border-2 rounded-xl px-3 py-3 text-left transition ${selectedFont === f.id ? "border-violet-500 bg-violet-50 dark:bg-violet-950" : "border-gray-200 dark:border-gray-700 hover:border-gray-300"}`}>
-                          <p className="font-bold text-lg text-gray-800 dark:text-gray-200 mb-0.5">{f.sample}</p>
+                          <p className="font-bold text-lg text-gray-800 dark:text-gray-200 mb-0.5" style={{ fontFamily: f.css }}>{f.sample}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">{f.label}</p>
                         </button>
                       ))}
@@ -746,7 +755,7 @@ export default function DashboardClient({
                   </div>
 
                   {/* Estilo visual */}
-                  <div>
+                  <div className="mb-5">
                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-3">Estilo visual</label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {VISUAL_STYLES.map((style) => (
@@ -756,6 +765,37 @@ export default function DashboardClient({
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Imagem de fundo no preview */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Imagem de fundo (preview)</label>
+                    <p className="text-xs text-gray-400 mb-3">Veja como o post fica com foto do seu negócio.</p>
+                    {galleryImages.length > 0 ? (
+                      <div className="grid grid-cols-4 gap-2">
+                        <button
+                          onClick={() => setPreviewBgUrl(undefined)}
+                          className={`aspect-square rounded-xl border-2 flex items-center justify-center text-xs font-semibold transition ${!previewBgUrl ? "border-violet-500 bg-violet-50 dark:bg-violet-950 text-violet-600" : "border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-300"}`}
+                        >
+                          Sem foto
+                        </button>
+                        {galleryImages.slice(0, 7).map((img) => (
+                          <button
+                            key={img.id}
+                            onClick={() => setPreviewBgUrl(img.image_url)}
+                            className={`aspect-square rounded-xl overflow-hidden border-2 transition hover:scale-105 ${previewBgUrl === img.image_url ? "border-violet-500 scale-105" : "border-transparent"}`}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={img.image_url} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 text-center">
+                        <p className="text-xs text-gray-400 mb-2">Nenhuma imagem na galeria ainda.</p>
+                        <Link href="/galeria" className="text-xs font-bold text-violet-600 hover:underline">Ir para galeria →</Link>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -773,12 +813,12 @@ export default function DashboardClient({
               <div className="md:col-span-2 space-y-4">
                 <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Preview</p>
 
-                {/* Preview post */}
+                {/* Preview post — template varia conforme estilo visual */}
                 <div>
-                  <p className="text-[10px] text-gray-400 mb-1.5">Post</p>
-                  <div className="max-w-[200px]">
+                  <p className="text-[10px] text-gray-400 mb-1.5">Post ({FONT_STYLES.find(f => f.id === selectedFont)?.label})</p>
+                  <div className="max-w-[260px]">
                     <PostCard
-                      template_type="main_service"
+                      template_type={STYLE_PREVIEW_TEMPLATE[selectedStyle] ?? "main_service"}
                       title={business.business_name}
                       subtitle={business.main_service}
                       cta="Fale no WhatsApp"
@@ -786,6 +826,8 @@ export default function DashboardClient({
                       primary_color={primaryColor}
                       niche={business.niche}
                       city={business.city}
+                      fontFamily={FONT_STYLES.find(f => f.id === selectedFont)?.css}
+                      backgroundImageUrl={previewBgUrl}
                     />
                   </div>
                 </div>
@@ -793,7 +835,7 @@ export default function DashboardClient({
                 {/* Preview WhatsApp */}
                 <div>
                   <p className="text-[10px] text-gray-400 mb-1.5">WhatsApp CTA</p>
-                  <div className="max-w-[200px]">
+                  <div className="max-w-[260px]">
                     <PostCard
                       template_type="whatsapp_cta"
                       title="Agenda aberta"
@@ -803,6 +845,7 @@ export default function DashboardClient({
                       primary_color={primaryColor}
                       niche={business.niche}
                       city={business.city}
+                      fontFamily={FONT_STYLES.find(f => f.id === selectedFont)?.css}
                     />
                   </div>
                 </div>
@@ -810,7 +853,7 @@ export default function DashboardClient({
                 {/* Preview promoção */}
                 <div>
                   <p className="text-[10px] text-gray-400 mb-1.5">Promoção</p>
-                  <div className="max-w-[200px]">
+                  <div className="max-w-[260px]">
                     <PostCard
                       template_type="promotion"
                       title="Oferta especial"
@@ -818,6 +861,7 @@ export default function DashboardClient({
                       cta="Aproveitar agora"
                       business_name={business.business_name}
                       primary_color={primaryColor}
+                      fontFamily={FONT_STYLES.find(f => f.id === selectedFont)?.css}
                     />
                   </div>
                 </div>
