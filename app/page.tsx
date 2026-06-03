@@ -797,7 +797,7 @@ export default function LandingPage() {
                 <ImageIcon size={22} strokeWidth={1.75} />
               </div>
               <h3 className="font-extrabold text-gray-900 dark:text-white mb-1">Pacote Instagram Extra</h3>
-              <p className="text-3xl font-extrabold text-violet-700 dark:text-violet-400 mb-3">R$ 19</p>
+              <p className="text-3xl font-extrabold text-violet-700 dark:text-violet-400 mb-3">R$ 12</p>
               <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4">
                 Mais posts para movimentar o Instagram do seu negócio.
               </p>
@@ -826,7 +826,7 @@ export default function LandingPage() {
                 <Smartphone size={22} strokeWidth={1.75} />
               </div>
               <h3 className="font-extrabold text-gray-900 dark:text-white mb-1">Pacote Stories</h3>
-              <p className="text-3xl font-extrabold text-violet-700 dark:text-violet-400 mb-3">R$ 15</p>
+              <p className="text-3xl font-extrabold text-violet-700 dark:text-violet-400 mb-3">R$ 14</p>
               <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4">
                 Stories prontos para divulgar promoções, avisos e chamadas rápidas.
               </p>
@@ -855,7 +855,7 @@ export default function LandingPage() {
                 <MessageSquare size={22} strokeWidth={1.75} />
               </div>
               <h3 className="font-extrabold text-gray-900 dark:text-white mb-1">Reativação de Clientes</h3>
-              <p className="text-3xl font-extrabold text-violet-700 dark:text-violet-400 mb-3">R$ 19</p>
+              <p className="text-3xl font-extrabold text-violet-700 dark:text-violet-400 mb-3">R$ 9,90</p>
               <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4">
                 Mensagens para trazer clientes de volta ao seu negócio.
               </p>
