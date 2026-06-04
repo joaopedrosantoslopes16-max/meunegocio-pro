@@ -1,36 +1,87 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 function LoginForm() {
   const params   = useSearchParams();
   const redirect = params.get("redirect") ?? "/dashboard";
-  const hasError = params.get("error") === "1";
+  const router   = useRouter();
+
+  const [email,    setEmail]    = useState("");
+  const [password, setPassword] = useState("");
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState<string | null>(
+    params.get("error") === "1" ? "E-mail ou senha incorretos. Tente novamente." : null
+  );
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const supabase = createClient();
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (authError) {
+      setError("E-mail ou senha incorretos. Tente novamente.");
+      setLoading(false);
+      return;
+    }
+
+    router.push(redirect);
+    router.refresh();
+  }
 
   return (
-    <form method="POST" action="/api/auth/login" className="space-y-4">
-      <input type="hidden" name="redirect" value={redirect} />
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-1">E-mail</label>
-        <input type="email" name="email" required placeholder="seuemail@gmail.com" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+        <input
+          type="email"
+          required
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="seuemail@gmail.com"
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition"
+        />
       </div>
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-1">Senha</label>
-        <input type="password" name="password" required placeholder="••••••••" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+        <input
+          type="password"
+          required
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="••••••••"
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition"
+        />
       </div>
-      {hasError && (
+      {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
-          E-mail ou senha incorretos. Tente novamente.
+          {error}
         </div>
       )}
-      <button type="submit" className="w-full gradient-brand text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition">
-        Entrar
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full gradient-brand text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2"
+      >
+        {loading ? (
+          <>
+            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4"/>
+              <path className="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+            </svg>
+            Entrando…
+          </>
+        ) : "Entrar"}
       </button>
       <div className="mt-2 text-center text-sm text-gray-500">
         Ainda não tem conta?{" "}
-        <Link href="/cadastro-pos-compra" className="text-indigo-600 font-semibold hover:underline">
+        <Link href="/cadastro-pos-compra" className="text-violet-600 font-semibold hover:underline">
           Criar conta após compra
         </Link>
       </div>
@@ -48,23 +99,14 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold text-gray-900">Entrar na sua conta</h1>
             <p className="text-gray-500 mt-1 text-sm">Acesse seus materiais a qualquer momento</p>
           </div>
-
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
             <Suspense fallback={<div className="h-40" />}>
               <LoginForm />
             </Suspense>
           </div>
-
-          <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl px-5 py-4 text-center">
-            <p className="text-xs font-bold text-yellow-700 mb-2">👁️ Quer ver como fica o painel do cliente?</p>
-            <Link href="/demo" className="inline-flex items-center gap-2 bg-yellow-400 text-yellow-900 font-extrabold text-sm px-5 py-2.5 rounded-xl hover:bg-yellow-300 transition">
-              Abrir modo demo
-            </Link>
-          </div>
-
-          <p className="text-center text-xs text-gray-400 mt-4">
+          <p className="text-center text-xs text-gray-400 mt-6">
             Precisando de ajuda?{" "}
-            <Link href="/suporte" className="text-indigo-500 hover:underline">Ver suporte</Link>
+            <Link href="/suporte" className="text-violet-500 hover:underline">Ver suporte</Link>
           </p>
         </div>
       </div>
