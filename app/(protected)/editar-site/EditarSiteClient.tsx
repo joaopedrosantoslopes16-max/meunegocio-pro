@@ -725,17 +725,24 @@ export default function EditarSiteClient({ business, siteSlug, images, plan = "e
             <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Preview ao vivo</p>
             <a href={`/site/${siteSlug}`} target="_blank" className="text-xs text-violet-600 font-semibold hover:underline">Abrir site →</a>
           </div>
-          {/* Toggle Essencial / Pro */}
-          <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-3">
-            <button
-              onClick={() => setPreviewMode("essencial")}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition ${previewMode === "essencial" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
-            >Essencial</button>
-            <button
-              onClick={() => setPreviewMode("pro")}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition ${previewMode === "pro" ? "bg-violet-600 text-white shadow-sm" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
-            >⭐ Pro</button>
-          </div>
+          {/* Toggle — Essencial vê os dois, Pro vê só Pro */}
+          {!isPro ? (
+            <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-3">
+              <button
+                onClick={() => setPreviewMode("essencial")}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition ${previewMode === "essencial" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
+              >Essencial</button>
+              <button
+                onClick={() => setPreviewMode("pro")}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition ${previewMode === "pro" ? "bg-violet-600 text-white shadow-sm" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
+              >⭐ Ver Pro</button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between mb-3 px-1">
+              <span className="text-xs font-bold text-violet-600">⭐ Plano Pro</span>
+              <span className="text-xs text-gray-400">Preview do seu site</span>
+            </div>
+          )}
           <div style={{ width: 280, height: 580, border: "8px solid #1f2937", borderRadius: 44, overflow: "hidden", boxShadow: "0 24px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)", background: "#fff", position: "relative", flexShrink: 0 }}>
             <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 72, height: 18, background: "#1f2937", borderRadius: "0 0 14px 14px", zIndex: 10 }} />
             <div style={{ width: "100%", height: "100%", overflowY: "auto", overflowX: "hidden", paddingTop: 20 }} className="[&::-webkit-scrollbar]:hidden">
