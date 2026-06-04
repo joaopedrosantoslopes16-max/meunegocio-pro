@@ -30,13 +30,13 @@ export default async function EditarSitePage() {
   // Plano do usuário
   const { data: subscription } = await supabaseAdmin
     .from("subscriptions")
-    .select("plan")
-    .eq("email", (await (await createClient()).auth.getUser()).data.user?.email ?? "")
+    .select("plan_name")
+    .eq("email", user.email ?? "")
     .order("created_at", { ascending: false })
     .limit(1)
     .single();
 
-  const plan: PlanName = (subscription?.plan as PlanName) ?? "essencial";
+  const plan: PlanName = (subscription?.plan_name as PlanName) ?? "essencial";
 
   const { data: images } = await supabaseAdmin
     .from("image_gallery")
