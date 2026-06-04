@@ -92,7 +92,19 @@ const POST_TEMPLATES: {
   { category: "relacionamento", template_type: "main_service", title: "[NOME]", subtitle: "[SERVICO] em [CIDADE] com qualidade e respeito", cta: "Somos nós! 💙" },
 ];
 
-export function generatePosts(input: GenerateKitInput): Post[] {
+// Embaralha deterministicamente com base em uma semente (mês+ano+negócio)
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+  const a = [...arr];
+  let s = seed;
+  for (let i = a.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    const j = Math.abs(s) % (i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+export function generatePosts(input: GenerateKitInput & { month?: number; year?: number }): Post[] {
   const cfg = NICHE_CONFIG[input.niche] ?? NICHE_CONFIG.outro;
   const v = {
     NOME: input.business_name,
@@ -101,7 +113,11 @@ export function generatePosts(input: GenerateKitInput): Post[] {
     CTA: cfg.cta,
   };
 
-  return POST_TEMPLATES.map((tpl, i) => ({
+  // Semente única por mês/ano/negócio — posts diferentes a cada mês
+  const seed = ((input.month ?? 1) * 31 + (input.year ?? 2025) * 12) ^ input.business_name.length;
+  const shuffled = seededShuffle(POST_TEMPLATES, seed);
+
+  return shuffled.map((tpl, i) => ({
     number: i + 1,
     template_type: tpl.template_type,
     category: tpl.category,

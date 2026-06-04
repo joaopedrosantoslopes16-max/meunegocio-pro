@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       services: business.services ?? [],
     };
 
-    const allPosts    = generatePosts(input);
+    const allPosts    = generatePosts({ ...input, month, year });
     const allCaptions = generateCaptions(input);
     const allMessages = generateWhatsAppMessages(input);
     const calendar    = generateCalendar(input);
