@@ -125,7 +125,7 @@ export default async function GeradorMagneticoPage() {
               className="w-full py-4 rounded-2xl font-bold text-white text-sm transition hover:opacity-90"
               style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)" }}
             >
-              Ativar assinatura — R$ 37/mês
+              Ativar assinatura — R$ 37,90/mês
             </a>
             <Link
               href="/dashboard"

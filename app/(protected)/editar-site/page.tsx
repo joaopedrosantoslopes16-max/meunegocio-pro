@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import EditarSiteClient from "./EditarSiteClient";
-import type { Business, ImageGallery } from "@/types";
+import type { Business, ImageGallery, PlanName } from "@/types";
 import Link from "next/link";
 
 const supabaseAdmin = createAdminClient(
@@ -27,6 +27,17 @@ export default async function EditarSitePage() {
 
   const business = kit.businesses as Business;
 
+  // Plano do usuário
+  const { data: subscription } = await supabaseAdmin
+    .from("subscriptions")
+    .select("plan")
+    .eq("email", (await (await createClient()).auth.getUser()).data.user?.email ?? "")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  const plan: PlanName = (subscription?.plan as PlanName) ?? "essencial";
+
   const { data: images } = await supabaseAdmin
     .from("image_gallery")
     .select("*")
@@ -37,21 +48,29 @@ export default async function EditarSitePage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <Link href="/dashboard" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm flex-shrink-0">
               ← Dashboard
             </Link>
-            <span className="text-gray-200 dark:text-gray-700">/</span>
-            <span className="font-bold text-gray-900 dark:text-white text-sm">Editar mini site</span>
+            <span className="text-gray-200 dark:text-gray-700 flex-shrink-0">/</span>
+            <div className="min-w-0">
+              <p className="font-bold text-gray-900 dark:text-white text-sm leading-none">Editar mini site</p>
+              <p className="text-gray-400 text-xs truncate">{business.business_name} · /site/{kit.site_slug}</p>
+            </div>
+            <span className={`flex-shrink-0 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${plan === "pro" ? "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300" : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"}`}>
+              {plan === "pro" ? "⭐ Pro" : "Essencial"}
+            </span>
           </div>
-          <a
-            href={`/site/${kit.site_slug}`}
-            target="_blank"
-            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
-          >
-            🌐 Ver site →
-          </a>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <a
+              href={`/site/${kit.site_slug}`}
+              target="_blank"
+              className="text-xs font-bold px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-violet-400 hover:text-violet-600 transition"
+            >
+              Ver site →
+            </a>
+          </div>
         </div>
       </header>
 
@@ -59,6 +78,7 @@ export default async function EditarSitePage() {
         business={business}
         siteSlug={kit.site_slug}
         images={(images as ImageGallery[]) ?? []}
+        plan={plan}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ArrowRight, Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { PreviewData } from '@/types'
 import { NICHE_CONFIG } from '@/lib/niche-config'
@@ -46,6 +46,95 @@ const PRO_FEATURES = [
   "Carrosséis completos",
   "Campanhas prontas mensais",
   "Mensagens para recuperar clientes",
+]
+
+// ── Demos do Pro — exemplos visuais rotativos ─────────────────
+interface DemoSlide {
+  nicheLabel: string
+  businessName: string
+  mainService: string
+  city: string
+  color: string
+  instagram: string
+  heroImage: string
+  galleryImg2: string
+  galleryImg3: string
+  services: string[]
+  teamImages: string[]
+  about: string
+  review: string
+}
+
+const PRO_DEMO_SLIDES: DemoSlide[] = [
+  {
+    nicheLabel: "Clínica Médica",
+    businessName: "Clínica São Lucas",
+    mainService: "Consultas e Exames",
+    city: "São Paulo",
+    color: "#2563EB",
+    instagram: "clinicasaolucas",
+    heroImage: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80&fit=crop",
+    galleryImg2: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=80&fit=crop",
+    galleryImg3: "https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=400&q=80&fit=crop",
+    services: ["Consultas e Exames", "Pediatria", "Cardiologia"],
+    teamImages: [
+      "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80&h=80&q=80&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&q=80&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=80&h=80&q=80&fit=crop&crop=face",
+    ],
+    about: "Clínica São Lucas é referência em saúde preventiva em SP, com equipe especializada e atendimento humanizado.",
+    review: "Equipe muito atenciosa. Me senti acolhida desde a entrada!",
+  },
+  {
+    nicheLabel: "Barbearia",
+    businessName: "Barbearia Black",
+    mainService: "Corte Masculino",
+    city: "Rio de Janeiro",
+    color: "#7C3AED",
+    instagram: "barbearíablack",
+    heroImage: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80&fit=crop",
+    galleryImg2: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=400&q=80&fit=crop",
+    galleryImg3: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&q=80&fit=crop",
+    services: ["Corte Masculino", "Barba Completa", "Hidratação"],
+    teamImages: [
+      "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=80&h=80&q=80&fit=crop&crop=face",
+    ],
+    about: "Barbearia Black é o espaço certo para quem quer estilo e precisão no Rio. Atendimento rápido e resultado garantido.",
+    review: "Melhor barbearia da zona sul! Saio sempre impecável daqui.",
+  },
+  {
+    nicheLabel: "Advocacia",
+    businessName: "Dr. Fernandes Adv.",
+    mainService: "Direito Trabalhista",
+    city: "Belo Horizonte",
+    color: "#1D4ED8",
+    instagram: "drfernandes_adv",
+    heroImage: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80&fit=crop",
+    galleryImg2: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&q=80&fit=crop",
+    galleryImg3: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80&fit=crop&crop=face",
+    services: ["Direito Trabalhista", "Direito Civil", "Consultoria"],
+    teamImages: [
+      "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&q=80&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&q=80&fit=crop&crop=face",
+    ],
+    about: "Dr. Fernandes e equipe oferecem atendimento jurídico especializado com foco em resultados reais para você.",
+    review: "Resolveu meu caso em tempo recorde. Excelente profissional!",
+  },
+  {
+    nicheLabel: "Serralheria",
+    businessName: "Ferro Forte",
+    mainService: "Portões e Grades",
+    city: "Campinas",
+    color: "#B45309",
+    instagram: "ferroforte_cps",
+    heroImage: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&q=80&fit=crop",
+    galleryImg2: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80&fit=crop",
+    galleryImg3: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=80&fit=crop",
+    services: ["Portões e Grades", "Escadas Metálicas", "Coberturas"],
+    teamImages: [],
+    about: "Ferro Forte fabrica e instala portões, grades e coberturas sob medida em Campinas e região. Qualidade garantida.",
+    review: "Serviço impecável, prazo cumprido e preço justo. Recomendo!",
+  },
 ]
 
 // ── Essencial: mini site simples e profissional ──────────────
@@ -141,20 +230,24 @@ function EssencialSite({ preview, cfg }: { preview: PreviewData; cfg: NicheCfg }
   )
 }
 
-// ── Pro: mini site mais rico e completo ─────────────────────
-function ProSite({ preview, cfg, emojis }: { preview: PreviewData; cfg: NicheCfg; emojis: string[] }) {
-  const c = preview.primary_color
-  const initial = preview.business_name[0]?.toUpperCase() ?? '?'
-  const services = (cfg.services ?? []).filter((s: string) => s !== preview.main_service).slice(0, 2)
-  const waLink = buildWhatsAppLink(preview.whatsapp, `Olá! Vim pelo site da ${preview.business_name} e quero saber mais.`)
+// ── Pro: mini site com imagem real de cada negócio ───────────
+function ProSite({ demo }: { demo: DemoSlide }) {
+  const c = demo.color
+  const initial = demo.businessName[0]?.toUpperCase() ?? '?'
 
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: '#fff' }}>
 
-      {/* Hero escuro com overlay de cor — estilo editorial */}
-      <div style={{ height: '190px', position: 'relative', overflow: 'hidden', background: `linear-gradient(160deg, #111 0%, ${c}77 70%, #000 100%)` }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: `radial-gradient(circle at 70% 30%, ${c}44 0%, transparent 60%)` }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.80) 100%)' }} />
+      {/* Hero com foto real */}
+      <div style={{
+        height: '200px', position: 'relative', overflow: 'hidden',
+        backgroundImage: `url(${demo.heroImage})`,
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        backgroundColor: '#111',
+      }}>
+        {/* overlay escuro + tint da cor */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.30) 0%, rgba(0,0,0,0.78) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: `radial-gradient(circle at 70% 20%, ${c}44 0%, transparent 55%)` }} />
 
         {/* Top bar */}
         <div style={{ position: 'absolute', top: '12px', left: '12px', right: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
@@ -162,34 +255,57 @@ function ProSite({ preview, cfg, emojis }: { preview: PreviewData; cfg: NicheCfg
             <div style={{ width: '30px', height: '30px', borderRadius: '7px', background: c, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 900, color: '#fff', boxShadow: `0 3px 10px ${c}55` }}>
               {initial}
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.13)', borderRadius: '100px', padding: '3px 8px', backdropFilter: 'blur(4px)' }}>
-              <span style={{ color: '#fff', fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase' }}>{cfg.label}</span>
+            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '100px', padding: '3px 8px', backdropFilter: 'blur(4px)' }}>
+              <span style={{ color: '#fff', fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase' }}>{demo.nicheLabel}</span>
             </div>
           </div>
-          {preview.instagram && (
-            <div style={{ background: 'rgba(255,255,255,0.13)', borderRadius: '100px', padding: '3px 8px', backdropFilter: 'blur(4px)' }}>
-              <span style={{ color: '#fff', fontSize: '9px', fontWeight: 700 }}>@{preview.instagram}</span>
-            </div>
-          )}
+          <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '100px', padding: '3px 8px', backdropFilter: 'blur(4px)' }}>
+            <span style={{ color: '#fff', fontSize: '9px', fontWeight: 700 }}>@{demo.instagram}</span>
+          </div>
         </div>
 
-        {/* Bottom text */}
+        {/* Bottom: equipe + nome */}
         <div style={{ position: 'absolute', bottom: '12px', left: '12px', right: '12px', zIndex: 10 }}>
+          {demo.teamImages.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '9px' }}>
+              <div style={{ display: 'flex' }}>
+                {demo.teamImages.slice(0, 3).map((img, i) => (
+                  <div key={i} style={{
+                    width: '26px', height: '26px', borderRadius: '50%',
+                    border: '2px solid rgba(255,255,255,0.85)',
+                    overflow: 'hidden', marginLeft: i > 0 ? '-7px' : '0',
+                    position: 'relative', zIndex: 3 - i, background: c,
+                    flexShrink: 0,
+                  }}>
+                    <img
+                      src={img}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.80)', fontWeight: 600 }}>
+                {demo.teamImages.length} profissional{demo.teamImages.length > 1 ? 'is' : ''}
+              </span>
+            </div>
+          )}
           <p style={{ fontSize: '10px', fontWeight: 800, color: c, textTransform: 'uppercase', letterSpacing: '0.10em', marginBottom: '3px' }}>
-            {preview.main_service}
+            {demo.mainService}
           </p>
-          <p style={{ fontSize: '19px', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '4px' }}>
-            {preview.business_name}
+          <p style={{ fontSize: '18px', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '4px' }}>
+            {demo.businessName}
           </p>
           <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>
-            📍 {preview.city}
+            📍 {demo.city}
           </p>
         </div>
       </div>
 
       {/* Stats strip */}
       <div style={{ display: 'flex', background: '#0d0d0d', borderBottom: `2px solid ${c}` }}>
-        {['⚡ Online', `📍 ${preview.city}`, '💬 Rápido'].map((item, i) => (
+        {['⚡ Online', `📍 ${demo.city}`, '💬 Rápido'].map((item, i) => (
           <div key={i} style={{ flex: 1, padding: '8px 4px', textAlign: 'center', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
             <p style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(255,255,255,0.65)' }}>{item}</p>
           </div>
@@ -198,29 +314,41 @@ function ProSite({ preview, cfg, emojis }: { preview: PreviewData; cfg: NicheCfg
 
       {/* CTA principal */}
       <div style={{ padding: '12px 14px 0' }}>
-        <a href={waLink} target="_blank" rel="noopener noreferrer" style={{
+        <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
           background: '#25D366', color: '#fff', fontWeight: 800, fontSize: '12px',
-          padding: '11px', borderRadius: '10px', textDecoration: 'none',
+          padding: '11px', borderRadius: '10px',
           boxShadow: '0 4px 14px rgba(37,211,102,0.35)',
         }}>
-          💬 {cfg.cta}
-        </a>
+          💬 Agendar via WhatsApp
+        </div>
       </div>
 
       {/* Sobre */}
       <div style={{ padding: '14px 14px 0', borderTop: '1px solid #f0f0f0', marginTop: '12px' }}>
         <p style={{ fontSize: '9px', fontWeight: 800, color: c, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '6px' }}>Sobre</p>
-        <p style={{ fontSize: '11px', color: '#555', lineHeight: 1.65 }}>
-          {preview.business_name} é uma {cfg.label.toLowerCase()} em {preview.city}, especializada em {preview.main_service}. Atendimento direto pelo WhatsApp.
-        </p>
+        <p style={{ fontSize: '11px', color: '#555', lineHeight: 1.65 }}>{demo.about}</p>
+      </div>
+
+      {/* Galeria de fotos */}
+      <div style={{ padding: '14px 14px 0', marginTop: '2px' }}>
+        <p style={{ fontSize: '9px', fontWeight: 800, color: c, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '8px' }}>Galeria</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '4px' }}>
+          {[demo.heroImage, demo.galleryImg2, demo.galleryImg3].map((img, i) => (
+            <div key={i} style={{
+              height: '56px', borderRadius: '7px', overflow: 'hidden',
+              backgroundImage: `url(${img})`, backgroundSize: 'cover', backgroundPosition: 'center',
+              backgroundColor: `${c}${i === 0 ? '33' : i === 1 ? '22' : '14'}`,
+            }} />
+          ))}
+        </div>
       </div>
 
       {/* Serviços em cards */}
       <div style={{ padding: '14px', background: '#f9f9f9', marginTop: '12px', borderTop: '1px solid #f0f0f0' }}>
         <p style={{ fontSize: '9px', fontWeight: 800, color: c, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '8px' }}>Serviços</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          {[preview.main_service, ...services].map((svc, i) => (
+          {demo.services.map((svc, i) => (
             <div key={i} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               background: '#fff', borderRadius: '8px', padding: '8px 10px',
@@ -231,9 +359,9 @@ function ProSite({ preview, cfg, emojis }: { preview: PreviewData; cfg: NicheCfg
                 <div style={{
                   width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
                   background: i === 0 ? `linear-gradient(135deg, ${c}, ${c}bb)` : `${c}12`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  {emojis[i % emojis.length]}
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: i === 0 ? 'rgba(255,255,255,0.9)' : c }} />
                 </div>
                 <p style={{ fontSize: '11px', fontWeight: i === 0 ? 800 : 600, color: '#222' }}>{svc}</p>
               </div>
@@ -245,7 +373,7 @@ function ProSite({ preview, cfg, emojis }: { preview: PreviewData; cfg: NicheCfg
         </div>
       </div>
 
-      {/* Avaliações */}
+      {/* Avaliação */}
       <div style={{ padding: '14px' }}>
         <p style={{ fontSize: '9px', fontWeight: 800, color: c, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '8px' }}>Avaliações</p>
         <div style={{ display: 'flex', gap: '1px', marginBottom: '8px' }}>
@@ -253,22 +381,9 @@ function ProSite({ preview, cfg, emojis }: { preview: PreviewData; cfg: NicheCfg
         </div>
         <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: '8px', padding: '9px 11px' }}>
           <p style={{ fontSize: '11px', color: '#444', lineHeight: 1.55, marginBottom: '5px' }}>
-            "Ótimo atendimento! Muito profissional e resultado excelente."
+            &ldquo;{demo.review}&rdquo;
           </p>
-          <p style={{ fontSize: '9px', fontWeight: 700, color: '#aaa' }}>Cliente satisfeito · {preview.city}</p>
-        </div>
-      </div>
-
-      {/* Horários */}
-      <div style={{ padding: '14px', background: '#f9f9f9', borderTop: '1px solid #f0f0f0' }}>
-        <p style={{ fontSize: '9px', fontWeight: 800, color: c, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '8px' }}>Horários</p>
-        <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden', border: '1px solid #f0f0f0' }}>
-          {[['Seg–Sex', 'Consulte disponibilidade'], ['Sábado', 'Consulte disponibilidade'], ['Domingo', 'Fechado']].map(([day, hrs], i) => (
-            <div key={day} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 10px', borderBottom: i < 2 ? '1px solid #f5f5f5' : 'none' }}>
-              <span style={{ fontSize: '10px', fontWeight: 600, color: '#333' }}>{day}</span>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: i === 2 ? '#bbb' : '#111' }}>{hrs}</span>
-            </div>
-          ))}
+          <p style={{ fontSize: '9px', fontWeight: 700, color: '#aaa' }}>Cliente verificado · {demo.city}</p>
         </div>
       </div>
 
@@ -276,27 +391,22 @@ function ProSite({ preview, cfg, emojis }: { preview: PreviewData; cfg: NicheCfg
       <div style={{ padding: '16px 14px', background: c, position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '90px', height: '90px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.10)' }} />
         <p style={{ fontSize: '13px', fontWeight: 900, color: '#fff', textAlign: 'center', marginBottom: '10px', letterSpacing: '-0.01em' }}>
-          Fale com a {preview.business_name}
+          Fale com {demo.businessName}
         </p>
-        <a href={waLink} target="_blank" rel="noopener noreferrer" style={{
+        <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
           background: '#fff', color: c, fontWeight: 800, fontSize: '12px',
-          padding: '11px', borderRadius: '10px', textDecoration: 'none',
+          padding: '11px', borderRadius: '10px',
         }}>
           💬 Chamar no WhatsApp
-        </a>
-      </div>
-
-      {/* Barra WhatsApp fixa (simulação visual) */}
-      <div style={{ background: '#25D366', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-        <span style={{ fontSize: '11px', fontWeight: 800, color: '#fff' }}>💬 Botão fixo de WhatsApp</span>
+        </div>
       </div>
 
     </div>
   )
 }
 
-// ── Card individual de plano (browser frame + preview + features + CTA) ──
+// ── Card individual de plano ──────────────────────────────────
 function PlanSlide({
   plan, preview, cfg, emojis, checkoutUrl,
 }: {
@@ -308,14 +418,41 @@ function PlanSlide({
 }) {
   const isPro = plan === 'pro'
   const label = isPro ? 'Pro' : 'Essencial'
-  const price = isPro ? '57' : '37'
+  const price = isPro ? '57' : '37,90'
   const priceDesc = isPro
     ? 'Mini site + conteúdos + Gerador Magnético'
     : 'Mini site profissional ativo'
   const features = isPro ? PRO_FEATURES : ESSENCIAL_FEATURES
 
+  // Slideshow state — só ativo no Pro
+  const [demoIdx, setDemoIdx] = useState(0)
+  const [fadeIn, setFadeIn] = useState(true)
+
+  useEffect(() => {
+    if (!isPro) return
+    const t = setInterval(() => {
+      setFadeIn(false)
+      setTimeout(() => {
+        setDemoIdx(i => (i + 1) % PRO_DEMO_SLIDES.length)
+        setFadeIn(true)
+      }, 350)
+    }, 7000)
+    return () => clearInterval(t)
+  }, [isPro])
+
+  const currentDemo = PRO_DEMO_SLIDES[demoIdx]
+
+  const urlSlug = isPro
+    ? currentDemo.businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    : preview.business_name.toLowerCase().replace(/\s+/g, '-')
+
+  function goToDemo(i: number) {
+    setFadeIn(false)
+    setTimeout(() => { setDemoIdx(i); setFadeIn(true) }, 300)
+  }
+
   return (
-    <div className={`rounded-2xl overflow-hidden flex flex-col ${isPro ? 'border-2 border-violet-400 shadow-xl shadow-violet-100' : 'border border-gray-200 shadow-sm'}`}>
+    <div className={`rounded-2xl overflow-hidden flex flex-col bg-white ${isPro ? 'border-2 border-violet-400 shadow-xl shadow-violet-100' : 'border border-gray-200 shadow-sm'}`}>
 
       {/* Browser chrome */}
       <div className={`flex items-center justify-between px-4 py-2.5 ${isPro ? 'bg-violet-700' : 'bg-gray-900'}`}>
@@ -325,8 +462,8 @@ function PlanSlide({
             <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
             <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
           </div>
-          <span className="text-white/50 text-[10px] truncate max-w-[120px]">
-            meunegocio.pro/site/{preview.business_name.toLowerCase().replace(/\s+/g, '-')}
+          <span className="text-white/50 text-[10px] truncate max-w-[130px] transition-all duration-300">
+            meunegocio.pro/site/{urlSlug}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -339,30 +476,51 @@ function PlanSlide({
         </div>
       </div>
 
-      {/* Mini site preview — scrollable, sem scrollbar visível */}
-      <div
-        className="overflow-y-auto mnp-plan-scroll"
-        style={{ maxHeight: '440px' }}
-      >
-        {isPro
-          ? <ProSite preview={preview} cfg={cfg} emojis={emojis} />
-          : <EssencialSite preview={preview} cfg={cfg} />}
+      {/* Mini site preview — scrollável sem scrollbar */}
+      <div className="overflow-y-auto mnp-plan-scroll bg-white" style={{ maxHeight: '440px' }}>
+        {isPro ? (
+          <div style={{ opacity: fadeIn ? 1 : 0, transition: 'opacity 0.35s ease' }}>
+            <ProSite demo={currentDemo} />
+          </div>
+        ) : (
+          <EssencialSite preview={preview} cfg={cfg} />
+        )}
       </div>
 
-      {/* Fade-out hint para o Pro (tem mais conteúdo) */}
+      {/* Fade-out hint */}
       {isPro && (
         <div className="relative -mt-8 h-8 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent, #fff)' }} />
       )}
 
+      {/* Indicadores do slideshow — só Pro */}
+      {isPro && (
+        <div className="flex flex-col items-center gap-1.5 py-2.5 bg-white border-t border-violet-100">
+          <p className="text-[9px] font-bold text-violet-400 uppercase tracking-widest transition-all duration-300">
+            {currentDemo.nicheLabel}
+          </p>
+          <div className="flex gap-1.5">
+            {PRO_DEMO_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goToDemo(i)}
+                className={`rounded-full transition-all duration-300 ${
+                  i === demoIdx ? 'w-5 h-1.5 bg-violet-500' : 'w-1.5 h-1.5 bg-gray-200 hover:bg-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Features */}
-      <div className={`px-4 py-4 border-t ${isPro ? 'bg-violet-50 border-violet-100' : 'bg-gray-50 border-gray-100'}`}>
-        <p className={`text-[10px] font-extrabold uppercase tracking-widest mb-3 ${isPro ? 'text-violet-500' : 'text-gray-400'}`}>
+      <div className={`flex-1 px-4 py-4 border-t ${isPro ? 'bg-violet-50 border-violet-100' : 'bg-white border-gray-100'}`}>
+        <p className={`text-[10px] font-extrabold uppercase tracking-widest mb-3 ${isPro ? 'text-violet-500' : 'text-green-600'}`}>
           O que inclui
         </p>
         <ul className="flex flex-col gap-1.5">
           {features.map((f) => (
             <li key={f} className="flex items-start gap-2">
-              <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${isPro ? 'bg-violet-600' : 'bg-gray-400'}`}>
+              <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${isPro ? 'bg-violet-600' : 'bg-green-500'}`}>
                 <Check size={9} color="white" strokeWidth={3} />
               </span>
               <span className="text-xs text-gray-700 leading-snug">{f}</span>
@@ -372,9 +530,9 @@ function PlanSlide({
       </div>
 
       {/* Price + CTA */}
-      <div className={`px-4 pt-3 pb-5 ${isPro ? 'bg-violet-50' : 'bg-gray-50'}`}>
+      <div className={`px-4 pt-3 pb-5 ${isPro ? 'bg-violet-50' : 'bg-white'}`}>
         <div className="text-center mb-3">
-          <span className={`text-2xl font-extrabold ${isPro ? 'text-violet-700' : 'text-gray-700'}`}>
+          <span className={`text-2xl font-extrabold ${isPro ? 'text-violet-700' : 'text-gray-900'}`}>
             R$ {price}
           </span>
           <span className="text-gray-400 text-sm font-medium">/mês</span>
@@ -385,7 +543,7 @@ function PlanSlide({
           className={`flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-extrabold text-sm transition-opacity hover:opacity-90 ${
             isPro
               ? 'gradient-brand text-white shadow-md shadow-violet-200'
-              : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-violet-300'
+              : 'bg-gray-900 text-white hover:bg-gray-800'
           }`}
         >
           Escolher {label} <ArrowRight size={14} />
@@ -419,7 +577,6 @@ export default function PlanComparison({ preview, nicheKey, checkoutUrl, checkou
   const onTouchEnd = (e: React.TouchEvent) => {
     const dx = touchStartX.current - e.changedTouches[0].clientX
     const dy = touchStartY.current - e.changedTouches[0].clientY
-    // só ativa swipe se o movimento horizontal for maior que o vertical
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
       if (dx > 0) setActive(1)
       else setActive(0)
@@ -441,7 +598,7 @@ export default function PlanComparison({ preview, nicheKey, checkoutUrl, checkou
           Compare os planos na prática
         </h3>
         <p className="text-gray-500 text-sm max-w-md mx-auto">
-          Arraste para o lado e veja como o seu site pode ficar no Essencial e no Pro.
+          O Pro mostra como ficam sites de negócios reais — com fotos, equipe e galeria.
         </p>
       </div>
 
@@ -469,7 +626,7 @@ export default function PlanComparison({ preview, nicheKey, checkoutUrl, checkou
             )}
             <span className="capitalize">{plan === 'pro' ? 'Pro' : 'Essencial'}</span>
             <span className={`block text-xs font-semibold mt-0.5 ${active === i ? 'text-violet-500' : 'text-gray-300'}`}>
-              {plan === 'pro' ? 'R$ 57/mês' : 'R$ 37/mês'}
+              {plan === 'pro' ? 'R$ 57/mês' : 'R$ 37,90/mês'}
             </span>
           </button>
         ))}
@@ -554,9 +711,9 @@ export default function PlanComparison({ preview, nicheKey, checkoutUrl, checkou
             Mais completo
           </span>
           <p className="text-[10px] font-extrabold text-violet-500 uppercase tracking-widest mb-1.5">Plano Pro</p>
-          <p className="font-extrabold text-gray-800 text-sm mb-1">Mini site + conteúdos + gerador</p>
+          <p className="font-extrabold text-gray-800 text-sm mb-1">Mini site + fotos + conteúdos + gerador</p>
           <p className="text-sm text-gray-500 leading-relaxed">
-            Site personalizado, galeria de fotos, roteiros para Reels, Stories, carrosséis e mensagens para WhatsApp — tudo renovando todo mês.
+            Site com foto de capa, galeria, equipe visível, roteiros para Reels, Stories, carrosséis e mensagens — tudo renovando todo mês.
           </p>
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Business, ImageGallery, ImageType } from "@/types";
+import type { Business, ImageGallery, ImageType, PlanName } from "@/types";
 
 const LINK_TYPES = [
   { id: "whatsapp",    label: "WhatsApp"    },
@@ -28,12 +28,31 @@ interface Props {
   business: Business;
   siteSlug: string;
   images: ImageGallery[];
+  plan?: PlanName;
 }
 
-export default function EditarSiteClient({ business, siteSlug, images }: Props) {
+// Overlay de bloqueio Pro para recursos exclusivos
+function ProLock({ checkoutUrl = "https://pay.kiwify.com.br/1fAPOyu" }: { checkoutUrl?: string }) {
+  return (
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-xl" style={{ background: "rgba(10,10,20,0.85)", backdropFilter: "blur(4px)" }}>
+      <div className="w-10 h-10 rounded-full bg-violet-600/20 border border-violet-500/40 flex items-center justify-center text-lg">🔒</div>
+      <div className="text-center px-4">
+        <p className="text-white font-bold text-sm mb-1">Exclusivo do plano Pro</p>
+        <p className="text-white/50 text-xs mb-3">Foto de capa, galeria, links e fontes personalizadas</p>
+        <a href={checkoutUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition">
+          ⭐ Fazer upgrade para Pro
+        </a>
+      </div>
+    </div>
+  );
+}
+
+export default function EditarSiteClient({ business, siteSlug, images, plan = "essencial" }: Props) {
+  const isPro = plan === "pro";
   const [saving,  setSaving]  = useState(false);
   const [saved,   setSaved]   = useState(false);
   const [error,   setError]   = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<"essencial" | "pro">(isPro ? "pro" : "essencial");
   const [activeSection, setSection] = useState<string>("perfil");
 
   // Parse font config (JSON ou string simples por compatibilidade)
@@ -68,12 +87,14 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
   const [siteTextColor,  setSiteTextColor]  = useState<string>(fontConfig.text ?? "#111111");
   const [siteBgImg,      setSiteBgImg]      = useState<string>(fontConfig.bgImg ?? "");
 
-  // Imagens + posição (posição não salva no DB, afeta preview)
+  // Imagens + posição
   const [coverImg,     setCoverImg]     = useState(business.cover_image_url ?? "");
   const [coverImgPosY, setCoverImgPosY] = useState<number>(business.cover_image_position_y ?? 50);
   const [logoImg,      setLogoImg]      = useState(business.logo_url ?? "");
   const [proImg,       setProImg]       = useState(business.professional_photo_url ?? "");
   const [proImgPosY,   setProImgPosY]   = useState<number>(business.professional_photo_position_y ?? 50);
+  // Galeria de fotos (até 6 itens, exibe as 3 primeiras no site)
+  const [galleryImages, setGalleryImages] = useState<string[]>(business.gallery_images_json ?? []);
 
   // Benefícios
   const [benefitItems, setBenefitItems] = useState<string[]>(
@@ -144,6 +165,7 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
         professional_photo_url: proImg  || null,
         cover_image_position_y:        coverImgPosY,
         professional_photo_position_y: proImgPosY,
+        gallery_images_json: galleryImages.filter(Boolean),
         benefits_json:     benefitItems.filter(Boolean),
         opening_hours_json: hours,
         custom_links_json: customLinks,
@@ -197,14 +219,14 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
   }
 
   const SECTIONS = [
-    { id: "perfil",    label: "Perfil"     },
-    { id: "contato",   label: "Contato"    },
-    { id: "servicos",  label: "Serviços"   },
-    { id: "imagens",   label: "Imagens"    },
-    { id: "links",     label: "Links"      },
-    { id: "aparencia", label: "Aparência"  },
-    { id: "horarios",  label: "Horários"   },
-    { id: "avaliacoes",label: "Avaliações" },
+    { id: "perfil",    label: "Perfil",     proOnly: false },
+    { id: "contato",   label: "Contato",    proOnly: false },
+    { id: "servicos",  label: "Serviços",   proOnly: false },
+    { id: "imagens",   label: "Imagens",    proOnly: false },
+    { id: "links",     label: "Links",      proOnly: true  },
+    { id: "aparencia", label: "Aparência",  proOnly: false },
+    { id: "horarios",  label: "Horários",   proOnly: false },
+    { id: "avaliacoes",label: "Avaliações", proOnly: false },
   ];
 
   return (
@@ -236,9 +258,15 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
             <button
               key={s.id}
               onClick={() => setSection(s.id)}
-              className={`flex-shrink-0 px-3 py-2.5 rounded-xl text-sm font-semibold text-left transition ${activeSection === s.id ? "bg-violet-600 text-white shadow-sm" : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"}`}
+              className={`flex-shrink-0 px-3 py-2.5 rounded-xl text-sm font-semibold text-left transition flex items-center justify-between gap-1.5 ${activeSection === s.id ? "bg-violet-600 text-white shadow-sm" : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"}`}
             >
-              {s.label}
+              <span>{s.label}</span>
+              {s.proOnly && !isPro && (
+                <span className="text-[9px] font-extrabold opacity-60">🔒</span>
+              )}
+              {s.proOnly && isPro && (
+                <span className="text-[8px] font-extrabold text-yellow-400 opacity-80">⭐</span>
+              )}
             </button>
           ))}
         </nav>
@@ -355,45 +383,141 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
           {activeSection === "imagens" && (
             <>
               <SectionTitle title="Imagens do site" />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Cole uma URL de imagem ou selecione uma da lista abaixo.
-              </p>
 
-              <ImagePicker label="Imagem de fundo do hero (banner principal)" value={coverImg} onChange={setCoverImg} images={coverImages} placeholder="Foto do seu negócio ou ambiente" />
-              {coverImg && (
-                <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-300">Posição vertical do banner</p>
-                    <span className="text-xs font-bold text-violet-600">{coverImgPosY}%</span>
-                  </div>
-                  <input type="range" min={0} max={100} step={1} value={coverImgPosY} onChange={(e) => setCoverImgPosY(Number(e.target.value))} className="w-full accent-violet-600" />
-                  <div className="flex justify-between text-[10px] text-gray-400">
-                    <span>↑ Topo</span><span>Centro</span><span>Base ↓</span>
-                  </div>
-                  <div className="rounded-xl overflow-hidden h-24 mt-1">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={coverImg} alt="" className="w-full h-full object-cover" style={{ objectPosition: `center ${coverImgPosY}%` }} />
+              {/* Logo — todos os planos */}
+              <ImagePicker label="Logo / foto do perfil" value={logoImg} onChange={setLogoImg} images={logoImages} placeholder="Logomarca ou foto do negócio" />
+
+              {/* Recursos exclusivos Pro */}
+              {!isPro ? (
+                <div className="mt-4 rounded-2xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 p-5 flex flex-col items-center text-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center text-lg">🔒</div>
+                  <div>
+                    <p className="font-bold text-gray-900 dark:text-white text-sm mb-1">Galeria, capa e foto da equipe</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">No plano Pro você adiciona foto de capa no banner, galeria de fotos e foto da equipe no seu site.</p>
+                    <a href="https://pay.kiwify.com.br/1fAPOyu" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition">
+                      ⭐ Fazer upgrade para Pro — R$ 57/mês
+                    </a>
                   </div>
                 </div>
-              )}
+              ) : (
+                <div className="mt-4 space-y-6">
+                  {/* Galeria */}
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                      Galeria de fotos <span className="text-xs text-gray-400 font-normal">(até 6 fotos no site)</span>
+                    </p>
+                    <div className="space-y-2 mt-2">
+                      {[0, 1, 2, 3, 4, 5].map((idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          {/* Miniatura + upload */}
+                          <label className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex-shrink-0 cursor-pointer hover:border-violet-400 transition relative">
+                            {galleryImages[idx] ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={galleryImages[idx]} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="w-full h-full flex items-center justify-center text-gray-400 text-lg font-light">+</span>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
 
-              <ImagePicker label="Logo" value={logoImg} onChange={setLogoImg} images={logoImages} placeholder="Logomarca do negócio" />
+                                // Tenta Supabase Storage primeiro
+                                try {
+                                  const fd = new FormData();
+                                  fd.append("file", file);
+                                  fd.append("image_type", "general");
+                                  fd.append("business_id", business.id);
+                                  const res = await fetch("/api/gallery", { method: "POST", body: fd });
+                                  if (res.ok) {
+                                    const data = await res.json();
+                                    const url = data.image?.image_url ?? data.url;
+                                    if (url) {
+                                      setGalleryImages(prev => {
+                                        const next = Array.from({ length: 6 }, (_, i) => prev[i] ?? "");
+                                        next[idx] = url;
+                                        return next;
+                                      });
+                                      return;
+                                    }
+                                  }
+                                } catch { /* cai no fallback */ }
 
-              <ImagePicker label="Foto profissional (foto sua ou da equipe)" value={proImg} onChange={setProImg} images={proImages} placeholder="Foto da equipe ou responsável" />
-              {proImg && (
-                <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-300">Posição vertical da foto profissional</p>
-                    <span className="text-xs font-bold text-violet-600">{proImgPosY}%</span>
+                                // Fallback: base64 local (funciona sem Supabase Storage)
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  const url = ev.target?.result as string;
+                                  if (url) {
+                                    setGalleryImages(prev => {
+                                      const next = Array.from({ length: 6 }, (_, i) => prev[i] ?? "");
+                                      next[idx] = url;
+                                      return next;
+                                    });
+                                  }
+                                };
+                                reader.readAsDataURL(file);
+                              }}
+                            />
+                          </label>
+                          <input
+                            value={galleryImages[idx] ?? ""}
+                            onChange={e => {
+                              const val = e.target.value;
+                              setGalleryImages(prev => {
+                                const next = Array.from({ length: 6 }, (_, i) => prev[i] ?? "");
+                                next[idx] = val;
+                                return next;
+                              });
+                            }}
+                            placeholder={`URL da foto ${idx + 1}...`}
+                            className="flex-1 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-violet-400"
+                          />
+                          {galleryImages[idx] && (
+                            <button
+                              onClick={() => setGalleryImages(prev => { const next = Array.from({ length: 6 }, (_, i) => prev[i] ?? ""); next[idx] = ""; return next; })}
+                              className="w-7 h-7 rounded-full bg-red-50 dark:bg-red-950 text-red-400 text-xs flex items-center justify-center hover:bg-red-100 transition flex-shrink-0"
+                            >✕</button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <input type="range" min={0} max={100} step={1} value={proImgPosY} onChange={(e) => setProImgPosY(Number(e.target.value))} className="w-full accent-violet-600" />
-                  <div className="flex justify-between text-[10px] text-gray-400">
-                    <span>↑ Topo</span><span>Centro</span><span>Base ↓</span>
-                  </div>
-                  <div className="rounded-xl overflow-hidden h-24 mt-1">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={proImg} alt="" className="w-full h-full object-cover" style={{ objectPosition: `center ${proImgPosY}%` }} />
-                  </div>
+
+                  {/* Capa */}
+                  <ImagePicker label="Foto de capa (banner do site)" value={coverImg} onChange={setCoverImg} images={coverImages} placeholder="Foto do seu negócio ou ambiente" />
+                  {coverImg && (
+                    <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-gray-600 dark:text-gray-300">Posição vertical do banner</p>
+                        <span className="text-xs font-bold text-violet-600">{coverImgPosY}%</span>
+                      </div>
+                      <input type="range" min={0} max={100} step={1} value={coverImgPosY} onChange={(e) => setCoverImgPosY(Number(e.target.value))} className="w-full accent-violet-600" />
+                      <div className="flex justify-between text-[10px] text-gray-400"><span>↑ Topo</span><span>Centro</span><span>Base ↓</span></div>
+                      <div className="rounded-xl overflow-hidden h-24 mt-1">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={coverImg} alt="" className="w-full h-full object-cover" style={{ objectPosition: `center ${coverImgPosY}%` }} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Foto profissional */}
+                  <ImagePicker label="Foto da equipe / foto profissional" value={proImg} onChange={setProImg} images={proImages} placeholder="Foto da equipe ou responsável" />
+                  {proImg && (
+                    <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-gray-600 dark:text-gray-300">Posição vertical</p>
+                        <span className="text-xs font-bold text-violet-600">{proImgPosY}%</span>
+                      </div>
+                      <input type="range" min={0} max={100} step={1} value={proImgPosY} onChange={(e) => setProImgPosY(Number(e.target.value))} className="w-full accent-violet-600" />
+                      <div className="rounded-xl overflow-hidden h-24 mt-1">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={proImg} alt="" className="w-full h-full object-cover" style={{ objectPosition: `center ${proImgPosY}%` }} />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </>
@@ -401,7 +525,9 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
 
           {/* ── LINKS PERSONALIZADOS ── */}
           {activeSection === "links" && (
-            <>
+            <div className="relative">
+              {!isPro && <ProLock />}
+              <>
               <SectionTitle title="Links personalizados" />
               <p className="text-sm text-gray-500 dark:text-gray-400">Adicione links extras que vão aparecer como botões no seu site.</p>
 
@@ -433,7 +559,8 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
               <button onClick={addLink} className="w-full border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl py-3 text-sm font-semibold text-gray-500 dark:text-gray-400 hover:border-violet-300 hover:text-violet-600 transition flex items-center justify-center gap-2">
                 + Adicionar link
               </button>
-            </>
+              </>
+            </div>
           )}
 
           {/* ── APARÊNCIA ── */}
@@ -484,6 +611,8 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
                 )}
               </Field>
 
+              <div className="relative">
+              {!isPro && <ProLock />}
               <Field label="Fonte">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
@@ -500,6 +629,7 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
                   ))}
                 </div>
               </Field>
+              </div>
             </>
           )}
 
@@ -591,9 +721,20 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
 
         {/* ── PREVIEW AO VIVO ── */}
         <div className="hidden xl:block w-[296px] flex-shrink-0 sticky top-6 self-start">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Preview ao vivo</p>
             <a href={`/site/${siteSlug}`} target="_blank" className="text-xs text-violet-600 font-semibold hover:underline">Abrir site →</a>
+          </div>
+          {/* Toggle Essencial / Pro */}
+          <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-3">
+            <button
+              onClick={() => setPreviewMode("essencial")}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition ${previewMode === "essencial" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
+            >Essencial</button>
+            <button
+              onClick={() => setPreviewMode("pro")}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition ${previewMode === "pro" ? "bg-violet-600 text-white shadow-sm" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
+            >⭐ Pro</button>
           </div>
           <div style={{ width: 280, height: 580, border: "8px solid #1f2937", borderRadius: 44, overflow: "hidden", boxShadow: "0 24px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)", background: "#fff", position: "relative", flexShrink: 0 }}>
             <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 72, height: 18, background: "#1f2937", borderRadius: "0 0 14px 14px", zIndex: 10 }} />
@@ -621,6 +762,8 @@ export default function EditarSiteClient({ business, siteSlug, images }: Props) 
                 customLinks={customLinks}
                 hoursConfig={hoursConfig}
                 testimonials={testimonials}
+                galleryImages={galleryImages}
+                isPro={previewMode === "pro"}
               />
             </div>
           </div>
@@ -656,7 +799,7 @@ const FONT_CSS_MAP: Record<string, string> = {
   nunito:     "'Nunito', sans-serif",
 };
 
-function SitePreviewMini({ businessName, niche, city, shortDesc, mainService, serviceItems, benefitItems, fontStyle, primaryColor, siteBgColor, siteTextColor, siteBgImg, instagram, coverImg, coverImgPosY, logoImg, proImg, proImgPosY, address, customLinks, hoursConfig, testimonials }: {
+function SitePreviewMini({ businessName, niche, city, shortDesc, mainService, serviceItems, benefitItems, fontStyle, primaryColor, siteBgColor, siteTextColor, siteBgImg, instagram, coverImg, coverImgPosY, logoImg, proImg, proImgPosY, address, customLinks, hoursConfig, testimonials, galleryImages, isPro }: {
   businessName: string; niche: string; city: string; shortDesc: string;
   mainService: string; serviceItems: string[]; benefitItems: string[];
   fontStyle: string; primaryColor: string;
@@ -666,6 +809,8 @@ function SitePreviewMini({ businessName, niche, city, shortDesc, mainService, se
   address: string; customLinks: CustomLink[];
   hoursConfig: Record<string, { open: boolean; time: string }>;
   testimonials: { text: string; author: string; stars: number }[];
+  galleryImages: string[];
+  isPro: boolean;
 }) {
   const services    = serviceItems.filter(Boolean);
   const benefits    = benefitItems.filter(Boolean);
@@ -691,54 +836,131 @@ function SitePreviewMini({ businessName, niche, city, shortDesc, mainService, se
   return (
     <div style={{ ...bgStyle, fontFamily, WebkitFontSmoothing: "antialiased" }}>
 
-      {/* Capa */}
-      <div style={{ height: 110, background: coverImg ? "none" : cover.bg, backgroundImage: coverImg ? `url(${coverImg})` : undefined, backgroundSize: "cover", backgroundPosition: `center ${coverImgPosY}%`, position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.5) 100%)" }} />
-        {city && <div style={{ position: "absolute", bottom: 8, left: 12, background: "rgba(0,0,0,0.45)", borderRadius: 100, padding: "2px 9px", color: "#fff", fontSize: 10, fontWeight: 700 }}>📍 {city}</div>}
-        {!coverImg && <div style={{ position: "absolute", right: 12, bottom: -6, fontSize: 60, opacity: 0.12 }}>{cover.emoji}</div>}
-      </div>
+      {isPro ? (
+        <>
+          {/* ── PRO: capa escura com avatar dentro ── */}
+          <div style={{ height: 140, background: coverImg ? "none" : cover.bg, backgroundImage: coverImg ? `url(${coverImg})` : undefined, backgroundSize: "cover", backgroundPosition: `center ${coverImgPosY}%`, position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", inset: 0, background: coverImg ? "linear-gradient(to bottom,rgba(0,0,0,0.30) 0%,rgba(0,0,0,0.80) 100%)" : "linear-gradient(to bottom,rgba(0,0,0,0.10) 0%,rgba(0,0,0,0.65) 100%)" }} />
+            <div style={{ position: "absolute", inset: 0, backgroundImage: `radial-gradient(circle at 75% 20%, ${color}44 0%, transparent 55%)` }} />
+            <div style={{ position: "absolute", top: 10, left: 10, right: 10, display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {logoImg ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={logoImg} alt="" style={{ width: 28, height: 28, borderRadius: 8, objectFit: "cover", border: "2px solid rgba(255,255,255,0.4)" }} />
+                ) : (
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, color: "#fff", flexShrink: 0 }}>{initial}</div>
+                )}
+                <div style={{ background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.22)", borderRadius: 100, padding: "3px 8px" }}>
+                  <span style={{ color: "#fff", fontSize: 9, fontWeight: 700, textTransform: "uppercase" as const }}>{niche || "negócio"}</span>
+                </div>
+              </div>
+              {igUrl && (
+                <div style={{ background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.22)", borderRadius: 100, padding: "3px 8px" }}>
+                  <span style={{ color: "#fff", fontSize: 9, fontWeight: 700 }}>{igHandle || "@instagram"}</span>
+                </div>
+              )}
+            </div>
+            <div style={{ position: "absolute", bottom: 10, left: 10, right: 10, zIndex: 10 }}>
+              <h1 style={{ fontSize: 14, fontWeight: 900, color: "#fff", lineHeight: 1.2, marginBottom: 3 }}>{businessName || "Nome do negócio"}</h1>
+              {mainService && <p style={{ fontSize: 9, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{mainService} · {city}</p>}
+            </div>
+            {!coverImg && <div style={{ position: "absolute", right: 10, bottom: -4, fontSize: 52, opacity: 0.10 }}>{cover.emoji}</div>}
+          </div>
+          <div style={{ background: "#0a0a0a", borderBottom: `2px solid ${color}`, display: "flex", alignItems: "center", justifyContent: "space-around", padding: "6px 10px" }}>
+            {[["⚡", "Online"], ["📍", city || "Cidade"], ["💬", "Rápido"]].map(([emoji, label]) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                <span style={{ fontSize: 8 }}>{emoji}</span>
+                <span style={{ fontSize: 8, color: "#aaa", fontWeight: 600 }}>{label}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: "10px 14px 4px" }}>
+            {shortDesc && <p style={{ fontSize: 9, color: textColor + "99", lineHeight: 1.6, marginBottom: 6 }}>{shortDesc}</p>}
+            <div style={{ background: "#25D366", borderRadius: 10, padding: "9px 14px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: "#fff" }}>Chamar no WhatsApp</span>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* ── ESSENCIAL: hero gradiente centralizado (igual PlanComparison) ── */}
+          <div style={{ background: `linear-gradient(160deg, ${color}f5 0%, ${color}bb 100%)`, padding: "28px 18px 40px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: "-30px", right: "-30px", width: "120px", height: "120px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.15)" }} />
+            <div style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
+              {logoImg ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoImg} alt="" style={{ width: 52, height: 52, borderRadius: 14, margin: "0 auto 10px", objectFit: "cover", border: "2px solid rgba(255,255,255,0.35)" }} />
+              ) : (
+                <div style={{ width: 52, height: 52, borderRadius: 14, margin: "0 auto 10px", background: "rgba(255,255,255,0.22)", border: "2px solid rgba(255,255,255,0.35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 900, color: "#fff" }}>{initial}</div>
+              )}
+              <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", marginBottom: 3 }}>{businessName || "Nome do negócio"}</p>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.70)", fontWeight: 600, marginBottom: 16 }}>{niche} · {city}</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "#25D366", color: "#fff", fontWeight: 800, fontSize: 12, padding: 11, borderRadius: 10, boxShadow: "0 4px 14px rgba(37,211,102,0.35)" }}>
+                💬 Chamar no WhatsApp
+              </div>
+            </div>
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 24, background: bgColor, clipPath: "ellipse(55% 100% at 50% 100%)" }} />
+          </div>
 
-      {/* Perfil */}
-      <div style={{ padding: "0 14px 14px" }}>
-        <div style={{ marginTop: 12, marginBottom: 10 }}>
-          {logoImg ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoImg} alt="" style={{ width: 52, height: 52, borderRadius: "50%", border: `3px solid ${bgColor}`, objectFit: "cover", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }} />
-          ) : (
-            <div style={{ width: 52, height: 52, borderRadius: "50%", background: `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)`, border: `3px solid ${bgColor}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 900, color: "#fff", boxShadow: `0 4px 16px ${color}40` }}>
-              {initial}
+          {/* Serviços */}
+          {services.length > 0 && (
+            <div style={{ padding: "16px 16px 4px" }}>
+              <p style={{ fontSize: 9, fontWeight: 800, color, letterSpacing: "0.20em", textTransform: "uppercase" as const, marginBottom: 8 }}>Serviços</p>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 6 }}>
+                {[mainService, ...services.filter((s) => s !== mainService)].filter(Boolean).slice(0, 3).map((svc, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: i === 0 ? `${color}18` : `${color}06`, border: `1px solid ${i === 0 ? color + "40" : color + "15"}`, borderRadius: 8, padding: "9px 12px" }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: color, flexShrink: 0 }} />
+                    <p style={{ fontSize: 12, fontWeight: i === 0 ? 800 : 600, color: textColor, flex: 1 }}>{svc}</p>
+                    {i === 0 && <span style={{ fontSize: 9, fontWeight: 700, color, background: `${color}20`, borderRadius: 4, padding: "2px 5px" }}>Principal</span>}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-        </div>
-        <h1 style={{ fontSize: 16, fontWeight: 900, color: textColor, marginBottom: 2, lineHeight: 1.2 }}>{businessName || "Nome do negócio"}</h1>
-        <p style={{ fontSize: 10, color: textColor + "99", marginBottom: 8, fontWeight: 600 }}>{niche} · {city}</p>
-        {shortDesc && <p style={{ fontSize: 10, color: textColor + "aa", lineHeight: 1.6, marginBottom: 10 }}>{shortDesc}</p>}
-        {mainService && (
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: `${color}12`, border: `1px solid ${color}25`, borderRadius: 8, padding: "4px 9px", marginBottom: 12 }}>
-            <div style={{ width: 5, height: 5, borderRadius: 1.5, background: color, transform: "rotate(45deg)", flexShrink: 0 }} />
-            <span style={{ fontSize: 10, fontWeight: 700, color }}>{mainService}</span>
+
+          {/* Links rápidos */}
+          <div style={{ padding: "12px 16px" }}>
+            <div style={{ display: "flex", gap: 6 }}>
+              {["WhatsApp", "Localização", "Instagram"].map((s) => (
+                <div key={s} style={{ flex: 1, background: `${color}10`, border: `1px solid ${color}20`, borderRadius: 7, padding: "7px 4px", textAlign: "center" as const }}>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: textColor + "cc" }}>{s}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        )}
-        <div style={{ background: "#25D366", borderRadius: 10, padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 6 }}>
-          <span style={{ fontSize: 11, fontWeight: 800, color: "#fff" }}>Chamar no WhatsApp</span>
-        </div>
-        {igUrl && (
-          <div style={{ background: bgColor, border: "1.5px solid #e5e7eb", borderRadius: 10, padding: "8px 14px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: textColor }}>{igHandle || "Ver no Instagram"}</span>
+
+          {/* CTA footer */}
+          <div style={{ padding: "12px 16px 20px", background: `${color}08`, borderTop: `1px solid ${color}20` }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: color, color: "#fff", fontWeight: 800, fontSize: 12, padding: 11, borderRadius: 10 }}>
+              💬 Fale pelo WhatsApp
+            </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
 
       {/* Serviços */}
       {services.length > 0 && (
-        <div style={{ background: bgColor === "#ffffff" ? "#f9f9f9" : `${color}08`, padding: "14px" }}>
+        <div style={{ background: `${color}06`, padding: "14px" }}>
           <p style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase" as const, color, marginBottom: 8 }}>Serviços</p>
           <div style={{ display: "flex", flexDirection: "column" as const, gap: 5 }}>
             {services.slice(0, 5).map((svc, i) => (
-              <div key={i} style={{ background: bgColor, borderRadius: 10, padding: "7px 10px", display: "flex", alignItems: "center", gap: 8, border: i === 0 ? `1.5px solid ${color}35` : "1.5px solid #f0f0f0" }}>
+              <div key={i} style={{ background: bgColor, borderRadius: 10, padding: "7px 10px", display: "flex", alignItems: "center", gap: 8, border: i === 0 ? `1.5px solid ${color}35` : `1.5px solid ${color}15` }}>
                 <div style={{ width: 10, height: 10, borderRadius: "50%", background: i === 0 ? color : `${color}60`, flexShrink: 0 }} />
                 <p style={{ fontSize: 11, fontWeight: 700, color: textColor }}>{svc}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Galeria — só Pro (grid 3 colunas, proporção 4:3) */}
+      {isPro && galleryImages.filter(Boolean).length > 0 && (
+        <div style={{ padding: "14px" }}>
+          <p style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase" as const, color, marginBottom: 8 }}>Galeria</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4 }}>
+            {galleryImages.filter(Boolean).map((url, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={i} src={url} alt="" style={{ width: "100%", height: 40, objectFit: "cover", borderRadius: 6 }} />
             ))}
           </div>
         </div>
@@ -750,7 +972,7 @@ function SitePreviewMini({ businessName, niche, city, shortDesc, mainService, se
           <p style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase" as const, color, marginBottom: 8 }}>Por que a gente</p>
           <div style={{ display: "flex", flexDirection: "column" as const, gap: 5 }}>
             {benefits.slice(0, 4).map((b, i) => (
-              <div key={i} style={{ background: bgColor === "#ffffff" ? "#fafafa" : `${color}06`, borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "flex-start", gap: 8, border: "1.5px solid #f0f0f0" }}>
+              <div key={i} style={{ background: `${color}06`, borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "flex-start", gap: 8, border: `1.5px solid ${color}18` }}>
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: color, flexShrink: 0, marginTop: 3 }} />
                 <p style={{ fontSize: 10, color: textColor, lineHeight: 1.5 }}>{b}</p>
               </div>
@@ -775,7 +997,7 @@ function SitePreviewMini({ businessName, niche, city, shortDesc, mainService, se
           <p style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase" as const, color, marginBottom: 8 }}>Links</p>
           <div style={{ display: "flex", flexDirection: "column" as const, gap: 5 }}>
             {activeLinks.slice(0, 4).map((link) => (
-              <div key={link.id} style={{ background: "#f9f9f9", border: "1.5px solid #ebebeb", borderRadius: 10, padding: "7px 12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div key={link.id} style={{ background: `${color}08`, border: `1.5px solid ${color}20`, borderRadius: 10, padding: "7px 12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: "#333" }}>{link.label}</span>
                 <span style={{ fontSize: 10, color: "#bbb" }}>→</span>
               </div>
@@ -796,13 +1018,13 @@ function SitePreviewMini({ businessName, niche, city, shortDesc, mainService, se
 
       {/* Horários */}
       {Object.keys(hoursConfig).length > 0 && (
-        <div style={{ background: bgColor === "#ffffff" ? "#f9f9f9" : `${color}06`, padding: "14px" }}>
+        <div style={{ background: `${color}06`, padding: "14px" }}>
           <p style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase" as const, color, marginBottom: 8 }}>Horários</p>
-          <div style={{ background: bgColor, borderRadius: 10, overflow: "hidden", border: "1.5px solid #f0f0f0" }}>
+          <div style={{ background: bgColor, borderRadius: 10, overflow: "hidden", border: `1.5px solid ${color}18` }}>
             {hoursEntries.slice(0, 7).map(({ day, hours }, i) => {
               const closed = hours.toLowerCase().includes("fechad");
               return (
-                <div key={day} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 10px", borderBottom: i < hoursEntries.slice(0, 7).length - 1 ? "1px solid #f5f5f5" : "none" }}>
+                <div key={day} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 10px", borderBottom: i < hoursEntries.slice(0, 7).length - 1 ? `1px solid ${color}12` : "none" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                     <div style={{ width: 6, height: 6, borderRadius: "50%", background: closed ? "#d1d5db" : "#22c55e", flexShrink: 0 }} />
                     <span style={{ fontSize: 10, fontWeight: 600, color: textColor }}>{day}</span>
@@ -821,7 +1043,7 @@ function SitePreviewMini({ businessName, niche, city, shortDesc, mainService, se
           <p style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase" as const, color, marginBottom: 8 }}>Depoimentos</p>
           <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
             {activeTestimonials.slice(0, 3).map((t, i) => (
-              <div key={i} style={{ background: "#f9f9f9", borderRadius: 10, padding: "10px 12px", border: "1.5px solid #f0f0f0" }}>
+              <div key={i} style={{ background: `${color}06`, borderRadius: 10, padding: "10px 12px", border: `1.5px solid ${color}18` }}>
                 <div style={{ display: "flex", gap: 1, marginBottom: 5 }}>
                   {[1,2,3,4,5].map((s) => (
                     <span key={s} style={{ fontSize: 10, color: s <= (t.stars ?? 5) ? "#FFD700" : "#e0e0e0" }}>★</span>

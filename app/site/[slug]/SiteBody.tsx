@@ -170,81 +170,77 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
       `}</style>
 
       {/* ══ HERO ══════════════════════════════════════════════ */}
-      <section style={{ position: "relative", overflow: "hidden" }}>
+      <section>
 
-        {/* CAPA */}
-        <div style={{ height: "260px", position: "relative", overflow: "hidden", ...coverImgStyle, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.55) 100%)" }} />
-          {!business.cover_image_url && (
-            <div style={{ fontSize: "120px", opacity: 0.12, userSelect: "none", position: "absolute", right: "24px", bottom: "-10px" }}>
-              {cover.emoji}
-            </div>
-          )}
-          <div style={{ position: "absolute", top: "20px", left: "20px" }}>
-            <div style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: "100px", padding: "5px 12px" }}>
-              <span style={{ color: "#fff", fontSize: "12px", fontWeight: 700, letterSpacing: "0.10em", textTransform: "uppercase" }}>{cfg.label}</span>
-            </div>
-          </div>
-          {igUrl && (
-            <a href={igUrl} target="_blank" rel="noopener noreferrer"
-               style={{ position: "absolute", top: "20px", right: "20px", display: "flex", alignItems: "center", gap: "6px", background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: "100px", padding: "5px 12px", color: "#fff", fontSize: "12px", fontWeight: 700 }}>
-              <IconIG /> {igHandle}
-            </a>
-          )}
-          <div style={{ position: "absolute", bottom: "20px", left: "20px", display: "flex", alignItems: "center", gap: "6px", color: "rgba(255,255,255,0.85)", fontSize: "13px", fontWeight: 600 }}>
-            <IconPin /> {business.city}
-          </div>
-        </div>
+        {/* CAPA ESCURA — com foto ou gradiente do nicho */}
+        <div style={{ height: "240px", position: "relative", overflow: "hidden", ...coverImgStyle }}>
+          {/* Overlay escuro */}
+          <div style={{ position: "absolute", inset: 0, background: business.cover_image_url ? "linear-gradient(to bottom,rgba(0,0,0,0.30) 0%,rgba(0,0,0,0.80) 100%)" : "linear-gradient(to bottom,rgba(0,0,0,0.10) 0%,rgba(0,0,0,0.65) 100%)" }} />
+          {/* Tint da cor */}
+          <div style={{ position: "absolute", inset: 0, backgroundImage: `radial-gradient(circle at 75% 20%, ${color}44 0%, transparent 55%)` }} />
 
-        {/* PERFIL */}
-        <div style={{ position: "relative", padding: "0 20px", maxWidth: "560px", margin: "0 auto" }}>
-          <div style={{ marginTop: "16px", marginBottom: "16px", position: "relative", display: "inline-block" }}>
-            <div style={{ position: "absolute", inset: "-6px", borderRadius: "50%", background: color, opacity: 0.25, animation: "pulse-ring 2.8s ease-out infinite" }} />
-            {business.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={business.logo_url} alt={business.business_name} style={{ width: "104px", height: "104px", borderRadius: "50%", border: "4px solid #fff", objectFit: "cover", boxShadow: `0 8px 32px ${color}40`, position: "relative" }} />
-            ) : (
-              <div style={{ width: "104px", height: "104px", borderRadius: "50%", background: `linear-gradient(135deg, ${color} 0%, ${color}bb 100%)`, border: "4px solid #fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "44px", fontWeight: 900, color: "#fff", boxShadow: `0 8px 32px ${color}40`, position: "relative" }}>
-                {initial}
+          {/* Topo: avatar + niche label | instagram */}
+          <div style={{ position: "absolute", top: "18px", left: "18px", right: "18px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {business.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={business.logo_url} alt={business.business_name} style={{ width: "38px", height: "38px", borderRadius: "10px", objectFit: "cover", border: "2px solid rgba(255,255,255,0.4)", boxShadow: `0 4px 12px ${color}55` }} />
+              ) : (
+                <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", fontWeight: 900, color: "#fff", boxShadow: `0 4px 12px ${color}55`, flexShrink: 0 }}>
+                  {initial}
+                </div>
+              )}
+              <div style={{ background: "rgba(255,255,255,0.14)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.22)", borderRadius: "100px", padding: "5px 12px" }}>
+                <span style={{ color: "#fff", fontSize: "11px", fontWeight: 700, letterSpacing: "0.10em", textTransform: "uppercase" }}>{cfg.label}</span>
               </div>
-            )}
-          </div>
-
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", flexWrap: "wrap", marginBottom: "6px" }}>
-            <h1 style={{ fontSize: "clamp(24px,7vw,34px)", fontWeight: 900, color: siteTextColor, letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-              {business.business_name}
-            </h1>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "100px", padding: "4px 10px", flexShrink: 0, marginTop: "4px" }}>
-              <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#22c55e" }} />
-              <span style={{ fontSize: "11px", fontWeight: 700, color: "#16a34a" }}>Online</span>
             </div>
-          </div>
-
-          <p style={{ fontSize: "15px", fontWeight: 600, color: "#777", marginBottom: "8px" }}>
-            {cfg.label} · {business.city}
-          </p>
-
-          {business.short_description && (
-            <p style={{ fontSize: "14px", color: "#555", lineHeight: 1.6, marginBottom: "14px" }}>{business.short_description}</p>
-          )}
-
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: `${color}10`, border: `1px solid ${color}30`, borderRadius: "12px", padding: "8px 14px", marginBottom: "20px" }}>
-            <div style={{ width: "8px", height: "8px", borderRadius: "2px", background: color, transform: "rotate(45deg)", flexShrink: 0 }} />
-            <span style={{ fontSize: "13px", fontWeight: 700, color: color }}>{business.main_service}</span>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <a href={waMain} target="_blank" rel="noopener noreferrer" className="wa-btn" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", background: "#25D366", color: "#fff", fontWeight: 800, fontSize: "16px", padding: "16px 24px", borderRadius: "16px", boxShadow: "0 8px 28px rgba(37,211,102,0.35)", transition: "transform .2s, box-shadow .2s" }}>
-              <IconWA size={20} />
-              {cfg.cta} pelo WhatsApp
-            </a>
             {igUrl && (
-              <a href={igUrl} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", background: "#fff", border: "1.5px solid #e5e7eb", color: "#333", fontWeight: 700, fontSize: "15px", padding: "14px 24px", borderRadius: "16px", transition: "border-color .2s" }}>
-                <IconIG /> {igHandle || "Ver no Instagram"}
+              <a href={igUrl} target="_blank" rel="noopener noreferrer"
+                 style={{ display: "flex", alignItems: "center", gap: "6px", background: "rgba(255,255,255,0.14)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.22)", borderRadius: "100px", padding: "5px 12px", color: "#fff", fontSize: "11px", fontWeight: 700, textDecoration: "none" }}>
+                <IconIG /> {igHandle}
               </a>
             )}
           </div>
 
+          {/* Rodapé: serviço + nome + cidade */}
+          <div style={{ position: "absolute", bottom: "18px", left: "20px", right: "20px", zIndex: 10 }}>
+            <p style={{ fontSize: "11px", fontWeight: 800, color: color, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "4px" }}>
+              {business.main_service}
+            </p>
+            <h1 style={{ fontSize: "clamp(22px,6vw,32px)", fontWeight: 900, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: "6px" }}>
+              {business.business_name}
+            </h1>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "rgba(255,255,255,0.60)", fontSize: "13px", fontWeight: 600 }}>
+              <IconPin /> {business.city}
+            </div>
+          </div>
+        </div>
+
+        {/* STATS STRIP */}
+        <div style={{ display: "flex", background: "#0d0d0d", borderBottom: `2px solid ${color}` }}>
+          {[`⚡ Online`, `📍 ${business.city}`, "💬 Resposta rápida"].map((item, i) => (
+            <div key={i} style={{ flex: 1, padding: "10px 6px", textAlign: "center", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
+              <p style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>{item}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA PRINCIPAL */}
+        <div style={{ padding: "16px 20px 0", maxWidth: "560px", margin: "0 auto" }}>
+          {business.short_description && (
+            <p style={{ fontSize: "14px", color: "#666", lineHeight: 1.6, marginBottom: "14px", paddingTop: "4px" }}>{business.short_description}</p>
+          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <a href={waMain} target="_blank" rel="noopener noreferrer" className="wa-btn" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", background: "#25D366", color: "#fff", fontWeight: 800, fontSize: "16px", padding: "16px 24px", borderRadius: "16px", boxShadow: "0 8px 28px rgba(37,211,102,0.35)", transition: "transform .2s, box-shadow .2s", textDecoration: "none" }}>
+              <IconWA size={20} />
+              {cfg.cta} pelo WhatsApp
+            </a>
+            {igUrl && (
+              <a href={igUrl} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", background: "#fff", border: "1.5px solid #e5e7eb", color: "#333", fontWeight: 700, fontSize: "15px", padding: "14px 24px", borderRadius: "16px", textDecoration: "none" }}>
+                <IconIG /> {igHandle || "Ver no Instagram"}
+              </a>
+            )}
+          </div>
           <div style={{ height: "1px", background: "#f0f0f0", margin: "28px 0" }} />
         </div>
       </section>
@@ -277,6 +273,26 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
           ))}
         </div>
       </section>
+
+      {/* ══ GALERIA ══════════════════════════════════════════ */}
+      {business.gallery_images_json?.length > 0 && (
+        <section style={{ padding: "28px 20px 16px", background: siteBgColor }}>
+          <p style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: color, marginBottom: "12px" }}>Galeria</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "6px" }}>
+            {business.gallery_images_json.map((url, i) => (
+              <div
+                key={i}
+                style={{
+                  height: "72px",
+                  borderRadius: "10px", overflow: "hidden",
+                  backgroundImage: `url(${url})`, backgroundSize: "cover", backgroundPosition: "center",
+                  backgroundColor: `${color}12`,
+                }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ══ SERVIÇOS ══════════════════════════════════════════ */}
       <section style={{ padding: "40px 20px", background: "#f9f9f9" }}>

@@ -120,9 +120,12 @@ export default function DashboardClient({
   const monthlyCaptions   = (localMonthlyContent?.captions_json as string[] ) ?? [];
   const monthlyMessages   = (localMonthlyContent?.messages_json as string[] ) ?? [];
 
-  const basePostsLimit    = localMonthlyContent?.posts_limit    ?? (planName === "pro" ? 15 : 5);
-  const baseCaptionsLimit = localMonthlyContent?.captions_limit ?? (planName === "pro" ? 15 : 5);
-  const baseMessagesLimit = localMonthlyContent?.messages_limit ?? (planName === "pro" ? 15 : 5);
+  const planPostsLimit    = planName === "pro" ? 15 : 5;
+  const planCaptionsLimit = planName === "pro" ? 15 : 5;
+  const planMessagesLimit = planName === "pro" ? 15 : 5;
+  const basePostsLimit    = Math.min(localMonthlyContent?.posts_limit    ?? planPostsLimit,    planPostsLimit);
+  const baseCaptionsLimit = Math.min(localMonthlyContent?.captions_limit ?? planCaptionsLimit, planCaptionsLimit);
+  const baseMessagesLimit = Math.min(localMonthlyContent?.messages_limit ?? planMessagesLimit, planMessagesLimit);
 
   const activeExtras  = extraPackages.filter((p) => p.status === "active");
   const extraPosts    = activeExtras.reduce((sum, p) => sum + p.posts_added,    0);
@@ -370,36 +373,60 @@ export default function DashboardClient({
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Gerador de Conteúdos Magnéticos</h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Crie posts, Reels, Stories e mensagens em segundos.</p>
             </div>
-            <Link href="/gerador-magnetico" className="flex items-center justify-between rounded-2xl p-6 hover:opacity-95 transition shadow-lg" style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%)" }}>
-              <div>
-                <h3 className="text-lg font-extrabold text-white mb-1">Abrir Gerador Magnético</h3>
-                <p className="text-white/75 text-sm">Tema → Narrativa → Headline → Formato → Resultado</p>
+
+            {isPro ? (
+              <>
+                <Link href="/gerador-magnetico" className="flex items-center justify-between rounded-2xl p-6 hover:opacity-95 transition shadow-lg" style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%)" }}>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-white mb-1">Abrir Gerador Magnético</h3>
+                    <p className="text-white/75 text-sm">Tema → Narrativa → Headline → Formato → Resultado</p>
+                  </div>
+                  <span className="text-3xl text-white/80">→</span>
+                </Link>
+                <Link href="/gerar-post-hoje" className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 hover:border-violet-200 transition shadow-sm">
+                  <div>
+                    <p className="font-bold text-gray-900 dark:text-white mb-0.5">Gerar post de hoje</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Escolha um objetivo e receba post + legenda + mensagem WhatsApp</p>
+                  </div>
+                  <span className="text-gray-400 text-lg">→</span>
+                </Link>
+              </>
+            ) : (
+              <div className="rounded-2xl overflow-hidden border border-violet-200 dark:border-violet-800">
+                {/* Preview bloqueado */}
+                <div className="rounded-xl overflow-hidden select-none" style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%)" }}>
+                  <div className="flex flex-col items-center justify-center gap-3 py-8 px-6 text-center">
+                    <div className="w-11 h-11 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center flex-shrink-0">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-extrabold text-base mb-1">Exclusivo do Plano Pro</p>
+                      <p className="text-white/65 text-sm leading-relaxed">Gere roteiros para Reels, Carrosséis, Stories e Narrativas Magnéticas.</p>
+                    </div>
+                  </div>
+                </div>
+                {/* Features Pro */}
+                <div className="bg-violet-50 dark:bg-violet-950 p-5">
+                  <p className="text-xs font-bold text-violet-500 uppercase tracking-widest mb-3">O que você ganha no Pro</p>
+                  <ul className="space-y-2 text-sm text-violet-700 dark:text-violet-300 mb-5">
+                    {["Roteiro completo para Reels (30, 60 e 90s)","Sequência de Stories com CTA","Carrosséis com headline + lâminas","Narrativas Magnéticas por tema","15 posts · 15 legendas · 15 mensagens","Campanhas e mensagens de reativação"].map((f) => (
+                      <li key={f} className="flex items-start gap-2">
+                        <span className="text-violet-400 mt-0.5 flex-shrink-0">✓</span> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <a
+                    href={process.env.NEXT_PUBLIC_CHECKOUT_URL_PRO ?? "https://pay.kiwify.com.br/1fAPOyu"}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 gradient-brand text-white font-extrabold py-3.5 rounded-xl text-sm hover:opacity-90 transition w-full"
+                  >
+                    Fazer upgrade para Pro — R$ 57/mês →
+                  </a>
+                </div>
               </div>
-              <span className="text-3xl text-white/80">→</span>
-            </Link>
-            <Link href="/gerar-post-hoje" className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 hover:border-violet-200 transition shadow-sm">
-              <div>
-                <p className="font-bold text-gray-900 dark:text-white mb-0.5">Gerar post de hoje</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Escolha um objetivo e receba post + legenda + mensagem WhatsApp</p>
-              </div>
-              <span className="text-gray-400 text-lg">→</span>
-            </Link>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Plano Essencial</p>
-                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                  {["Post único","Carrossel básico","Legenda","Mensagem WhatsApp","Ideias de conteúdo"].map((f) => <li key={f} className="flex items-center gap-2"><span className="text-green-500">✓</span> {f}</li>)}
-                </ul>
-              </div>
-              <div className="bg-violet-50 dark:bg-violet-950 rounded-2xl border border-violet-100 dark:border-violet-900 p-5 relative overflow-hidden">
-                <span className="absolute top-3 right-3 text-xs bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded-full">Pro</span>
-                <p className="text-xs font-bold text-violet-500 uppercase tracking-wide mb-3">Plano Pro</p>
-                <ul className="space-y-2 text-sm text-violet-700 dark:text-violet-300">
-                  {["Tudo do Essencial","Roteiro para Reels","Sequência de Stories","Narrativas magnéticas","Headlines de impacto","CTA personalizado"].map((f) => <li key={f} className="flex items-center gap-2"><span className="text-violet-500">✓</span> {f}</li>)}
-                </ul>
-                {!isPro && <a href={process.env.NEXT_PUBLIC_CHECKOUT_URL_PRO ?? "#"} className="mt-4 flex items-center justify-center gap-1.5 gradient-brand text-white font-bold py-2 rounded-xl text-sm hover:opacity-90 transition">Fazer upgrade para Pro →</a>}
-              </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -436,7 +463,7 @@ export default function DashboardClient({
                       niche={business.niche}
                       city={business.city}
                       number={post.number}
-                      unlocked={post.is_unlocked}
+                      unlocked={post.is_unlocked !== false}
                     />
                     <div className="bg-white dark:bg-gray-900 px-3 py-2.5 flex items-center justify-between gap-2">
                       <span className="text-xs text-gray-400">Post #{i + 1}</span>
@@ -615,12 +642,12 @@ export default function DashboardClient({
             <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Pacotes disponíveis</h3>
             <div className="grid md:grid-cols-3 gap-4">
               {[
-                { slug: "instagram-extra", icon: "📸", title: "Instagram Extra", price: "R$ 19", tagline: "20 posts extras para movimentar seu Instagram", benefits: ["+20 posts extras","+20 legendas extras","Posts com CTA para WhatsApp"], checkoutUrl: process.env.NEXT_PUBLIC_CHECKOUT_INSTAGRAM_EXTRA ?? "#", cta: "Adicionar posts extras", active: hasInstagramExtra },
-                { slug: "stories", icon: "📱", title: "Pacote Stories", price: "R$ 15", tagline: "20 stories prontos para divulgar promoções", benefits: ["+20 stories personalizados","Chamadas para WhatsApp","Avisos de agenda aberta"], checkoutUrl: process.env.NEXT_PUBLIC_CHECKOUT_STORIES ?? "#", cta: "Adicionar stories", active: hasStories },
-                { slug: "reativacao", icon: "💬", title: "Reativação de Clientes", price: "R$ 19", tagline: "50 mensagens para trazer clientes de volta", benefits: ["+50 mensagens de reativação","Para clientes antigos","Pós-venda e avaliação"], checkoutUrl: process.env.NEXT_PUBLIC_CHECKOUT_REATIVACAO ?? "#", cta: "Adicionar mensagens", active: hasReativacao },
+                { slug: "instagram-extra", icon: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>), title: "Pacote Instagram Extra", price: "R$ 12", tagline: "Mais posts para movimentar o Instagram do seu negócio.", benefits: ["20 posts extras para movimentar seu Instagram","20 legendas extras personalizadas","Posts com CTA para WhatsApp","Adaptados ao seu nicho","Salvos no painel"], checkoutUrl: process.env.NEXT_PUBLIC_CHECKOUT_INSTAGRAM_EXTRA ?? "#", cta: "Adicionar posts extras", active: hasInstagramExtra },
+                { slug: "stories", icon: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="12" y2="15"/></svg>), title: "Pacote Stories", price: "R$ 14", tagline: "Stories prontos para divulgar promoções, avisos e chamadas rápidas.", benefits: ["20 stories prontos para divulgar promoções e avisos","Chamadas rápidas para WhatsApp","Avisos de agenda aberta","Enquetes e perguntas simples","Adaptados ao seu nicho"], checkoutUrl: process.env.NEXT_PUBLIC_CHECKOUT_STORIES ?? "#", cta: "Adicionar stories", active: hasStories },
+                { slug: "reativacao", icon: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>), title: "Reativação de Clientes", price: "R$ 9,90", tagline: "Mensagens para trazer clientes de volta ao seu negócio.", benefits: ["50 mensagens para trazer clientes de volta","Para clientes antigos e orçamentos que sumiram","Mensagens de pós-venda e avaliação","Chamadas para agenda aberta","Adaptadas ao seu nicho"], checkoutUrl: process.env.NEXT_PUBLIC_CHECKOUT_REATIVACAO ?? "#", cta: "Adicionar mensagens de reativação", active: hasReativacao },
               ].map((pkg) => (
                 <div key={pkg.slug} className={`bg-white dark:bg-gray-900 border rounded-2xl p-5 flex flex-col ${pkg.active ? "border-green-200 dark:border-green-900 opacity-60" : "border-gray-200 dark:border-gray-700 hover:border-violet-200 hover:shadow-sm transition"}`}>
-                  <div className="text-3xl mb-3">{pkg.icon}</div>
+                  <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950 text-violet-600 dark:text-violet-400 flex items-center justify-center mb-3">{pkg.icon}</div>
                   <h3 className="font-extrabold text-gray-900 dark:text-white text-sm mb-0.5">{pkg.title}</h3>
                   <p className="text-xl font-extrabold text-violet-700 mb-1">{pkg.price}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{pkg.tagline}</p>

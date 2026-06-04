@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   Globe, ImageIcon, PenLine, CalendarDays, Megaphone,
   MessageSquare, RefreshCw, Sparkles, Target, CloudUpload,
   Lightbulb, Smartphone, Lock, Database, Scissors, Headphones,
-  ShieldCheck, Pencil, Eye, CheckCircle2, ChevronDown, ArrowRight,
+  ShieldCheck, Pencil, Eye, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ArrowRight,
   DollarSign, Package
 } from "lucide-react";
 import { NICHE_CONFIG, NICHE_OPTIONS } from "@/lib/niche-config";
@@ -24,7 +24,7 @@ const CHECKOUT_URL_PRO    = process.env.NEXT_PUBLIC_CHECKOUT_URL_PRO            
 const CHECKOUT_INSTAGRAM  = process.env.NEXT_PUBLIC_CHECKOUT_INSTAGRAM_EXTRA     ?? "https://pay.kiwify.com.br/9JTBA7c";
 const CHECKOUT_STORIES    = process.env.NEXT_PUBLIC_CHECKOUT_STORIES             ?? "https://pay.kiwify.com.br/SDlVYKr";
 const CHECKOUT_REATIVACAO = process.env.NEXT_PUBLIC_CHECKOUT_REATIVACAO          ?? "https://pay.kiwify.com.br/Ao7MCfe";
-const PRICE_ESSENTIAL     = "R$ 37/mês";
+const PRICE_ESSENTIAL     = "R$ 37,90/mês";
 const PRICE_PRO           = "R$ 57/mês";
 const PRICE               = PRICE_ESSENTIAL;
 // ============================================================
@@ -117,6 +117,49 @@ export default function LandingPage() {
   const [proCoverImg, setProCoverImg] = useState("");
   const [proCoverPosY, setProCoverPosY] = useState(50);
   const [proLogoImg, setProLogoImg] = useState("");
+  const [proProPhoto, setProProPhoto] = useState("");
+  const [proProPhotoPosY, setProProPhotoPosY] = useState(50);
+  const [proName, setProName] = useState("");
+  const [proService, setProService] = useState("");
+  const [proDesc, setProDesc] = useState("");
+  const [editorTab, setEditorTab] = useState<"site"|"posts"|"carrossel">("site");
+  const [vslOpen, setVslOpen] = useState(false);
+  const [vslSlide, setVslSlide] = useState(0);
+  const [vslProgress, setVslProgress] = useState(0);
+  const [postTitle, setPostTitle] = useState("");
+  const [postSubtitle, setPostSubtitle] = useState("");
+  const [postCta, setPostCta] = useState("");
+  const [postBgImg, setPostBgImg] = useState("");
+
+  const PREVIEW_COVER_IMAGES: Record<string, string> = {
+    barbearia:          "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=700&q=80&fit=crop",
+    odontologia:        "https://images.unsplash.com/photo-1588776814546-daab30f310ce?w=700&q=80&fit=crop",
+    "clinica-medica":   "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80&fit=crop",
+    otica:              "https://images.unsplash.com/photo-1508296695146-257a814070b4?w=700&q=80&fit=crop",
+    "personal-trainer": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=700&q=80&fit=crop",
+    estetica:           "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=700&q=80&fit=crop",
+    "loja-de-roupa":    "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=700&q=80&fit=crop",
+    imobiliaria:        "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=700&q=80&fit=crop",
+    restaurante:        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=700&q=80&fit=crop",
+    mecanica:           "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=700&q=80&fit=crop",
+    serralheria:        "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=700&q=80&fit=crop",
+    outro:              "https://images.unsplash.com/photo-1497366216548-37526070297c?w=700&q=80&fit=crop",
+  };
+
+  const GALLERY_IMAGES: Record<string, string[]> = {
+    barbearia:          ["https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400&q=80&fit=crop&crop=face"],
+    odontologia:        ["https://images.unsplash.com/photo-1606811841689-23dfddce3e66?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1588776814546-daab30f310ce?w=400&q=80&fit=crop"],
+    "clinica-medica":   ["https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&q=80&fit=crop&crop=face"],
+    otica:              ["https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1556306535-0f09a537f0a3?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1508296695146-257a814070b4?w=400&q=80&fit=crop"],
+    "personal-trainer": ["https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80&fit=crop"],
+    estetica:           ["https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&q=80&fit=crop"],
+    "loja-de-roupa":    ["https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=80&fit=crop"],
+    imobiliaria:        ["https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80&fit=crop"],
+    restaurante:        ["https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80&fit=crop"],
+    mecanica:           ["https://images.unsplash.com/photo-1486754735734-325b5831c3ad?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=80&fit=crop"],
+    serralheria:        ["https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1590418606746-018840f9cd0e?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=80&fit=crop"],
+    outro:              ["https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=80&fit=crop","https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=80&fit=crop"],
+  };
 
   const proFonts = [
     { key: "inter",      label: "Inter",       style: "'Inter', sans-serif" },
@@ -141,6 +184,99 @@ export default function LandingPage() {
     reader.onload = (ev) => setProLogoImg(ev.target?.result as string);
     reader.readAsDataURL(file);
   }
+
+  function handleProPhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setProProPhoto(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  function handlePostBgUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setPostBgImg(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  function activatePro() {
+    setProMode(true);
+    setProColor(preview?.primary_color ?? "#7c3aed");
+    setProName(preview?.business_name ?? "");
+    setProService(preview?.main_service ?? "");
+    setProDesc("");
+  }
+
+  const VSL_SLIDES = [
+    {
+      tag: "O problema",
+      headline: "Você tem um negócio bom — mas ninguém fica sabendo disso.",
+      sub: "Sem site, sem post, sem presença. O cliente pesquisa no Google e não te acha. Vê o concorrente no Instagram todo dia e vai lá. Não é culpa sua — você não tem tempo pra isso.",
+      visual: "empty",
+      color: "#ef4444",
+    },
+    {
+      tag: "Plano Essencial — R$ 37,90/mês",
+      headline: "Por 37,90 reais por mês, seu negócio aparece onde o cliente procura.",
+      sub: "Mini site profissional com botão de WhatsApp, link pra bio do Instagram e URL própria. Todo mês você recebe 5 posts prontos, 5 legendas, 5 mensagens e um calendário de postagem. Só copiar e usar.",
+      visual: "essencial",
+      color: "#16a34a",
+    },
+    {
+      tag: "Plano Pro — R$ 57/mês",
+      headline: "O Pro é pra quem quer aparecer todo dia e atrair cliente de verdade.",
+      sub: "Tudo do Essencial + foto de capa personalizada, galeria de fotos no site, links extras, 15 posts, 15 legendas, 15 mensagens, roteiros para Reels, sequência de Stories e carrosséis completos todo mês.",
+      visual: "pro",
+      color: "#7c3aed",
+    },
+    {
+      tag: "Narrativa Magnética",
+      headline: "A ferramenta que faz o cliente querer contratar — sem você saber escrever.",
+      sub: "Exclusivo do plano Pro. Você escolhe o tópico, o sistema gera o roteiro completo com gancho, desenvolvimento e CTA. Scripts para Reels de 30, 60 e 90 segundos. Carrosséis com headline e lâminas prontas. Tudo com os gatilhos que os maiores perfis do seu nicho usam.",
+      visual: "magnetica",
+      color: "#8b5cf6",
+    },
+    {
+      tag: "Como funciona",
+      headline: "Em menos de 5 minutos você tem tudo ativo.",
+      sub: "Preenche o nome do negócio, o nicho e a cidade. O sistema gera o mini site, os posts e as mensagens na hora. Sem domínio, sem hospedagem, sem agência. Você acessa de qualquer celular — tudo salvo na conta.",
+      visual: "dashboard",
+      color: "#2563eb",
+    },
+    {
+      tag: "Escolha agora",
+      headline: "Essencial por R$ 37,90 ou Pro por R$ 57 — os dois valem muito mais.",
+      sub: "Cancele quando quiser, sem taxa e sem burocracia. Enquanto a assinatura estiver ativa, seu site fica no ar e você recebe conteúdo novo todo mês. Comece com a prévia gratuita agora e veja como fica o site do seu negócio.",
+      visual: "price",
+      color: "#d97706",
+    },
+  ] as const;
+
+  useEffect(() => {
+    const SLIDE_DURATION = 5000;
+    const TICK = 50;
+    const steps = SLIDE_DURATION / TICK;
+    let step = 0;
+    const t = setInterval(() => {
+      step++;
+      setVslProgress((step / steps) * 100);
+      if (step >= steps) {
+        step = 0;
+        setVslProgress(0);
+        setVslSlide(s => (s + 1) % VSL_SLIDES.length);
+      }
+    }, TICK);
+    return () => clearInterval(t);
+  }, [vslOpen, vslSlide, VSL_SLIDES.length]);
+
+  useEffect(() => {
+    if (!vslOpen) return;
+    const close = (e: KeyboardEvent) => { if (e.key === "Escape") setVslOpen(false); };
+    document.addEventListener("keydown", close);
+    return () => document.removeEventListener("keydown", close);
+  }, [vslOpen]);
 
   useEffect(() => {
     fetch("/api/stats")
@@ -173,6 +309,11 @@ export default function LandingPage() {
     };
     localStorage.setItem("mnp_preview", JSON.stringify(data));
     setPreview(data);
+    setProColor(form.primary_color);
+    setPostTitle("");
+    setPostSubtitle("");
+    setPostCta("");
+    setPostBgImg("");
     setLoading(false);
     setTimeout(() => previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
   }
@@ -205,178 +346,261 @@ export default function LandingPage() {
       </nav>
 
       {/* ── HERO ── */}
-      <section className="gradient-hero pt-28 pb-24 px-4 relative overflow-hidden">
+      <section className="gradient-hero pt-28 pb-16 px-4 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-violet-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
-        <div className="max-w-6xl mx-auto relative">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="max-w-5xl mx-auto relative">
 
-            {/* Texto */}
-            <div className="text-white">
-              <div className="flex flex-wrap items-center gap-3 mb-6">
-                <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/90 text-xs font-semibold px-4 py-2 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                  Marketing mensal para negócios locais
-                </div>
-                {buyerCount !== null && (
-                  <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/90 text-xs font-semibold px-4 py-2 rounded-full">
-                    <span className="text-green-400 font-extrabold">{buyerCount}</span> negócios já usam
-                  </div>
-                )}
-              </div>
-
-              <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-5">
-                Seu marketing mensal{" "}
-                <span className="text-gradient">pronto para postar</span>
-                {" "}e vender pelo WhatsApp
-              </h1>
-
-              <p className="text-white/75 text-lg leading-relaxed mb-8 max-w-xl">
-                Tenha um mini site ativo para seu negócio e receba todos os meses posts, legendas, campanhas e mensagens prontas para divulgar no Instagram e chamar clientes no WhatsApp.
-              </p>
-
-              <ul className="space-y-3 mb-10">
-                {[
-                  "Mini site ativo com botão de WhatsApp",
-                  "Posts e legendas novos todo mês",
-                  "Mensagens prontas para chamar clientes",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-white/90">
-                    <CheckCircle2 size={18} className="text-green-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
-                    <span className="text-sm font-medium">{item}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button onClick={scrollToForm} className="inline-flex items-center justify-center gap-2 bg-white text-violet-700 font-extrabold py-4 px-8 rounded-2xl text-base hover:bg-violet-50 transition shadow-xl">
-                  Quero ver minha prévia grátis
-                  <ArrowRight size={16} />
-                </button>
-                <button onClick={scrollToPlans} className="inline-flex items-center justify-center gap-2 bg-white/10 border border-white/20 text-white font-bold py-4 px-6 rounded-2xl text-base hover:bg-white/20 transition">
-                  Ver planos
-                </button>
-              </div>
-              <p className="text-white/40 text-xs mt-4">Sem cadastro. Sem compromisso. Prévia 100% gratuita.</p>
+          {/* Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-7">
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/90 text-xs font-semibold px-4 py-2 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              Marketing mensal para negócios locais
             </div>
-
-            {/* Mockup — mini site profissional */}
-            <div className="relative hidden lg:flex justify-center items-center">
-              <div className="bg-white rounded-3xl shadow-2xl w-72 overflow-hidden border border-white/10" style={{ maxHeight: "520px", overflowY: "auto" }}>
-
-                {/* Barra do browser */}
-                <div className="bg-gray-900 px-3 py-2 flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
-                  <span className="text-gray-500 text-xs ml-2 truncate">meunegocio.pro/site/barbearia-elite</span>
-                </div>
-
-                {/* Capa do mini site */}
-                <div className="relative h-24 flex items-end" style={{ background: "linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%)" }}>
-                  <div className="absolute inset-0 flex items-center justify-end pr-4">
-                    <span className="text-5xl opacity-10">✂️</span>
-                  </div>
-                  <div className="absolute top-2 left-3">
-                    <span className="bg-white/15 text-white text-xs font-bold px-2 py-0.5 rounded-full">Barbearia</span>
-                  </div>
-                  <div className="absolute top-2 right-3">
-                    <span className="bg-white/15 text-white text-xs px-2 py-0.5 rounded-full">São Paulo</span>
-                  </div>
-                </div>
-
-                {/* Perfil */}
-                <div className="px-4 pt-0 pb-3">
-                  <div className="-mt-7 mb-2">
-                    <div className="w-14 h-14 rounded-2xl bg-violet-600 border-2 border-white flex items-center justify-center text-white text-xl font-black shadow-lg">B</div>
-                  </div>
-                  <div className="flex items-start justify-between mb-1">
-                    <div>
-                      <p className="font-extrabold text-gray-900 text-sm leading-tight">Barbearia Elite</p>
-                      <p className="text-gray-400 text-xs">Barbearia · São Paulo</p>
-                    </div>
-                    <span className="flex items-center gap-1 bg-green-50 text-green-600 text-xs font-bold px-2 py-0.5 rounded-full border border-green-100 mt-0.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />Online
-                    </span>
-                  </div>
-                  <div className="inline-flex items-center gap-1 bg-violet-50 border border-violet-100 rounded-lg px-2 py-1 mb-3">
-                    <span className="w-1.5 h-1.5 bg-violet-500 rounded-sm rotate-45 flex-shrink-0" />
-                    <span className="text-xs font-bold text-violet-600">Corte masculino</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="w-full bg-green-500 text-white font-bold text-center py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-green-200">
-                      <span>💬</span> Agendar pelo WhatsApp
-                    </div>
-                    <div className="w-full border border-gray-200 text-gray-600 font-semibold text-center py-2 rounded-xl text-xs">
-                      Ver no Instagram
-                    </div>
-                  </div>
-                </div>
-
-                {/* Serviços */}
-                <div className="bg-gray-50 px-4 py-3 mx-3 rounded-2xl mb-3">
-                  <p className="text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-2">Serviços</p>
-                  {[["✂️","Corte masculino"], ["🪒","Barba"], ["💈","Acabamento"]].map(([e, s]) => (
-                    <div key={s} className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">{e}</span>
-                        <span className="text-xs font-semibold text-gray-700">{s}</span>
-                      </div>
-                      <span className="text-xs text-violet-600 font-bold">Falar →</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Por que escolher */}
-                <div className="px-3 pb-3 space-y-1.5">
-                  {[["⚡","Atendimento rápido"],["📍","São Paulo – SP"],["💬","Resposta pelo WhatsApp"]].map(([e, t]) => (
-                    <div key={t} className="flex items-center gap-2 bg-white border border-gray-100 rounded-xl px-3 py-2">
-                      <span className="text-sm">{e}</span>
-                      <span className="text-xs font-semibold text-gray-700">{t}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* CTA final */}
-                <div className="mx-3 mb-3 rounded-2xl p-4 text-center" style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)" }}>
-                  <p className="text-white text-xs font-extrabold mb-2">Quer falar com a Barbearia Elite?</p>
-                  <div className="bg-white text-violet-700 font-bold text-xs py-2 rounded-xl">💬 Chamar no WhatsApp</div>
-                </div>
-
+            {buyerCount !== null && (
+              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/90 text-xs font-semibold px-4 py-2 rounded-full">
+                <span className="text-green-400 font-extrabold">{buyerCount}</span> negócios já usam
               </div>
-
-              {/* Badge flutuante */}
-              <div className="absolute -top-3 -right-3 bg-white rounded-2xl shadow-xl px-3 py-2 flex items-center gap-2 border border-violet-100">
-                <div className="w-7 h-7 rounded-xl bg-violet-100 flex items-center justify-center">
-                  <Sparkles size={13} className="text-violet-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-800">Site profissional</p>
-                  <p className="text-xs text-gray-400">Pronto pra bio do Insta</p>
-                </div>
-              </div>
-
-              {/* Badge flutuante — lead */}
-              <div className="absolute -bottom-3 -left-4 bg-white rounded-2xl shadow-xl px-3 py-2 flex items-center gap-2 border border-green-100">
-                <div className="w-7 h-7 rounded-xl bg-green-100 flex items-center justify-center">
-                  <Target size={13} className="text-green-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-800">Novo lead recebido</p>
-                  <p className="text-xs text-gray-400">João · WhatsApp</p>
-                </div>
-              </div>
-            </div>
-
+            )}
           </div>
+
+          {/* Headline */}
+          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 text-white text-center">
+            Seu negócio atraindo clientes{" "}
+            <span className="text-gradient">todo dia</span>
+            {" "}— no piloto automático
+          </h1>
+          <p className="text-white/60 text-lg leading-relaxed mb-3 max-w-2xl mx-auto text-center">
+            Mini site profissional + posts, legendas e mensagens prontas todo mês.
+          </p>
+          <p className="text-white/90 text-sm font-semibold mb-10 text-center">
+            <span className="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 rounded-full px-4 py-1.5">
+              <Sparkles size={13} className="text-violet-300" />
+              Plano Pro inclui o{" "}
+              <span className="text-gradient font-extrabold">Gerador de Narrativas Magnéticas</span>
+              {" "}— roteiros prontos para Reels, Carrosséis e Stories
+            </span>
+          </p>
+
+          {/* ── SLIDES ROTATIVOS ── */}
+          <div className="relative mx-auto max-w-4xl mb-10">
+            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-violet-900/40" style={{ background: "rgba(10,10,20,0.85)", backdropFilter: "blur(20px)" }}>
+              <div className="grid md:grid-cols-[220px_1fr]">
+
+                {/* Coluna esquerda — visual do slide */}
+                <div className="relative flex items-center justify-center p-6 border-r border-white/8 min-h-[280px] md:min-h-0" style={{ background: "rgba(0,0,0,0.3)" }}>
+                  {VSL_SLIDES.map((slide, i) => (
+                    <div
+                      key={i}
+                      className="absolute inset-0 flex items-center justify-center p-6 transition-all duration-500"
+                      style={{ opacity: i === vslSlide ? 1 : 0, pointerEvents: i === vslSlide ? "auto" : "none", transform: i === vslSlide ? "scale(1)" : "scale(0.95)" }}
+                    >
+                      {/* Visual: Problema */}
+                      {slide.visual === "empty" && (
+                        <div className="w-full space-y-2">
+                          {["Sem site profissional","Sem post há semanas","Cliente indo embora","Concorrente aparecendo"].map((t, j) => (
+                            <div key={j} className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                              <div className="w-3.5 h-3.5 rounded-full bg-red-500/30 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-2 h-2 text-red-400" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                              </div>
+                              <p className="text-red-300/80 text-xs font-medium">{t}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {/* Visual: Essencial */}
+                      {slide.visual === "essencial" && (
+                        <div className="w-full rounded-xl overflow-hidden border border-green-500/30">
+                          <div className="bg-green-600/80 px-3 py-2 flex justify-between items-center">
+                            <p className="text-white text-xs font-extrabold">Essencial</p>
+                            <span className="text-green-200 text-xs font-bold">R$37,90/mês</span>
+                          </div>
+                          <div className="p-3 space-y-1.5">
+                            {["Mini site profissional","Botão WhatsApp ativo","5 posts por mês","5 legendas","Calendário de postagem"].map(f => (
+                              <div key={f} className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-green-500/30 border border-green-500/50 flex items-center justify-center flex-shrink-0">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                                </div>
+                                <p className="text-white/70 text-xs">{f}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {/* Visual: Pro */}
+                      {slide.visual === "pro" && (
+                        <div className="w-full rounded-xl overflow-hidden border border-violet-500/40">
+                          <div className="bg-violet-700 px-3 py-2 flex justify-between items-center">
+                            <p className="text-white text-xs font-extrabold">Pro</p>
+                            <span className="text-yellow-300 text-xs font-bold">R$57/mês</span>
+                          </div>
+                          <div className="p-3 space-y-1.5">
+                            <p className="text-violet-400 text-[9px] font-extrabold uppercase tracking-wider">Tudo do Essencial +</p>
+                            {["Foto e capa personalizada","Galeria de fotos","15 posts · 15 legendas","Roteiros para Reels","Carrosséis completos","Narrativas Magnéticas"].map(f => (
+                              <div key={f} className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-violet-500/30 border border-violet-500/50 flex items-center justify-center flex-shrink-0">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+                                </div>
+                                <p className="text-white/70 text-xs">{f}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {/* Visual: Narrativa Magnética */}
+                      {slide.visual === "magnetica" && (
+                        <div className="w-full rounded-xl overflow-hidden border border-purple-500/40">
+                          <div className="bg-purple-800/80 px-3 py-2">
+                            <p className="text-purple-200 text-xs font-extrabold">Narrativas Magnéticas</p>
+                          </div>
+                          <div className="p-3 space-y-2">
+                            {[{l:"Gancho",t:"\"Por que 80% dos clientes somem...\""},
+                              {l:"Desenvolvimento",t:"\"Não é o preço. É como você aparece...\""},
+                              {l:"CTA",t:"\"Comenta AQUI que eu te explico 👇\""}].map(({l,t}) => (
+                              <div key={l} className="bg-purple-900/40 rounded-lg p-2 border border-purple-500/20">
+                                <p className="text-purple-400 text-[8px] font-extrabold uppercase tracking-wider mb-0.5">{l}</p>
+                                <p className="text-white/70 text-xs italic">{t}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {/* Visual: Dashboard */}
+                      {slide.visual === "dashboard" && (
+                        <div className="w-full rounded-xl overflow-hidden border border-blue-500/30">
+                          <div className="bg-blue-700 px-3 py-2"><p className="text-white text-xs font-bold">Meu painel</p></div>
+                          <div className="p-3 space-y-2">
+                            {["Mini site ativo","Posts gerados","Legendas prontas","Mensagens WA"].map(t => (
+                              <div key={t} className="flex items-center gap-2 bg-blue-900/20 rounded-lg px-2 py-1.5">
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
+                                <p className="text-white/70 text-xs">{t}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {/* Visual: Preço */}
+                      {slide.visual === "price" && (
+                        <div className="flex gap-2 w-full">
+                          <div className="flex-1 rounded-xl border border-green-500/30 p-3 text-center">
+                            <p className="text-green-400 text-[9px] font-extrabold uppercase mb-1">Essencial</p>
+                            <p className="text-white text-xl font-extrabold">R$37,90</p>
+                            <p className="text-white/30 text-[9px] mb-2">/mês</p>
+                            <div className="space-y-1">
+                              {["Mini site","5 posts"].map(f => (
+                                <div key={f} className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" /><p className="text-white/50 text-[9px]">{f}</p></div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex-1 rounded-xl border border-violet-500/40 p-3 text-center">
+                            <p className="text-violet-400 text-[9px] font-extrabold uppercase mb-1">Pro</p>
+                            <p className="text-white text-xl font-extrabold">R$57</p>
+                            <p className="text-white/30 text-[9px] mb-2">/mês</p>
+                            <div className="space-y-1">
+                              {["Site + fotos","15 posts","Narrativas"].map(f => (
+                                <div key={f} className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-violet-400 flex-shrink-0" /><p className="text-white/50 text-[9px]">{f}</p></div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Coluna direita — texto + barra de progresso */}
+                <div className="p-8 flex flex-col justify-between">
+                  <div className="relative min-h-[180px]">
+                    {VSL_SLIDES.map((slide, i) => (
+                      <div
+                        key={i}
+                        className="absolute inset-0 transition-all duration-500"
+                        style={{ opacity: i === vslSlide ? 1 : 0, pointerEvents: i === vslSlide ? "auto" : "none", transform: i === vslSlide ? "translateY(0)" : "translateY(12px)" }}
+                      >
+                        <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4 text-[10px] font-extrabold uppercase tracking-widest" style={{ background: slide.color + "20", color: slide.color, border: `1px solid ${slide.color}30` }}>
+                          {slide.tag}
+                        </div>
+                        <h2 className="text-xl md:text-2xl font-extrabold text-white leading-tight mb-3">
+                          {slide.headline}
+                        </h2>
+                        <p className="text-white/50 text-sm leading-relaxed">
+                          {slide.sub}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Indicadores + progresso */}
+                  <div className="mt-6">
+                    <div className="flex gap-1.5 mb-3">
+                      {VSL_SLIDES.map((slide, i) => (
+                        <button
+                          key={i}
+                          onClick={() => { setVslSlide(i); setVslProgress(0); }}
+                          className="h-1 rounded-full transition-all duration-300 overflow-hidden"
+                          style={{ flex: i === vslSlide ? 3 : 1, background: i < vslSlide ? VSL_SLIDES[i].color + "60" : "rgba(255,255,255,0.12)" }}
+                        >
+                          {i === vslSlide && (
+                            <div className="h-full rounded-full transition-all duration-75" style={{ width: `${vslProgress}%`, background: slide.color }} />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => { setVslSlide(s => Math.max(0, s - 1)); setVslProgress(0); }}
+                          disabled={vslSlide === 0}
+                          className="w-7 h-7 rounded-full border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition disabled:opacity-25 disabled:cursor-default"
+                        >
+                          <ChevronLeft size={14} />
+                        </button>
+                        <span className="text-white/30 text-xs">{vslSlide + 1} / {VSL_SLIDES.length}</span>
+                        <button
+                          onClick={() => { setVslSlide(s => Math.min(VSL_SLIDES.length - 1, s + 1)); setVslProgress(0); }}
+                          disabled={vslSlide === VSL_SLIDES.length - 1}
+                          className="w-7 h-7 rounded-full border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition disabled:opacity-25 disabled:cursor-default"
+                        >
+                          <ChevronRight size={14} />
+                        </button>
+                      </div>
+                      <button onClick={scrollToForm} className="inline-flex items-center gap-1.5 text-white/60 hover:text-white text-xs font-semibold transition">
+                        Criar prévia grátis <ArrowRight size={12} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-6">
+            <button onClick={scrollToForm} className="inline-flex items-center justify-center gap-2 bg-white text-violet-700 font-extrabold py-4 px-10 rounded-2xl text-base hover:bg-violet-50 transition shadow-2xl shadow-violet-900/30">
+              Criar minha prévia grátis agora <ArrowRight size={16} />
+            </button>
+            <button onClick={scrollToPlans} className="inline-flex items-center justify-center gap-2 bg-white/10 border border-white/20 text-white font-bold py-4 px-6 rounded-2xl text-base hover:bg-white/20 transition">
+              Ver planos e preços
+            </button>
+          </div>
+          <p className="text-white/35 text-xs text-center">Sem cadastro. Sem cartão. 100% gratuito pra testar.</p>
+
+          {/* Social proof */}
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-6 text-white/40 text-xs">
+            {["✅ Sem domínio ou hospedagem","⚡ Mini site ativo em minutos","📅 Conteúdo novo todo mês","💬 WhatsApp direto no site"].map(t => (
+              <span key={t}>{t}</span>
+            ))}
+          </div>
+
         </div>
       </section>
 
       {/* ── BARRA DE NÚMEROS ── */}
       <section className="bg-violet-600 py-5 px-4">
         <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-center gap-10 text-white">
-          {[["12", "nichos atendidos"], ["10–30", "posts por mês"], ["A partir de R$ 37", "por mês"], ["100%", "personalizado"]].map(([n, l]) => (
+          {[["12", "nichos atendidos"], ["10–30", "posts por mês"], ["A partir de R$ 37,90,90", "por mês"], ["100%", "personalizado"]].map(([n, l]) => (
             <div key={l} className="text-center">
               <p className="text-2xl font-extrabold">{n}</p>
               <p className="text-white/65 text-xs mt-0.5">{l}</p>
@@ -407,6 +631,102 @@ export default function LandingPage() {
                 <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── NARRATIVA MAGNÉTICA ── */}
+      <section className="py-20 px-4 bg-gray-950 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-900/30 via-gray-950 to-purple-900/20 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="max-w-5xl mx-auto relative">
+          <div className="grid lg:grid-cols-2 gap-14 items-center">
+
+            {/* Texto */}
+            <div>
+              <div className="inline-flex items-center gap-2 bg-violet-500/15 border border-violet-500/25 text-violet-300 text-xs font-bold px-4 py-2 rounded-full mb-6">
+                <Sparkles size={13} />
+                Exclusivo no plano Pro
+              </div>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-5">
+                Enquanto você pensa no que escrever,{" "}
+                <span className="text-gradient">o cliente vai pro concorrente</span>
+                {" "}que já está postando.
+              </h2>
+              <p className="text-gray-400 text-base leading-relaxed mb-8">
+                O Gerador de Narrativas Magnéticas entrega roteiros prontos para Reels, Carrosséis e Stories — com os mesmos gatilhos que os maiores perfis do seu nicho usam pra atrair cliente todo dia.
+              </p>
+              <ul className="space-y-3 mb-8">
+                {[
+                  "Roteiros prontos para Reels de 30s, 60s e 90s",
+                  "Sequência de Stories em 5 a 8 frames narrativos",
+                  "Carrosséis com headline + lâminas + CTA irresistível",
+                  "Ângulos: prova social, urgência, transformação, dor",
+                ].map(item => (
+                  <li key={item} className="flex items-start gap-3 text-gray-300">
+                    <div className="w-5 h-5 rounded-full bg-violet-500/25 border border-violet-500/40 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+                    </div>
+                    <span className="text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <a href={CHECKOUT_URL_PRO} className="inline-flex items-center gap-2 gradient-brand text-white font-extrabold py-4 px-8 rounded-2xl text-sm hover:opacity-90 transition shadow-xl shadow-violet-900/40">
+                Quero o gerador de narrativas <ArrowRight size={15} />
+              </a>
+              <p className="text-gray-600 text-xs mt-3">Disponível no plano Pro · R$ 57/mês</p>
+            </div>
+
+            {/* Mockup do gerador */}
+            <div className="bg-gray-900 rounded-3xl border border-gray-800 overflow-hidden shadow-2xl">
+              {/* Header */}
+              <div className="px-5 py-3 border-b border-gray-800 flex items-center gap-2">
+                <div className="w-7 h-7 rounded-xl bg-violet-600/30 flex items-center justify-center">
+                  <Sparkles size={13} className="text-violet-400" />
+                </div>
+                <p className="text-sm font-bold text-white">Narrativas Magnéticas</p>
+                <span className="ml-auto text-xs bg-violet-500/20 text-violet-400 font-bold px-2 py-0.5 rounded-full">Pro</span>
+              </div>
+
+              {/* Tópico selecionado */}
+              <div className="px-5 py-4 border-b border-gray-800/60">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tópico</p>
+                <div className="bg-gray-800 rounded-xl p-3 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-violet-500 flex-shrink-0" />
+                  <p className="text-sm text-white font-semibold">Por que meus clientes voltam sempre</p>
+                </div>
+              </div>
+
+              {/* Formato escolhido */}
+              <div className="px-5 py-4 border-b border-gray-800/60">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Formato</p>
+                <div className="flex gap-2">
+                  {["Reels", "Carrossel", "Stories", "Post"].map((f, i) => (
+                    <div key={f} className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${i === 0 ? "bg-violet-600 border-violet-500 text-white" : "border-gray-700 text-gray-500"}`}>
+                      {f}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Resultado gerado */}
+              <div className="px-5 py-4">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Script gerado</p>
+                <div className="space-y-2">
+                  {[
+                    { label: "Gancho (0–3s)", text: "\"Você sabia que 80% dos clientes voltam por causa de UMA coisa?\"" },
+                    { label: "Desenvolvimento", text: "\"Não é o preço. Não é a localização. É como você faz a pessoa se sentir...\"" },
+                    { label: "CTA", text: "\"Comenta AQUI pra eu te mandar o que eu faço diferente 👇\"" },
+                  ].map(({ label, text }) => (
+                    <div key={label} className="bg-gray-800/60 rounded-xl p-3">
+                      <p className="text-[9px] font-extrabold text-violet-400 uppercase tracking-wider mb-1">{label}</p>
+                      <p className="text-xs text-gray-300 leading-relaxed">{text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
@@ -482,166 +802,414 @@ export default function LandingPage() {
             <div className="flex justify-center mb-6">
               <div className="inline-flex bg-gray-100 dark:bg-gray-800 rounded-2xl p-1 gap-1">
                 <button onClick={() => setProMode(false)} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition ${!proMode ? "bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white" : "text-gray-400 hover:text-gray-600"}`}>
-                  Essencial <span className="text-gray-400 font-normal">R$ 37/mês</span>
+                  Essencial <span className="text-gray-400 font-normal">R$ 37,90/mês</span>
                 </button>
-                <button onClick={() => { setProMode(true); setProColor(preview.primary_color); }} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 ${proMode ? "gradient-brand text-white shadow-lg" : "text-gray-400 hover:text-gray-600"}`}>
+                <button onClick={activatePro} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 ${proMode ? "gradient-brand text-white shadow-lg" : "text-gray-400 hover:text-gray-600"}`}>
                   Pro <span className={proMode ? "opacity-80 font-normal" : "text-gray-400 font-normal"}>R$ 57/mês</span>
                   <span className="text-xs bg-yellow-400 text-yellow-900 font-extrabold px-1.5 py-0.5 rounded-full">✦</span>
                 </button>
               </div>
             </div>
 
-            <div className={`grid gap-6 mb-6 ${proMode ? "lg:grid-cols-[1fr_320px]" : "md:grid-cols-2"}`}>
-              {/* MINI SITE PREVIEW — fiel ao design real */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden">
-                {/* Browser bar */}
-                <div className="bg-gray-900 px-4 py-2.5 flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-400" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                    <div className="w-3 h-3 rounded-full bg-green-400" />
-                  </div>
-                  <span className="text-gray-400 text-xs ml-1 truncate">
-                    meunegocio.pro/site/{preview.business_name.toLowerCase().replace(/\s+/g, "-")}
-                  </span>
-                  {proMode && <span className="ml-auto text-xs bg-violet-600 text-white font-bold px-2 py-0.5 rounded-full">Pro</span>}
-                </div>
-
-                {/* Mini site — capa */}
-                {(() => {
-                  const color = proMode ? proColor : preview.primary_color;
-                  const fontFamily = proMode ? (proFonts.find(f => f.key === proFont)?.style ?? "'Inter',sans-serif") : "'Inter',sans-serif";
+            <div className="grid gap-6 mb-6 lg:grid-cols-[1fr_300px]">
+              {/* MINI SITE PREVIEW */}
+              {(() => {
+                const c = proColor;
+                const coverImg = proCoverImg || PREVIEW_COVER_IMAGES[form.niche] || null;
+                const galleryImgs = GALLERY_IMAGES[form.niche] ?? GALLERY_IMAGES.outro;
+                const nicheServices = (NICHE_CONFIG[form.niche]?.services ?? []).slice(0, 3);
+                const allServices = nicheServices.length ? nicheServices : [preview.main_service];
+                const fontFam = proFonts.find(f => f.key === proFont)?.style ?? "'Inter',sans-serif";
+                const slug = (proName || preview.business_name).toLowerCase().replace(/[^a-z0-9]+/g,"-");
+                const displayName = proMode && proName ? proName : preview.business_name;
+                const displayService = proMode && proService ? proService : preview.main_service;
+                if (!proMode) {
+                  // ── ESSENCIAL: design leve com gradiente colorido ──
                   return (
-                    <>
-                      <div style={{
-                        height: "120px", position: "relative", overflow: "hidden",
-                        ...(proMode && proCoverImg
-                          ? { backgroundImage: `url(${proCoverImg})`, backgroundSize: "cover", backgroundPosition: `center ${proCoverPosY}%` }
-                          : { background: `linear-gradient(160deg, ${color}f0, ${color}bb)` })
-                      }}>
-                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.45) 100%)" }} />
-                        <div style={{ position: "absolute", bottom: "10px", left: "14px", fontSize: "11px", fontWeight: 700, color: "#fff", fontFamily }}>
-                          {preview.city}
+                    <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-md">
+                      {/* Browser chrome cinza */}
+                      <div className="flex items-center justify-between px-4 py-2.5 bg-gray-900">
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1">
+                            <div className="w-2.5 h-2.5 rounded-full bg-white/20" /><div className="w-2.5 h-2.5 rounded-full bg-white/20" /><div className="w-2.5 h-2.5 rounded-full bg-white/20" />
+                          </div>
+                          <span className="text-white/40 text-[10px] truncate max-w-[160px]">meunegocio.pro/site/{slug}</span>
+                        </div>
+                        <span className="text-white/40 text-[10px] font-bold">Essencial</span>
+                      </div>
+                      {/* Hero gradiente colorido */}
+                      <div style={{ background: `linear-gradient(160deg, ${c}f5 0%, ${c}bb 100%)`, padding: "28px 18px 44px", position: "relative", overflow: "hidden" }}>
+                        <div style={{ position: "absolute", top: "-30px", right: "-30px", width: "120px", height: "120px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.15)" }} />
+                        <div style={{ textAlign: "center", position: "relative", zIndex: 1, fontFamily: "'Inter',sans-serif" }}>
+                          {proLogoImg ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={proLogoImg} alt="" style={{ width: "64px", height: "64px", borderRadius: "16px", margin: "0 auto 12px", border: "3px solid rgba(255,255,255,0.4)", objectFit: "cover", boxShadow: `0 8px 24px ${c}55` }} />
+                          ) : (
+                            <div style={{ width: "64px", height: "64px", borderRadius: "16px", margin: "0 auto 12px", background: "rgba(255,255,255,0.22)", border: "3px solid rgba(255,255,255,0.35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px", fontWeight: 900, color: "#fff" }}>
+                              {displayName[0]?.toUpperCase()}
+                            </div>
+                          )}
+                          <p style={{ fontSize: "18px", fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", marginBottom: "4px" }}>{displayName}</p>
+                          <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.70)", fontWeight: 600, marginBottom: "16px" }}>{preview.niche} · {preview.city}</p>
+                          <a href={buildWhatsAppLink(preview.whatsapp)} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", background: "#25D366", color: "#fff", fontWeight: 800, fontSize: "13px", padding: "12px", borderRadius: "12px", textDecoration: "none", boxShadow: "0 4px 14px rgba(37,211,102,0.35)" }}>
+                            💬 Chamar no WhatsApp
+                          </a>
+                        </div>
+                        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "26px", background: "#fff", clipPath: "ellipse(55% 100% at 50% 100%)" }} />
+                      </div>
+                      {/* Serviços simples */}
+                      <div style={{ padding: "16px 16px 4px", background: "#fff", fontFamily: "'Inter',sans-serif" }}>
+                        <p style={{ fontSize: "9px", fontWeight: 800, color: c, letterSpacing: "0.20em", textTransform: "uppercase", marginBottom: "8px" }}>Serviços</p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          {allServices.map((svc, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", background: i === 0 ? `${c}0d` : "#f9f9f9", border: `1px solid ${i === 0 ? c+"28" : "#f0f0f0"}`, borderRadius: "8px", padding: "9px 12px" }}>
+                              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: c, flexShrink: 0 }} />
+                              <p style={{ fontSize: "12px", fontWeight: i===0?800:600, color: "#222", flex: 1 }}>{svc}</p>
+                              {i === 0 && <span style={{ fontSize: "9px", fontWeight: 700, color: c, background: `${c}12`, borderRadius: "4px", padding: "2px 5px" }}>Principal</span>}
+                            </div>
+                          ))}
                         </div>
                       </div>
+                      {/* Links rápidos */}
+                      <div style={{ padding: "12px 16px 16px", background: "#fff" }}>
+                        <div style={{ display: "flex", gap: "6px" }}>
+                          {["WhatsApp","Localização","Instagram"].map(s => (
+                            <div key={s} style={{ flex: 1, background: "#f5f5f5", borderRadius: "7px", padding: "7px 4px", textAlign: "center" }}>
+                              <p style={{ fontSize: "9px", fontWeight: 700, color: "#666" }}>{s}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
 
-                      <div style={{ padding: "0 16px 16px", background: "#fff", fontFamily }}>
-                        <div style={{ marginTop: "-28px", marginBottom: "10px" }}>
-                          {proMode && proLogoImg ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={proLogoImg} alt="" style={{ width: "56px", height: "56px", borderRadius: "14px", border: "3px solid #fff", objectFit: "cover", boxShadow: `0 4px 16px ${color}40` }} />
-                          ) : (
-                            <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: `linear-gradient(135deg, ${color}, ${color}bb)`, border: "3px solid #fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: 900, color: "#fff", boxShadow: `0 4px 16px ${color}40` }}>
-                              {preview.business_name[0]}
+                // ── PRO: design escuro com foto real ──
+                return (
+                  <div className="rounded-2xl overflow-hidden border-2 shadow-xl" style={{ borderColor: c + "88", boxShadow: `0 12px 40px ${c}22` }}>
+                    {/* Browser chrome colorido */}
+                    <div className="flex items-center justify-between px-4 py-2.5" style={{ background: c }}>
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <div className="w-2.5 h-2.5 rounded-full bg-white/20" /><div className="w-2.5 h-2.5 rounded-full bg-white/20" /><div className="w-2.5 h-2.5 rounded-full bg-white/20" />
+                        </div>
+                        <span className="text-white/50 text-[10px] truncate max-w-[160px]">meunegocio.pro/site/{slug}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="bg-yellow-400 text-yellow-900 text-[9px] font-extrabold px-2 py-0.5 rounded-full">⭐ Recomendado</span>
+                        <span className="text-white/70 text-[10px] font-bold">Pro</span>
+                      </div>
+                    </div>
+
+                    {/* Conteúdo scrollável sem fundo cinza */}
+                    <div style={{ overflowY: "auto", scrollbarWidth: "none", background: "#fff" }}>
+
+                      {/* Hero com foto */}
+                      <div style={{ height: "200px", position: "relative", overflow: "hidden", ...(coverImg ? { backgroundImage: `url(${coverImg})`, backgroundSize: "cover", backgroundPosition: `center ${proCoverPosY}%` } : { background: `linear-gradient(160deg,#111 0%,${c}77 70%,#000 100%)` }) }}>
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(0,0,0,0.28) 0%,rgba(0,0,0,0.78) 100%)" }} />
+                        <div style={{ position: "absolute", inset: 0, backgroundImage: `radial-gradient(circle at 70% 20%,${c}44 0%,transparent 55%)` }} />
+                        <div style={{ position: "absolute", top: "12px", left: "12px", right: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 10 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+                            {proLogoImg ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={proLogoImg} alt="" style={{ width: "30px", height: "30px", borderRadius: "7px", objectFit: "cover", boxShadow: `0 3px 10px ${c}55` }} />
+                            ) : (
+                              <div style={{ width: "30px", height: "30px", borderRadius: "7px", background: c, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 900, color: "#fff" }}>
+                                {displayName[0]?.toUpperCase()}
+                              </div>
+                            )}
+                            <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: "100px", padding: "3px 8px", backdropFilter: "blur(4px)" }}>
+                              <span style={{ color: "#fff", fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.10em", fontFamily: fontFam }}>{preview.niche}</span>
+                            </div>
+                          </div>
+                          {preview.instagram && (
+                            <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: "100px", padding: "3px 8px", backdropFilter: "blur(4px)" }}>
+                              <span style={{ color: "#fff", fontSize: "9px", fontWeight: 700 }}>@{preview.instagram}</span>
                             </div>
                           )}
                         </div>
-                        <p style={{ fontSize: "16px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "2px" }}>{preview.business_name}</p>
-                        <p style={{ fontSize: "11px", color: "#888", fontWeight: 600, marginBottom: "10px" }}>{preview.niche} · {preview.city}</p>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: `${color}10`, border: `1px solid ${color}25`, borderRadius: "8px", padding: "5px 10px", marginBottom: "10px" }}>
-                          <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: color }} />
-                          <p style={{ fontSize: "11px", fontWeight: 700, color: color }}>{preview.main_service}</p>
+                        <div style={{ position: "absolute", bottom: "12px", left: "12px", zIndex: 10 }}>
+                          <p style={{ fontSize: "10px", fontWeight: 800, color: c, textTransform: "uppercase", letterSpacing: "0.10em", marginBottom: "3px", fontFamily: fontFam }}>{displayService}</p>
+                          <p style={{ fontSize: "18px", fontWeight: 900, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: "3px", fontFamily: fontFam }}>{displayName}</p>
+                          <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.55)", fontWeight: 600 }}>📍 {preview.city}</p>
                         </div>
-                        <a href={buildWhatsAppLink(preview.whatsapp)} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", background: "#25D366", color: "#fff", fontWeight: 800, fontSize: "12px", padding: "9px 0", borderRadius: "9px", textDecoration: "none" }}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                          Chamar no WhatsApp
-                        </a>
                       </div>
-                    </>
-                  );
-                })()}
-              </div>
 
-              {/* POST ou PAINEL PRO */}
-              {proMode ? (
-                <div className="bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800 rounded-2xl p-5 space-y-5 self-start sticky top-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-violet-500" />
-                    <p className="text-sm font-extrabold text-violet-700 dark:text-violet-400">Personalização Pro</p>
-                  </div>
+                      {/* Stats strip */}
+                      <div style={{ display: "flex", background: "#0d0d0d", borderBottom: `2px solid ${c}` }}>
+                        {[`⚡ Online`,`📍 ${preview.city}`,"💬 Rápido"].map((item, i) => (
+                          <div key={i} style={{ flex: 1, padding: "8px 4px", textAlign: "center", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
+                            <p style={{ fontSize: "9px", fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>{item}</p>
+                          </div>
+                        ))}
+                      </div>
 
-                  {/* Cor */}
-                  <div>
-                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Cor principal</p>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {["#7c3aed","#2563eb","#dc2626","#16a34a","#d97706","#db2777","#0891b2","#111827"].map(c => (
-                        <button key={c} onClick={() => setProColor(c)} style={{ background: c }} className={`w-7 h-7 rounded-full border-2 transition ${proColor === c ? "border-white scale-110 shadow-md" : "border-transparent"}`} />
-                      ))}
-                      <input type="color" value={proColor} onChange={e => setProColor(e.target.value)} className="w-7 h-7 rounded-full border border-gray-200 cursor-pointer" title="Cor personalizada" />
+                      {/* CTA + links sociais */}
+                      <div style={{ padding: "12px 14px 0", background: "#fff" }}>
+                        <a href={buildWhatsAppLink(preview.whatsapp)} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", background: "#25D366", color: "#fff", fontWeight: 800, fontSize: "13px", padding: "12px", borderRadius: "10px", textDecoration: "none", boxShadow: "0 4px 14px rgba(37,211,102,0.35)", marginBottom: "8px", fontFamily: fontFam }}>
+                          💬 {NICHE_CONFIG[form.niche]?.cta ?? "Falar"} pelo WhatsApp
+                        </a>
+                        <div style={{ display: "flex", gap: "6px" }}>
+                          {preview.instagram && (
+                            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", border: "1px solid #e5e7eb", borderRadius: "8px", padding: "7px", fontSize: "10px", fontWeight: 700, color: "#555" }}>
+                              📸 Instagram
+                            </div>
+                          )}
+                          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", border: "1px solid #e5e7eb", borderRadius: "8px", padding: "7px", fontSize: "10px", fontWeight: 700, color: "#555" }}>
+                            👍 Facebook
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Sobre */}
+                      <div style={{ padding: "14px 14px 0", borderTop: "1px solid #f0f0f0", marginTop: "12px", background: "#fff" }}>
+                        <p style={{ fontSize: "9px", fontWeight: 800, color: c, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: "6px" }}>Sobre</p>
+                        <p style={{ fontSize: "11px", color: "#555", lineHeight: 1.65, fontFamily: fontFam }}>
+                          {proDesc || `${displayName} é uma ${(NICHE_CONFIG[form.niche]?.label ?? preview.niche).toLowerCase()} em ${preview.city}, especializada em ${displayService}. Atendimento direto pelo WhatsApp.`}
+                        </p>
+                      </div>
+
+                      {/* Galeria — fotos do nicho, SEPARADAS da capa */}
+                      <div style={{ padding: "14px 14px 0", background: "#fff", marginTop: "4px" }}>
+                        <p style={{ fontSize: "9px", fontWeight: 800, color: c, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: "8px" }}>Galeria</p>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "4px" }}>
+                          {galleryImgs.map((img, i) => (
+                            <div key={i} style={{ height: "56px", borderRadius: "7px", backgroundImage: `url(${img})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Serviços */}
+                      <div style={{ padding: "14px", background: "#f9f9f9", marginTop: "12px", borderTop: "1px solid #f0f0f0" }}>
+                        <p style={{ fontSize: "9px", fontWeight: 800, color: c, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: "8px" }}>Serviços</p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                          {allServices.map((svc, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", borderRadius: "8px", padding: "8px 10px", border: `1px solid ${i===0?c+"30":"#f0f0f0"}` }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <div style={{ width: "28px", height: "28px", borderRadius: "7px", background: i===0?`linear-gradient(135deg,${c},${c}bb)`:`${c}12`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: i===0?"rgba(255,255,255,0.9)":c }} />
+                                </div>
+                                <p style={{ fontSize: "11px", fontWeight: i===0?800:600, color: "#222", fontFamily: fontFam }}>{svc}</p>
+                              </div>
+                              <span style={{ fontSize: "9px", fontWeight: 700, color: "#25D366", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "5px", padding: "2px 6px" }}>Falar</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
                     </div>
                   </div>
+                );
+              })()}
 
-                  {/* Fonte */}
-                  <div>
-                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Fonte</p>
-                    <div className="flex gap-2 flex-wrap">
-                      {proFonts.map(f => (
-                        <button key={f.key} onClick={() => setProFont(f.key)} style={{ fontFamily: f.style }} className={`px-3 py-1 rounded-lg text-xs border transition ${proFont === f.key ? "border-violet-500 bg-violet-100 dark:bg-violet-900/40 text-violet-700 font-bold" : "border-gray-200 dark:border-gray-600 text-gray-500 hover:border-violet-300"}`}>
-                          {f.label}
+              {/* PAINEL DE EDIÇÃO */}
+              <div className={`rounded-2xl p-4 self-start sticky top-4 ${proMode ? "bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800" : "bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"}`}>
+
+                {proMode ? (
+                  <>
+                    {/* Tabs Pro */}
+                    <div className="flex gap-1 p-1 bg-violet-100/60 dark:bg-violet-900/30 rounded-xl mb-4">
+                      {(["site","posts","carrossel"] as const).map(tab => (
+                        <button key={tab} onClick={() => setEditorTab(tab)} className={`flex-1 py-1.5 text-xs font-bold rounded-lg capitalize transition ${editorTab === tab ? "bg-white dark:bg-violet-900 text-violet-700 dark:text-violet-300 shadow-sm" : "text-violet-400 hover:text-violet-600"}`}>
+                          {tab === "carrossel" ? "Carrossel" : tab.charAt(0).toUpperCase() + tab.slice(1)}
                         </button>
                       ))}
                     </div>
-                  </div>
 
-                  {/* Capa */}
-                  <div>
-                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Foto de capa</p>
-                    <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-gray-800 border border-dashed border-violet-300 rounded-xl px-3 py-2 hover:border-violet-500 transition w-fit">
-                      <ImageIcon size={14} className="text-violet-500" />
-                      <span className="text-xs font-semibold text-violet-600">{proCoverImg ? "Trocar imagem" : "Adicionar capa"}</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
-                    </label>
-                    {proCoverImg && (
-                      <div className="mt-2 space-y-1">
-                        <div className="flex justify-between text-xs text-gray-500">
-                          <span>Posição vertical</span>
-                          <span className="font-bold text-violet-600">{proCoverPosY}%</span>
+                    {editorTab === "site" && (
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-1.5">Nome do negócio</p>
+                          <input value={proName} onChange={e => setProName(e.target.value)} placeholder={preview.business_name} className="w-full border border-violet-200 dark:border-violet-700 dark:bg-violet-950/30 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-400" />
                         </div>
-                        <input type="range" min={0} max={100} value={proCoverPosY} onChange={e => setProCoverPosY(Number(e.target.value))} className="w-full accent-violet-600" />
-                        <div className="flex justify-between text-[10px] text-gray-400"><span>Topo</span><span>Centro</span><span>Base</span></div>
+                        <div>
+                          <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-1.5">Serviço principal</p>
+                          <input value={proService} onChange={e => setProService(e.target.value)} placeholder={preview.main_service} className="w-full border border-violet-200 dark:border-violet-700 dark:bg-violet-950/30 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-1.5">Sobre o negócio</p>
+                          <textarea value={proDesc} onChange={e => setProDesc(e.target.value)} placeholder="Fale um pouco sobre o negócio..." rows={2} className="w-full border border-violet-200 dark:border-violet-700 dark:bg-violet-950/30 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-400 resize-none" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Cor principal</p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {["#7c3aed","#2563eb","#dc2626","#16a34a","#d97706","#db2777","#0891b2","#111827"].map(col => (
+                              <button key={col} onClick={() => setProColor(col)} style={{ background: col }} className={`w-6 h-6 rounded-full border-2 transition ${proColor === col ? "border-white scale-110 shadow-md" : "border-transparent"}`} />
+                            ))}
+                            <input type="color" value={proColor} onChange={e => setProColor(e.target.value)} className="w-6 h-6 rounded-full border border-gray-200 cursor-pointer" />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Fonte</p>
+                          <div className="flex gap-1.5 flex-wrap">
+                            {proFonts.map(f => (
+                              <button key={f.key} onClick={() => setProFont(f.key)} style={{ fontFamily: f.style }} className={`px-2.5 py-1 rounded-lg text-xs border transition ${proFont === f.key ? "border-violet-500 bg-violet-100 dark:bg-violet-900/40 text-violet-700 font-bold" : "border-gray-200 dark:border-gray-600 text-gray-500"}`}>
+                                {f.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Foto de capa (banner)</p>
+                          <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-gray-800 border border-dashed border-violet-300 rounded-xl px-3 py-2 hover:border-violet-500 transition w-fit">
+                            <ImageIcon size={14} className="text-violet-500" />
+                            <span className="text-xs font-semibold text-violet-600">{proCoverImg ? "Trocar imagem" : "Adicionar capa"}</span>
+                            <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                          </label>
+                          {proCoverImg && (
+                            <div className="mt-2 space-y-1">
+                              <div className="flex justify-between text-xs text-gray-500">
+                                <span>Posição</span><span className="font-bold text-violet-600">{proCoverPosY}%</span>
+                              </div>
+                              <input type="range" min={0} max={100} value={proCoverPosY} onChange={e => setProCoverPosY(Number(e.target.value))} className="w-full accent-violet-600" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Logo / foto do perfil</p>
+                          <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-gray-800 border border-dashed border-violet-300 rounded-xl px-3 py-2 hover:border-violet-500 transition w-fit">
+                            <ImageIcon size={14} className="text-violet-500" />
+                            <span className="text-xs font-semibold text-violet-600">{proLogoImg ? "Trocar logo" : "Adicionar logo"}</span>
+                            <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                          </label>
+                        </div>
                       </div>
                     )}
-                  </div>
 
-                  {/* Logo */}
-                  <div>
-                    <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Logo / foto do perfil</p>
-                    <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-gray-800 border border-dashed border-violet-300 rounded-xl px-3 py-2 hover:border-violet-500 transition w-fit">
-                      <ImageIcon size={14} className="text-violet-500" />
-                      <span className="text-xs font-semibold text-violet-600">{proLogoImg ? "Trocar logo" : "Adicionar logo"}</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-                    </label>
-                  </div>
+                    {editorTab === "posts" && (
+                      <div className="space-y-3">
+                        {/* Campos de edição */}
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Título do post</p>
+                            <input
+                              value={postTitle}
+                              onChange={e => setPostTitle(e.target.value)}
+                              placeholder={proService || preview.sample_post_title}
+                              className="w-full border border-violet-200 dark:border-violet-700 dark:bg-violet-950/30 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-400"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Subtítulo</p>
+                            <input
+                              value={postSubtitle}
+                              onChange={e => setPostSubtitle(e.target.value)}
+                              placeholder={`${NICHE_CONFIG[form.niche]?.label ?? preview.niche} em ${preview.city}`}
+                              className="w-full border border-violet-200 dark:border-violet-700 dark:bg-violet-950/30 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-400"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">CTA (chamada)</p>
+                            <input
+                              value={postCta}
+                              onChange={e => setPostCta(e.target.value)}
+                              placeholder={NICHE_CONFIG[form.niche]?.cta ?? preview.cta}
+                              className="w-full border border-violet-200 dark:border-violet-700 dark:bg-violet-950/30 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-400"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Imagem de fundo</p>
+                            <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-gray-800 border border-dashed border-violet-300 rounded-xl px-3 py-2 hover:border-violet-500 transition w-fit">
+                              <ImageIcon size={13} className="text-violet-500" />
+                              <span className="text-xs font-semibold text-violet-600">{postBgImg ? "Trocar imagem" : "Adicionar imagem"}</span>
+                              <input type="file" accept="image/*" className="hidden" onChange={handlePostBgUpload} />
+                            </label>
+                            {postBgImg && <p className="text-[10px] text-green-600 font-semibold mt-1">✓ Imagem carregada</p>}
+                          </div>
+                        </div>
+                        {/* Preview do post */}
+                        <PostCard
+                          template_type="main_service"
+                          title={postTitle || proService || preview.sample_post_title}
+                          subtitle={postSubtitle || `${NICHE_CONFIG[form.niche]?.label ?? preview.niche} em ${preview.city}`}
+                          cta={postCta || NICHE_CONFIG[form.niche]?.cta || preview.cta}
+                          business_name={proName || preview.business_name}
+                          primary_color={proColor}
+                          niche={preview.niche}
+                          city={preview.city}
+                          backgroundImageUrl={postBgImg || undefined}
+                          unlocked={true}
+                        />
+                        <p className="text-[10px] text-gray-400 text-center">+ 14 templates diferentes no plano Pro</p>
+                      </div>
+                    )}
 
-                  <div className="pt-3 border-t border-violet-200 dark:border-violet-800">
-                    <p className="text-xs text-violet-600 dark:text-violet-400 font-semibold mb-3">Gostou? Assine o Pro e personalize tudo no painel.</p>
-                    <a href={CHECKOUT_URL_PRO} className="flex items-center justify-center gap-2 gradient-brand text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:opacity-90 transition">
-                      Assinar Pro — R$ 57/mês <ArrowRight size={13} />
-                    </a>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden">
-                  <div className="px-5 py-3 border-b border-gray-50 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <ImageIcon size={14} className="text-gray-400" />
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Post de exemplo</span>
+                    {editorTab === "carrossel" && (
+                      <div className="space-y-3">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Exemplo de carrossel gerado para o seu nicho.</p>
+                        <div className="rounded-xl overflow-hidden border border-violet-100 dark:border-violet-800">
+                          {[
+                            { label: "Capa", bg: proColor, text: proService || preview.main_service, sub: "Deslize para ver →" },
+                            { label: "Lâmina 1", bg: "#fff", text: "Por que escolher a gente?", sub: proName || preview.business_name },
+                            { label: "Lâmina 2", bg: "#f9f9f9", text: `Especialistas em ${proService || preview.main_service}`, sub: preview.city },
+                            { label: "CTA Final", bg: proColor, text: "Fale pelo WhatsApp agora", sub: "Um clique e você fala direto 💬" },
+                          ].map((slide, i) => (
+                            <div key={i} style={{ background: slide.bg, padding: "12px 14px", borderBottom: i < 3 ? "1px solid #f0f0f0" : "none" }}>
+                              <div className="flex items-center gap-2">
+                                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold flex-shrink-0" style={{ background: slide.bg === proColor ? "rgba(255,255,255,0.2)" : `${proColor}18`, color: slide.bg === proColor ? "#fff" : proColor }}>
+                                  {i + 1}
+                                </div>
+                                <div>
+                                  <p className="text-[9px] font-extrabold uppercase tracking-wider" style={{ color: slide.bg === proColor ? "rgba(255,255,255,0.6)" : "#999" }}>{slide.label}</p>
+                                  <p className="text-xs font-bold leading-snug" style={{ color: slide.bg === proColor ? "#fff" : "#111" }}>{slide.text}</p>
+                                  <p className="text-[10px]" style={{ color: slide.bg === proColor ? "rgba(255,255,255,0.55)" : "#888" }}>{slide.sub}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-gray-400 text-center">+ carrosséis para stories, promoções e depoimentos</p>
+                      </div>
+                    )}
+
+                    <div className="pt-3 mt-3 border-t border-violet-200 dark:border-violet-800">
+                      <a href={CHECKOUT_URL_PRO} className="flex items-center justify-center gap-2 gradient-brand text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:opacity-90 transition">
+                        Assinar Pro — R$ 57/mês <ArrowRight size={13} />
+                      </a>
                     </div>
-                    <span className="text-xs bg-violet-50 text-violet-600 font-bold px-2 py-0.5 rounded-full">1080×1080</span>
-                  </div>
-                  <PostCard
-                    template_type="main_service"
-                    title={preview.sample_post_title}
-                    subtitle={preview.sample_post_subtitle}
-                    cta={preview.cta}
-                    business_name={preview.business_name}
-                    primary_color={preview.primary_color}
-                    niche={preview.niche}
-                    city={preview.city}
-                    unlocked={true}
-                  />
-                </div>
-              )}
+                  </>
+                ) : (
+                  <>
+                    {/* Essencial — só cor + logo */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-2 h-2 rounded-full bg-gray-400" />
+                      <p className="text-sm font-extrabold text-gray-600 dark:text-gray-300">Essencial — R$ 37,90/mês</p>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Cor do seu site</p>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {["#7c3aed","#2563eb","#dc2626","#16a34a","#d97706","#db2777","#0891b2","#111827"].map(col => (
+                            <button key={col} onClick={() => { setProColor(col); }} style={{ background: col }} className={`w-7 h-7 rounded-full border-2 transition ${proColor === col ? "border-white scale-110 shadow-md" : "border-transparent"}`} />
+                          ))}
+                          <input type="color" value={proColor} onChange={e => setProColor(e.target.value)} className="w-7 h-7 rounded-full border border-gray-200 cursor-pointer" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">Logo / foto do perfil</p>
+                        <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-gray-700 border border-dashed border-gray-300 rounded-xl px-3 py-2 hover:border-violet-400 transition w-fit">
+                          <ImageIcon size={14} className="text-gray-400" />
+                          <span className="text-xs font-semibold text-gray-500">{proLogoImg ? "Trocar logo" : "Adicionar logo"}</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                        </label>
+                        {proLogoImg && <p className="text-[10px] text-green-600 font-semibold mt-1">✓ Imagem carregada</p>}
+                      </div>
+                      <div className="bg-violet-50 dark:bg-violet-950/30 rounded-xl p-3 border border-violet-100 dark:border-violet-800">
+                        <p className="text-xs font-bold text-violet-700 dark:text-violet-400 mb-1">Quer o site com foto, galeria e links?</p>
+                        <p className="text-xs text-violet-600/70 dark:text-violet-400/70 mb-2">Isso é exclusivo do plano Pro.</p>
+                        <button onClick={activatePro} className="flex items-center justify-center gap-1.5 w-full gradient-brand text-white font-bold text-xs py-2 rounded-lg hover:opacity-90 transition">
+                          Ver como fica no Pro <ArrowRight size={11} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
+                      <a href={CHECKOUT_URL} className="flex items-center justify-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm px-4 py-2.5 rounded-xl hover:opacity-90 transition">
+                        Assinar Essencial — R$ 37,90/mês <ArrowRight size={13} />
+                      </a>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* GRADE DE POSTS EXTRAS */}
@@ -761,7 +1329,7 @@ export default function LandingPage() {
                   <DollarSign size={20} strokeWidth={1.75} />
                 </div>
                 <h3 className="font-extrabold text-white mb-2 text-sm">Menos de R$ 1,25 por dia</h3>
-                <p className="text-violet-200 text-sm leading-relaxed">Por R$ 37/mês você tem todo o marketing digital do seu negócio resolvido. Menos do que um cafezinho por dia.</p>
+                <p className="text-violet-200 text-sm leading-relaxed">Por R$ 37,90/mês você tem todo o marketing digital do seu negócio resolvido. Menos do que um cafezinho por dia.</p>
               </div>
               <a href={CHECKOUT_URL} className="mt-6 flex items-center justify-center gap-2 bg-white text-violet-700 font-extrabold py-3 rounded-xl hover:bg-violet-50 transition text-sm">
                 Assinar agora <ArrowRight size={14} />
@@ -813,7 +1381,7 @@ export default function LandingPage() {
                 <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Plano</p>
                 <h3 className="text-2xl font-extrabold text-white mb-4">Essencial</h3>
                 <div className="flex items-end gap-1 mb-1">
-                  <span className="text-5xl font-extrabold text-white">R$ 37</span>
+                  <span className="text-5xl font-extrabold text-white">R$ 37,90</span>
                   <span className="text-white/60 text-sm mb-2">/mês</span>
                 </div>
                 <p className="text-white/50 text-xs">Cancele quando quiser · Sem fidelidade</p>
@@ -1054,6 +1622,227 @@ export default function LandingPage() {
           <p className="text-xs">© {new Date().getFullYear()} MeuNegócio Pro</p>
         </div>
       </footer>
+
+      {/* ── MODAL VSL ── */}
+      {vslOpen && (
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(8px)" }}
+          onClick={() => setVslOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl"
+            style={{ background: "#0a0a12" }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Barra superior */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-white/8">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-white/50 text-xs font-medium">MeuNegócio Pro — Demo</span>
+              </div>
+              <button
+                onClick={() => setVslOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white transition text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Slide content */}
+            <div className="relative" style={{ minHeight: "360px" }}>
+              {VSL_SLIDES.map((slide, i) => (
+                <div
+                  key={i}
+                  className="absolute inset-0 flex flex-col md:flex-row items-center gap-8 p-8 md:p-12 transition-all duration-500"
+                  style={{ opacity: i === vslSlide ? 1 : 0, pointerEvents: i === vslSlide ? "auto" : "none", transform: i === vslSlide ? "translateX(0)" : i < vslSlide ? "translateX(-40px)" : "translateX(40px)" }}
+                >
+                  {/* Visual */}
+                  <div className="flex-shrink-0">
+                    {/* Visual: Problema */}
+                    {slide.visual === "empty" && (
+                      <div className="w-44 space-y-2">
+                        {["Postou há 3 semanas","Instagram sem engajamento","Sem site profissional","Clientes indo embora"].map((t,i) => (
+                          <div key={i} className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
+                            <div className="w-4 h-4 rounded-full bg-red-500/30 flex items-center justify-center flex-shrink-0">
+                              <svg className="w-2.5 h-2.5 text-red-400" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                            </div>
+                            <p className="text-red-300/80 text-[10px] font-semibold">{t}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Visual: Essencial */}
+                    {slide.visual === "essencial" && (
+                      <div className="w-44 rounded-2xl border border-green-500/30 bg-gray-900 overflow-hidden">
+                        <div className="bg-green-600/80 px-3 py-2 flex items-center justify-between">
+                          <p className="text-white text-[10px] font-extrabold">Plano Essencial</p>
+                          <span className="text-green-200 text-[10px] font-bold">R$37,90/mês</span>
+                        </div>
+                        <div className="p-3 space-y-2">
+                          {["Mini site profissional","Botão WhatsApp ativo","5 posts por mês","5 legendas por mês","5 mensagens WA","Calendário de postagem"].map(f => (
+                            <div key={f} className="flex items-center gap-2">
+                              <div className="w-3.5 h-3.5 rounded-full bg-green-500/30 border border-green-500/50 flex items-center justify-center flex-shrink-0">
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                              </div>
+                              <p className="text-white/70 text-[9px] font-semibold">{f}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Visual: Pro */}
+                    {slide.visual === "pro" && (
+                      <div className="w-44 rounded-2xl border border-violet-500/40 bg-gray-900 overflow-hidden">
+                        <div className="bg-violet-700 px-3 py-2 flex items-center justify-between">
+                          <p className="text-white text-[10px] font-extrabold">Plano Pro</p>
+                          <span className="text-yellow-300 text-[10px] font-bold">R$57/mês</span>
+                        </div>
+                        <div className="p-3 space-y-1.5">
+                          <p className="text-violet-400 text-[8px] font-extrabold uppercase tracking-wider mb-2">Tudo do Essencial +</p>
+                          {["Foto e capa personalizada","Galeria de fotos no site","15 posts · 15 legendas","Roteiros para Reels","Sequência de Stories","Carrosséis completos","Narrativas Magnéticas"].map(f => (
+                            <div key={f} className="flex items-center gap-2">
+                              <div className="w-3.5 h-3.5 rounded-full bg-violet-500/30 border border-violet-500/50 flex items-center justify-center flex-shrink-0">
+                                <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+                              </div>
+                              <p className="text-white/70 text-[9px] font-semibold">{f}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Visual: Narrativa Magnética */}
+                    {slide.visual === "magnetica" && (
+                      <div className="w-44 rounded-2xl border border-purple-500/40 bg-gray-900 overflow-hidden">
+                        <div className="bg-purple-800/80 px-3 py-2">
+                          <p className="text-purple-200 text-[9px] font-extrabold uppercase tracking-wider">Narrativas Magnéticas</p>
+                        </div>
+                        <div className="p-3 space-y-2">
+                          {[
+                            { label: "Gancho", text: "\"Por que 80% dos clientes somem...\"" },
+                            { label: "Desenvolvimento", text: "\"Não é o preço. É como você aparece...\"" },
+                            { label: "CTA", text: "\"Comenta AQUI que eu te explico 👇\"" },
+                          ].map(({ label, text }) => (
+                            <div key={label} className="bg-purple-900/40 rounded-lg p-2 border border-purple-500/20">
+                              <p className="text-purple-400 text-[8px] font-extrabold uppercase tracking-wider mb-0.5">{label}</p>
+                              <p className="text-white/70 text-[9px] italic leading-tight">{text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Visual: Como funciona / Dashboard */}
+                    {slide.visual === "dashboard" && (
+                      <div className="w-44 rounded-2xl overflow-hidden border border-blue-500/30 bg-gray-900">
+                        <div className="bg-blue-700 px-3 py-2"><p className="text-white text-[9px] font-bold">Meu painel</p></div>
+                        <div className="p-3 space-y-2">
+                          {[
+                            { icon: "🌐", text: "Mini site ativo", ok: true },
+                            { icon: "📸", text: "Posts gerados", ok: true },
+                            { icon: "✏️", text: "Legendas prontas", ok: true },
+                            { icon: "💬", text: "Mensagens WA", ok: true },
+                          ].map(item => (
+                            <div key={item.text} className="flex items-center gap-2 bg-blue-900/20 rounded-lg px-2 py-1.5">
+                              <div className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
+                              <p className="text-white/70 text-[9px] font-semibold">{item.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Visual: Preço final — comparação dos dois planos */}
+                    {slide.visual === "price" && (
+                      <div className="flex gap-2">
+                        <div className="flex-1 rounded-xl border border-green-500/30 bg-gray-900 p-3 text-center">
+                          <p className="text-green-400 text-[9px] font-extrabold uppercase tracking-wider mb-2">Essencial</p>
+                          <p className="text-white text-2xl font-extrabold">R$37,90</p>
+                          <p className="text-white/30 text-[9px] mb-3">/mês</p>
+                          {["Mini site","5 posts","5 legendas"].map(f => (
+                            <div key={f} className="flex items-center gap-1.5 mb-1">
+                              <div className="w-2.5 h-2.5 rounded-full bg-green-500/40 flex items-center justify-center"><div className="w-1 h-1 rounded-full bg-green-400" /></div>
+                              <p className="text-white/50 text-[8px]">{f}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex-1 rounded-xl border border-violet-500/40 bg-gray-900 p-3 text-center">
+                          <p className="text-violet-400 text-[9px] font-extrabold uppercase tracking-wider mb-2">Pro</p>
+                          <p className="text-white text-2xl font-extrabold">R$57</p>
+                          <p className="text-white/30 text-[9px] mb-3">/mês</p>
+                          {["Site + fotos","15 posts","Narrativas"].map(f => (
+                            <div key={f} className="flex items-center gap-1.5 mb-1">
+                              <div className="w-2.5 h-2.5 rounded-full bg-violet-500/40 flex items-center justify-center"><div className="w-1 h-1 rounded-full bg-violet-400" /></div>
+                              <p className="text-white/50 text-[8px]">{f}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Texto */}
+                  <div className="flex-1 text-left">
+                    <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4 text-[10px] font-extrabold uppercase tracking-widest" style={{ background: slide.color + "25", color: slide.color }}>
+                      {slide.tag}
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-extrabold text-white leading-tight mb-4">
+                      {slide.headline}
+                    </h2>
+                    <p className="text-white/55 text-base leading-relaxed">
+                      {slide.sub}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Barra de progresso + navegação */}
+            <div className="px-5 pb-5 pt-2 border-t border-white/8">
+              {/* Indicadores de slide */}
+              <div className="flex gap-1.5 mb-3">
+                {VSL_SLIDES.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setVslSlide(i); setVslProgress(0); }}
+                    className="h-1 rounded-full transition-all duration-300"
+                    style={{ flex: i === vslSlide ? 3 : 1, background: i < vslSlide ? "#7c3aed" : i === vslSlide ? "#a78bfa" : "rgba(255,255,255,0.15)" }}
+                  >
+                    {i === vslSlide && (
+                      <div className="h-full rounded-full bg-violet-400 transition-all duration-75" style={{ width: `${vslProgress}%` }} />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Controles */}
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  <button onClick={() => { setVslSlide(s => Math.max(0, s - 1)); setVslProgress(0); }} disabled={vslSlide === 0} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-white/15 text-white/50 hover:text-white hover:border-white/30 transition disabled:opacity-30">
+                    ← Anterior
+                  </button>
+                  <button onClick={() => { setVslSlide(s => Math.min(VSL_SLIDES.length - 1, s + 1)); setVslProgress(0); }} disabled={vslSlide === VSL_SLIDES.length - 1} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-white/15 text-white/50 hover:text-white hover:border-white/30 transition disabled:opacity-30">
+                    Próximo →
+                  </button>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-white/30 text-xs">{vslSlide + 1} / {VSL_SLIDES.length}</span>
+                  <button
+                    onClick={() => { setVslOpen(false); scrollToForm(); }}
+                    className="inline-flex items-center gap-2 gradient-brand text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition"
+                  >
+                    Criar minha prévia grátis <ArrowRight size={13} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

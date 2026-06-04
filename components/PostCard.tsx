@@ -188,7 +188,7 @@ function Promotion({ title, subtitle, cta, business_name, color, c: compact, bgI
   const p = (v: number) => px(v, compact);
   const pad = s(32, compact);
   return (
-    <Slide bg={`linear-gradient(145deg, ${color}ee 0%, ${color2 ?? color + "99"}cc 100%)`} compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.60 : undefined)} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg={`linear-gradient(145deg, ${color}ee 0%, ${color}66 100%)`} compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.60 : undefined)} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
       {!bgImg && <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.06 }} viewBox="0 0 400 400">{Array.from({ length: 12 }, (_, i) => <line key={i} x1={i * 50 - 100} y1="0" x2={i * 50 + 300} y2="400" stroke="white" strokeWidth="1.5"/>)}</svg>}
       <div style={{ padding: `${pad}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: px(6,compact), marginBottom: px(20,compact) }}>
