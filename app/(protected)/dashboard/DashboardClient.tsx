@@ -134,9 +134,10 @@ export default function DashboardClient({
   const extraMessages = activeExtras.reduce((sum, p) => sum + p.messages_added, 0);
   const extraStories  = activeExtras.reduce((sum, p) => sum + p.stories_added,  0);
 
-  const postsLimit    = basePostsLimit    + extraPosts;
-  const captionsLimit = baseCaptionsLimit + extraCaptions;
-  const messagesLimit = baseMessagesLimit + extraMessages;
+  // Extras só contam para Pro — Essencial não acumula posts de pacotes extras no limite base
+  const postsLimit    = isPro ? basePostsLimit + extraPosts    : basePostsLimit;
+  const captionsLimit = isPro ? baseCaptionsLimit + extraCaptions : baseCaptionsLimit;
+  const messagesLimit = isPro ? baseMessagesLimit + extraMessages : baseMessagesLimit;
 
   const hasInstagramExtra = activeExtras.some((p) => p.package_slug === "instagram-extra");
   const hasStories        = activeExtras.some((p) => p.package_slug === "stories");

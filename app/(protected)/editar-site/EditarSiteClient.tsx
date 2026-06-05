@@ -647,9 +647,9 @@ export default function EditarSiteClient({ business, siteSlug, images, plan = "e
                       <button
                         type="button"
                         onClick={() => setHoursConfig((prev) => ({ ...prev, [day]: { ...cfg, open: !cfg.open } }))}
-                        className={`w-10 h-6 rounded-full flex-shrink-0 transition-colors relative ${cfg.open ? "bg-violet-600" : "bg-gray-300 dark:bg-gray-600"}`}
+                        className={`w-10 h-6 rounded-full flex-shrink-0 transition-colors relative overflow-hidden ${cfg.open ? "bg-violet-600" : "bg-gray-300 dark:bg-gray-600"}`}
                       >
-                        <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${cfg.open ? "translate-x-5" : "translate-x-1"}`} />
+                        <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${cfg.open ? "translate-x-4" : "translate-x-0"}`} />
                       </button>
                       {/* Dia */}
                       <span className={`w-16 text-sm font-semibold flex-shrink-0 ${cfg.open ? "text-gray-800 dark:text-gray-200" : "text-gray-400"}`}>{day}</span>
