@@ -88,34 +88,34 @@ export default function GerarKitPage() {
             <div className="grid md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Nome do negócio *</label>
-                <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder="Ex: Barbearia Elite" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+                <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder="Ex: Barbearia Elite" style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Nicho *</label>
-                <select name="niche" value={form.niche} onChange={handleChange} required className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white transition">
+                <select name="niche" value={form.niche} onChange={handleChange} required style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white transition">
                   <option value="">Selecione...</option>
                   {NICHE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Cidade *</label>
-                <input name="city" value={form.city} onChange={handleChange} required placeholder="São Paulo – SP" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+                <input name="city" value={form.city} onChange={handleChange} required placeholder="São Paulo – SP" style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">WhatsApp *</label>
-                <input name="whatsapp" value={form.whatsapp} onChange={handleChange} required placeholder="(11) 99999-9999" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+                <input name="whatsapp" value={form.whatsapp} onChange={handleChange} required placeholder="(11) 99999-9999" style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Instagram</label>
-                <input name="instagram" value={form.instagram} onChange={handleChange} placeholder="@seunegocio" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+                <input name="instagram" value={form.instagram} onChange={handleChange} placeholder="@seunegocio" style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Endereço</label>
-                <input name="address" value={form.address} onChange={handleChange} placeholder="Rua das Flores, 123 — Bairro" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+                <input name="address" value={form.address} onChange={handleChange} placeholder="Rua das Flores, 123 — Bairro" style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Serviço principal *</label>
-                <input name="main_service" value={form.main_service} onChange={handleChange} required placeholder={selectedNiche?.services[0] ?? "Ex: Corte masculino"} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+                <input name="main_service" value={form.main_service} onChange={handleChange} required placeholder={selectedNiche?.services[0] ?? "Ex: Corte masculino"} style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Cor principal da marca</label>
@@ -129,11 +129,11 @@ export default function GerarKitPage() {
                 {selectedNiche && (
                   <p className="text-xs text-indigo-600 mb-1">Sugestão: {selectedNiche.services.join(", ")}</p>
                 )}
-                <input name="services" value={form.services} onChange={handleChange} placeholder="Corte, Barba, Sobrancelha" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+                <input name="services" value={form.services} onChange={handleChange} placeholder="Corte, Barba, Sobrancelha" style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Frase/chamada do negócio <span className="text-gray-400 font-normal">(opcional)</span></label>
-                <input name="tagline" value={form.tagline} onChange={handleChange} placeholder="Ex: Tradição e qualidade desde 2010" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+                <input name="tagline" value={form.tagline} onChange={handleChange} placeholder="Ex: Tradição e qualidade desde 2010" style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
               </div>
             </div>
 
