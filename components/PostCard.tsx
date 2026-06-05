@@ -3,7 +3,8 @@
 export type TemplateId =
   | "whatsapp_cta" | "main_service" | "promotion" | "authority" | "location"
   | "oferta" | "agenda" | "depoimento" | "comparacao" | "strong_cta"
-  | "foto_fundo" | "foto_lado" | "card_sobre_foto";
+  | "foto_fundo" | "foto_lado" | "card_sobre_foto"
+  | "minimalista" | "bold_split" | "magazine" | "neon_glow" | "retro_border";
 
 interface Props {
   template_type: TemplateId | string;
@@ -550,6 +551,157 @@ function CardSobreFoto({ title, subtitle, cta, business_name, color, c: compact,
   );
 }
 
+// ── 14. MINIMALISTA ──────────────────────────────────────────
+function Minimalista({ title, subtitle, cta, business_name, color, c: compact, font, textColor }: any) {
+  const p = (v: number) => px(v, compact);
+  const pad = s(36, compact);
+  return (
+    <Slide bg="#fafafa" compact={compact} fontFamily={font}>
+      <div style={{ position: "absolute", top: 0, left: `${s(36,compact)}px`, right: `${s(36,compact)}px`, height: px(4, compact), background: color, borderRadius: `0 0 ${px(4,compact)} ${px(4,compact)}` }} />
+      <div style={{ padding: `${pad}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <h2 style={{ fontSize: px(48, compact), fontWeight: 900, color: textColor ?? "#0a0a0a", letterSpacing: "-0.05em", lineHeight: 0.92, marginBottom: px(20, compact) }}>{title}</h2>
+          <p style={{ fontSize: px(14, compact), color: "#666", fontWeight: 400, lineHeight: 1.7, maxWidth: "85%" }}>{subtitle}</p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: px(20, compact), borderTop: "1px solid #e5e5e5" }}>
+          <span style={{ fontSize: px(10, compact), color: "#aaa", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>{business_name}</span>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: px(6, compact), color, fontWeight: 800, fontSize: px(12, compact) }}>
+            {cta} {Icons.arrow(s(12, compact), color)}
+          </div>
+        </div>
+      </div>
+    </Slide>
+  );
+}
+
+// ── 15. BOLD SPLIT ───────────────────────────────────────────
+function BoldSplit({ title, subtitle, cta, business_name, color, c: compact, font, textColor }: any) {
+  const p = (v: number) => px(v, compact);
+  return (
+    <Slide bg="#fff" compact={compact} fontFamily={font}>
+      {/* Metade superior — cor sólida */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "52%", background: color, zIndex: 0 }} />
+      {/* Diagonal de corte */}
+      <svg style={{ position: "absolute", top: "42%", left: 0, width: "100%", zIndex: 1 }} viewBox="0 0 400 80" preserveAspectRatio="none">
+        <polygon points="0,0 400,0 400,80 0,40" fill={color} />
+      </svg>
+      <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", height: "100%", padding: `${s(32, compact)}px` }}>
+        {/* Topo */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", paddingBottom: px(12, compact) }}>
+          <p style={{ fontSize: px(10, compact), fontWeight: 800, color: "rgba(255,255,255,0.65)", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: px(8, compact) }}>{business_name}</p>
+          <h2 style={{ fontSize: px(36, compact), fontWeight: 900, color: "#fff", letterSpacing: "-0.04em", lineHeight: 1.0 }}>{title}</h2>
+        </div>
+        {/* Base */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+          <p style={{ fontSize: px(14, compact), color: "#444", fontWeight: 500, lineHeight: 1.6, marginBottom: px(20, compact) }}>{subtitle}</p>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: px(8, compact), background: color, color: "#fff", padding: `${s(11,compact)}px ${s(18,compact)}px`, borderRadius: px(10, compact), width: "fit-content", boxShadow: `0 4px 20px ${color}40` }}>
+            <span style={{ fontSize: px(12, compact), fontWeight: 800 }}>{cta}</span>
+            {Icons.arrow(s(12, compact), "#fff")}
+          </div>
+        </div>
+      </div>
+    </Slide>
+  );
+}
+
+// ── 16. MAGAZINE ─────────────────────────────────────────────
+function Magazine({ title, subtitle, cta, business_name, color, city, number, c: compact, font, textColor }: any) {
+  const p = (v: number) => px(v, compact);
+  const pad = s(28, compact);
+  return (
+    <Slide bg="#111" compact={compact} fontFamily={font}>
+      {/* Número enorme no fundo */}
+      <div style={{ position: "absolute", right: px(-10, compact), bottom: px(-20, compact), fontSize: px(180, compact), fontWeight: 900, color: "rgba(255,255,255,0.04)", lineHeight: 1, userSelect: "none", pointerEvents: "none", fontFamily: FONT }}>
+        {String(number ?? "1").padStart(2, "0")}
+      </div>
+      {/* Barra lateral colorida */}
+      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: px(5, compact), background: `linear-gradient(180deg, ${color} 0%, ${color}55 100%)` }} />
+      <div style={{ padding: `${pad}px`, paddingLeft: `${s(28, compact) + s(14, compact)}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: px(20, compact) }}>
+          <span style={{ fontSize: px(10, compact), fontWeight: 900, color, letterSpacing: "0.30em", textTransform: "uppercase" }}>Editorial</span>
+          {city && <span style={{ fontSize: px(10, compact), color: "rgba(255,255,255,0.30)", fontWeight: 600 }}>{city}</span>}
+        </div>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <p style={{ fontSize: px(11, compact), fontWeight: 700, color: `${color}cc`, letterSpacing: "0.20em", textTransform: "uppercase", marginBottom: px(12, compact) }}>— {business_name}</p>
+          <h2 style={{ fontSize: px(38, compact), fontWeight: 900, color: textColor ?? "#fff", letterSpacing: "-0.04em", lineHeight: 0.95, marginBottom: px(16, compact) }}>{title}</h2>
+          <p style={{ fontSize: px(13, compact), color: "rgba(255,255,255,0.60)", fontWeight: 400, lineHeight: 1.65, maxWidth: "85%" }}>{subtitle}</p>
+        </div>
+        <div style={{ borderTop: `1px solid rgba(255,255,255,0.08)`, paddingTop: px(14, compact), display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontSize: px(11, compact), color, fontWeight: 800 }}>{cta}</span>
+          {Icons.arrow(s(14, compact), color)}
+        </div>
+      </div>
+    </Slide>
+  );
+}
+
+// ── 17. NEON GLOW ────────────────────────────────────────────
+function NeonGlow({ title, subtitle, cta, business_name, color, c: compact, font, textColor }: any) {
+  const p = (v: number) => px(v, compact);
+  const pad = s(30, compact);
+  return (
+    <Slide bg="#000" compact={compact} fontFamily={font}>
+      {/* Glow de fundo */}
+      <div style={{ position: "absolute", top: "30%", left: "50%", transform: "translate(-50%,-50%)", width: px(300, compact), height: px(300, compact), borderRadius: "50%", background: `radial-gradient(circle, ${color}30 0%, transparent 70%)`, filter: "blur(30px)", pointerEvents: "none" }} />
+      {/* Borda neon */}
+      <div style={{ position: "absolute", inset: px(12, compact), border: `1px solid ${color}50`, borderRadius: px(16, compact), pointerEvents: "none" }} />
+      <div style={{ position: "absolute", inset: px(16, compact), border: `1px solid ${color}20`, borderRadius: px(12, compact), pointerEvents: "none" }} />
+      <div style={{ padding: `${pad + s(8, compact)}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: px(6, compact), background: `${color}20`, border: `1px solid ${color}60`, borderRadius: px(100, compact), padding: `${s(5,compact)}px ${s(12,compact)}px`, width: "fit-content", marginBottom: px(20, compact), boxShadow: `0 0 12px ${color}30` }}>
+          {Icons.zap(s(10, compact), color)}
+          <span style={{ fontSize: px(10, compact), fontWeight: 800, color, letterSpacing: "0.18em", textTransform: "uppercase" }}>{business_name}</span>
+        </div>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <h2 style={{ fontSize: px(34, compact), fontWeight: 900, color: textColor ?? "#fff", letterSpacing: "-0.04em", lineHeight: 1.0, marginBottom: px(12, compact), textShadow: `0 0 30px ${color}60` }}>{title}</h2>
+          <div style={{ width: px(40, compact), height: px(2, compact), background: color, borderRadius: px(2, compact), marginBottom: px(14, compact), boxShadow: `0 0 8px ${color}` }} />
+          <p style={{ fontSize: px(13, compact), color: "rgba(255,255,255,0.65)", fontWeight: 400, lineHeight: 1.6 }}>{subtitle}</p>
+        </div>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: px(8, compact), border: `1px solid ${color}`, color, padding: `${s(11,compact)}px ${s(18,compact)}px`, borderRadius: px(10, compact), width: "fit-content", boxShadow: `0 0 16px ${color}40`, fontWeight: 800, fontSize: px(12, compact) }}>
+          {cta} {Icons.arrow(s(12, compact), color)}
+        </div>
+      </div>
+    </Slide>
+  );
+}
+
+// ── 18. RETRO BORDER ─────────────────────────────────────────
+function RetroBorder({ title, subtitle, cta, business_name, color, c: compact, font, textColor }: any) {
+  const p = (v: number) => px(v, compact);
+  const pad = s(28, compact);
+  return (
+    <Slide bg="#fdf6e3" compact={compact} fontFamily={font}>
+      {/* Borda externa decorativa */}
+      <div style={{ position: "absolute", inset: px(10, compact), border: `2px solid ${color}`, borderRadius: px(4, compact), pointerEvents: "none" }} />
+      <div style={{ position: "absolute", inset: px(16, compact), border: `1px solid ${color}60`, borderRadius: px(2, compact), pointerEvents: "none" }} />
+      {/* Ornamentos nos cantos */}
+      {[
+        { top: px(6,compact), left: px(6,compact) },
+        { top: px(6,compact), right: px(6,compact) },
+        { bottom: px(6,compact), left: px(6,compact) },
+        { bottom: px(6,compact), right: px(6,compact) },
+      ].map((pos, i) => (
+        <div key={i} style={{ position: "absolute", ...pos, width: px(12,compact), height: px(12,compact), border: `2px solid ${color}`, pointerEvents: "none" }} />
+      ))}
+      <div style={{ padding: `${s(36, compact)}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
+        <div style={{ textAlign: "center", marginBottom: px(16, compact) }}>
+          <p style={{ fontSize: px(9, compact), fontWeight: 900, color, letterSpacing: "0.35em", textTransform: "uppercase" }}>— {business_name} —</p>
+        </div>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+          <h2 style={{ fontSize: px(32, compact), fontWeight: 900, color: textColor ?? "#1a1a1a", letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: px(14, compact) }}>{title}</h2>
+          <div style={{ width: px(48, compact), height: px(2, compact), background: color, borderRadius: px(2, compact), margin: `0 auto ${px(14, compact)}` }} />
+          <p style={{ fontSize: px(13, compact), color: "#555", fontWeight: 500, lineHeight: 1.65, maxWidth: "85%" }}>{subtitle}</p>
+        </div>
+        <div style={{ textAlign: "center", paddingTop: px(16, compact), borderTop: `1px solid ${color}30` }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: px(8, compact), background: color, color: "#fff", padding: `${s(10,compact)}px ${s(20,compact)}px`, borderRadius: px(4, compact) }}>
+            <span style={{ fontSize: px(11, compact), fontWeight: 800, letterSpacing: "0.10em", textTransform: "uppercase" }}>{cta}</span>
+          </div>
+        </div>
+      </div>
+    </Slide>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════
 // EXPORT
 // ══════════════════════════════════════════════════════════════
@@ -565,7 +717,7 @@ export default function PostCard({
   const color2 = secondaryColor || color + "99";
   const props = {
     title, subtitle, cta, business_name,
-    color, color2, niche, city,
+    color, color2, niche, city, number,
     c: compact,
     bgImg: backgroundImageUrl,
     ov: overlayOpacity,
@@ -588,6 +740,11 @@ export default function PostCard({
     case "foto_fundo":    return <FotoFundo    {...props} />;
     case "foto_lado":     return <FotoLado     {...props} />;
     case "card_sobre_foto": return <CardSobreFoto {...props} />;
+    case "minimalista":   return <Minimalista  {...props} />;
+    case "bold_split":    return <BoldSplit    {...props} />;
+    case "magazine":      return <Magazine     {...props} />;
+    case "neon_glow":     return <NeonGlow     {...props} />;
+    case "retro_border":  return <RetroBorder  {...props} />;
     case "main_service":
     default:              return <MainService  {...props} />;
   }

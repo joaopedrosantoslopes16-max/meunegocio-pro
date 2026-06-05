@@ -25,11 +25,10 @@ export type ReleaseStage = 0 | 1 | 2 | 3;
 export type PostCategory = "venda" | "autoridade" | "relacionamento";
 
 export type TemplateType =
-  | "whatsapp_cta"
-  | "main_service"
-  | "promotion"
-  | "authority"
-  | "location";
+  | "whatsapp_cta" | "main_service" | "promotion" | "authority" | "location"
+  | "oferta" | "agenda" | "depoimento" | "comparacao" | "strong_cta"
+  | "foto_fundo" | "foto_lado" | "card_sobre_foto"
+  | "minimalista" | "bold_split" | "magazine" | "neon_glow" | "retro_border";
 
 export type AccessAction =
   | "view_kit"

@@ -55,41 +55,41 @@ const POST_TEMPLATES: {
   subtitle: string;
   cta: string;
 }[] = [
-  // VENDA (10)
-  { category: "venda", template_type: "whatsapp_cta", title: "Chame no WhatsApp!", subtitle: "[NOME] em [CIDADE] — [SERVICO]", cta: "[CTA]" },
-  { category: "venda", template_type: "promotion", title: "Promoção da semana", subtitle: "[SERVICO] com condições especiais em [CIDADE]", cta: "Aproveite agora!" },
-  { category: "venda", template_type: "main_service", title: "[SERVICO]", subtitle: "Feito com qualidade e dedicação em [CIDADE]", cta: "[CTA]" },
-  { category: "venda", template_type: "whatsapp_cta", title: "Agenda aberta!", subtitle: "Reserve seu horário na [NOME]", cta: "Agende agora" },
-  { category: "venda", template_type: "location", title: "Estamos em [CIDADE]!", subtitle: "Atendendo com qualidade e atenção", cta: "[CTA]" },
-  { category: "venda", template_type: "main_service", title: "Conheça nosso diferencial", subtitle: "[SERVICO] com atendimento personalizado", cta: "[CTA]" },
-  { category: "venda", template_type: "whatsapp_cta", title: "Orçamento grátis!", subtitle: "Sem compromisso. Fale com a [NOME].", cta: "Solicite agora" },
-  { category: "venda", template_type: "promotion", title: "Peça sua avaliação", subtitle: "Venha conhecer o trabalho da [NOME] em [CIDADE]", cta: "Agende sua visita" },
-  { category: "venda", template_type: "main_service", title: "Destaque do mês", subtitle: "[SERVICO] — o que há de melhor em [CIDADE]", cta: "[CTA]" },
-  { category: "venda", template_type: "whatsapp_cta", title: "Não perca mais tempo!", subtitle: "A [NOME] tem o que você precisa em [CIDADE]", cta: "Fale agora" },
+  // VENDA (10) — templates variados: dark, split, neon, retro, minimalista
+  { category: "venda", template_type: "whatsapp_cta",  title: "Chame no WhatsApp!",     subtitle: "[NOME] em [CIDADE] — [SERVICO]",                         cta: "[CTA]" },
+  { category: "venda", template_type: "bold_split",    title: "Promoção da semana",      subtitle: "[SERVICO] com condições especiais em [CIDADE]",           cta: "Aproveite agora!" },
+  { category: "venda", template_type: "minimalista",   title: "[SERVICO]",               subtitle: "Feito com qualidade e dedicação em [CIDADE]",             cta: "[CTA]" },
+  { category: "venda", template_type: "neon_glow",     title: "Agenda aberta!",          subtitle: "Reserve seu horário na [NOME]",                          cta: "Agende agora" },
+  { category: "venda", template_type: "location",      title: "Estamos em [CIDADE]!",    subtitle: "Atendendo com qualidade e atenção",                       cta: "[CTA]" },
+  { category: "venda", template_type: "magazine",      title: "Conheça nosso diferencial", subtitle: "[SERVICO] com atendimento personalizado",               cta: "[CTA]" },
+  { category: "venda", template_type: "retro_border",  title: "Orçamento grátis!",       subtitle: "Sem compromisso. Fale com a [NOME].",                     cta: "Solicite agora" },
+  { category: "venda", template_type: "promotion",     title: "Avaliação especial",      subtitle: "Venha conhecer o trabalho da [NOME] em [CIDADE]",         cta: "Agende sua visita" },
+  { category: "venda", template_type: "strong_cta",    title: "Destaque do mês",         subtitle: "[SERVICO] — o que há de melhor em [CIDADE]",              cta: "[CTA]" },
+  { category: "venda", template_type: "whatsapp_cta",  title: "Não perca mais tempo!",   subtitle: "A [NOME] tem o que você precisa em [CIDADE]",             cta: "Fale agora" },
 
-  // AUTORIDADE (10)
-  { category: "autoridade", template_type: "authority", title: "Dica importante", subtitle: "Sabia que [SERVICO] faz toda a diferença no seu dia a dia?", cta: "Saiba mais" },
-  { category: "autoridade", template_type: "authority", title: "Erro comum", subtitle: "Deixar [SERVICO] para depois pode sair mais caro. Cuide logo!", cta: "Fale com a gente" },
-  { category: "autoridade", template_type: "authority", title: "Benefício real", subtitle: "[SERVICO] traz qualidade de vida e bem-estar. Descubra como.", cta: "[CTA]" },
-  { category: "autoridade", template_type: "main_service", title: "Por que nos escolher?", subtitle: "A [NOME] oferece experiência, cuidado e resultados em [CIDADE]", cta: "Conheça nosso trabalho" },
-  { category: "autoridade", template_type: "authority", title: "Atenção especial", subtitle: "Com [SERVICO], cada detalhe importa. A [NOME] cuida de tudo.", cta: "[CTA]" },
-  { category: "autoridade", template_type: "authority", title: "Mito ou verdade?", subtitle: "Sobre [SERVICO]: descubra o que realmente funciona.", cta: "Pergunte para a gente" },
-  { category: "autoridade", template_type: "authority", title: "Como funciona?", subtitle: "Veja o passo a passo do nosso processo de [SERVICO]", cta: "Saiba mais" },
-  { category: "autoridade", template_type: "authority", title: "Informação vale ouro", subtitle: "Tudo que você precisa saber sobre [SERVICO] está aqui.", cta: "Tire suas dúvidas" },
-  { category: "autoridade", template_type: "authority", title: "Nossa recomendação", subtitle: "Para melhores resultados com [SERVICO], conte com quem sabe.", cta: "[CTA]" },
-  { category: "autoridade", template_type: "main_service", title: "Confiança comprovada", subtitle: "A [NOME] atende em [CIDADE] com excelência e responsabilidade", cta: "Conheça mais" },
+  // AUTORIDADE (10) — minimalista, magazine, retro, bold_split, authority
+  { category: "autoridade", template_type: "authority",     title: "Dica importante",       subtitle: "Sabia que [SERVICO] faz toda a diferença no seu dia a dia?", cta: "Saiba mais" },
+  { category: "autoridade", template_type: "minimalista",   title: "Erro comum",            subtitle: "Deixar [SERVICO] para depois pode sair mais caro. Cuide logo!", cta: "Fale com a gente" },
+  { category: "autoridade", template_type: "bold_split",    title: "Benefício real",        subtitle: "[SERVICO] traz qualidade de vida e bem-estar. Descubra como.", cta: "[CTA]" },
+  { category: "autoridade", template_type: "magazine",      title: "Por que nos escolher?", subtitle: "A [NOME] oferece experiência, cuidado e resultados em [CIDADE]", cta: "Conheça nosso trabalho" },
+  { category: "autoridade", template_type: "neon_glow",     title: "Atenção especial",      subtitle: "Com [SERVICO], cada detalhe importa. A [NOME] cuida de tudo.", cta: "[CTA]" },
+  { category: "autoridade", template_type: "retro_border",  title: "Mito ou verdade?",      subtitle: "Sobre [SERVICO]: descubra o que realmente funciona.",           cta: "Pergunte para a gente" },
+  { category: "autoridade", template_type: "authority",     title: "Como funciona?",        subtitle: "Veja o passo a passo do nosso processo de [SERVICO]",           cta: "Saiba mais" },
+  { category: "autoridade", template_type: "comparacao",    title: "Informação vale ouro",  subtitle: "Tudo que você precisa saber sobre [SERVICO] está aqui.",        cta: "Tire suas dúvidas" },
+  { category: "autoridade", template_type: "oferta",        title: "Nossa recomendação",    subtitle: "Para melhores resultados com [SERVICO], conte com quem sabe.",  cta: "[CTA]" },
+  { category: "autoridade", template_type: "main_service",  title: "Confiança comprovada",  subtitle: "A [NOME] atende em [CIDADE] com excelência e responsabilidade", cta: "Conheça mais" },
 
-  // RELACIONAMENTO (10)
-  { category: "relacionamento", template_type: "location", title: "Bom dia! ☀️", subtitle: "Que essa semana seja cheia de conquistas. A [NOME] está aqui para você!", cta: "Bom dia, [CIDADE]!" },
-  { category: "relacionamento", template_type: "whatsapp_cta", title: "Não esqueça!", subtitle: "Você ainda não agendou seu [SERVICO]. A [NOME] está esperando.", cta: "Agende agora" },
-  { category: "relacionamento", template_type: "authority", title: "Por trás dos bastidores", subtitle: "Preparação e cuidado em cada detalhe do nosso trabalho na [NOME]", cta: "Veja mais" },
-  { category: "relacionamento", template_type: "authority", title: "Clientes satisfeitos", subtitle: "\"Clientes satisfeitos começam com um atendimento bem feito.\" — [NOME]", cta: "Seja o próximo!" },
-  { category: "relacionamento", template_type: "whatsapp_cta", title: "Siga nossas redes!", subtitle: "Acompanhe a [NOME] no Instagram para novidades e dicas", cta: "Seguir @" },
-  { category: "relacionamento", template_type: "whatsapp_cta", title: "Assista nossos stories!", subtitle: "Compartilhamos dicas e bastidores todos os dias!", cta: "Ver stories" },
-  { category: "relacionamento", template_type: "authority", title: "Você sabia?", subtitle: "Conta pra gente nos comentários o que você mais gosta em [SERVICO]!", cta: "Comente aqui 👇" },
-  { category: "relacionamento", template_type: "location", title: "Obrigado! 🙏", subtitle: "A cada cliente atendido, nossa missão cresce. Obrigado pela confiança!", cta: "Até a próxima!" },
-  { category: "relacionamento", template_type: "whatsapp_cta", title: "Horário de atendimento", subtitle: "A [NOME] atende em [CIDADE]. Venha nos visitar!", cta: "[CTA]" },
-  { category: "relacionamento", template_type: "main_service", title: "[NOME]", subtitle: "[SERVICO] em [CIDADE] com qualidade e respeito", cta: "Somos nós! 💙" },
+  // RELACIONAMENTO (10) — depoimento, agenda, bold_split, neon, retro, magazine
+  { category: "relacionamento", template_type: "location",     title: "Bom dia!",               subtitle: "Que essa semana seja cheia de conquistas. A [NOME] está aqui para você!", cta: "Bom dia, [CIDADE]!" },
+  { category: "relacionamento", template_type: "agenda",       title: "Não esqueça!",           subtitle: "Você ainda não agendou seu [SERVICO]. A [NOME] está esperando.", cta: "Agende agora" },
+  { category: "relacionamento", template_type: "bold_split",   title: "Por trás dos bastidores",subtitle: "Preparação e cuidado em cada detalhe do nosso trabalho na [NOME]", cta: "Veja mais" },
+  { category: "relacionamento", template_type: "depoimento",   title: "Clientes satisfeitos", subtitle: "Clientes satisfeitos começam com um atendimento bem feito.", cta: "Seja o próximo!" },
+  { category: "relacionamento", template_type: "neon_glow",    title: "Siga nossas redes!",     subtitle: "Acompanhe a [NOME] no Instagram para novidades e dicas",     cta: "Seguir @" },
+  { category: "relacionamento", template_type: "magazine",     title: "Nos bastidores",         subtitle: "Compartilhamos dicas e bastidores todos os dias na [NOME]!",  cta: "Ver mais" },
+  { category: "relacionamento", template_type: "minimalista",  title: "Você sabia?",            subtitle: "Conta pra gente nos comentários o que você mais gosta em [SERVICO]!", cta: "Comente aqui" },
+  { category: "relacionamento", template_type: "retro_border", title: "Obrigado!",              subtitle: "A cada cliente atendido, nossa missão cresce. Obrigado pela confiança!", cta: "Até a próxima!" },
+  { category: "relacionamento", template_type: "whatsapp_cta", title: "Horário de atendimento", subtitle: "A [NOME] atende em [CIDADE]. Venha nos visitar!",              cta: "[CTA]" },
+  { category: "relacionamento", template_type: "strong_cta",   title: "[NOME]",                 subtitle: "[SERVICO] em [CIDADE] com qualidade e respeito",              cta: "Somos nós!" },
 ];
 
 // Embaralha deterministicamente com base em uma semente (mês+ano+negócio)
