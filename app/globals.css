@@ -9,6 +9,26 @@
   html { scroll-behavior: smooth; }
   body { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 
+  /* Garante texto visível em todos os campos, independente do tema do sistema */
+  input:not([type="color"]):not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    color: #111827 !important;
+    background-color: #ffffff !important;
+    -webkit-text-fill-color: #111827 !important;
+  }
+
+  /* Autofill do navegador (Chrome/Safari mudam a cor de fundo) */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  textarea:-webkit-autofill {
+    -webkit-text-fill-color: #111827 !important;
+    -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+    box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  }
+
   /* Dark mode via class strategy (ThemeProvider adiciona .dark na raiz) */
   .dark body {
     background-color: #0a0a0a;
