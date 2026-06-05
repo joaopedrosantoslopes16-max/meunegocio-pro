@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     .eq("email", user.email!)
     .order("purchased_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   let purchaseId: string | null = null;
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       .eq("email", user.email!)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (!subscription || (subscription.status !== "active" && subscription.status !== "approved")) {
       return NextResponse.json({ error: "Nenhuma compra aprovada encontrada." }, { status: 403 });
@@ -56,7 +56,12 @@ export async function POST(request: NextRequest) {
   const captions = generateCaptions(input);
   const messages = generateWhatsAppMessages(input);
   const bio      = generateInstagramBio(input);
-  const appUrl   = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  // Usa o domínio real em produção (VERCEL_URL é setado automaticamente pelo Vercel)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.startsWith("http")
+    ? process.env.NEXT_PUBLIC_APP_URL
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "";
 
   // Insere negócio (admin bypassa RLS)
   const { data: business, error: bizError } = await admin
@@ -75,7 +80,7 @@ export async function POST(request: NextRequest) {
       slug,
     })
     .select()
-    .single();
+    .maybeSingle();
 
   if (bizError) return NextResponse.json({ error: bizError.message }, { status: 400 });
 
@@ -101,7 +106,7 @@ export async function POST(request: NextRequest) {
       kit_month: new Date().toISOString().slice(0, 7),
     })
     .select()
-    .single();
+    .maybeSingle();
 
   if (kitError) return NextResponse.json({ error: kitError.message }, { status: 400 });
 

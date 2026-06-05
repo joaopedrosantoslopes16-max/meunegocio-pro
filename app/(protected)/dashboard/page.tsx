@@ -22,7 +22,7 @@ export default async function DashboardPage() {
     .from("profiles")
     .select("*")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   // Assinatura ativa (fonte de verdade para acesso e plano)
   const { data: subscription } = await supabaseAdmin
@@ -31,7 +31,7 @@ export default async function DashboardPage() {
     .eq("email", user.email)
     .order("created_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   const subStatus = subscription?.status ?? null;
 
@@ -47,7 +47,7 @@ export default async function DashboardPage() {
     .eq("email", user.email)
     .order("purchased_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (!subscription && purchase) {
     const ps = purchase.status;
@@ -63,7 +63,7 @@ export default async function DashboardPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (!kitRaw) {
     return (
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
     .eq("business_id", kit.businesses.id)
     .eq("month", currentMonth)
     .eq("year", currentYear)
-    .single();
+    .maybeSingle();
 
   // Todos os meses gerados — para acumular posts
   const { data: allMonthlyContent } = await supabaseAdmin

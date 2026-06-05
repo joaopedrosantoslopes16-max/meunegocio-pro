@@ -13,7 +13,7 @@ interface Props { params: Promise<{ slug: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const { data } = await supabase.from("businesses").select("business_name,city,niche,main_service").eq("slug", slug).single();
+  const { data } = await supabase.from("businesses").select("business_name,city,niche,main_service").eq("slug", slug).maybeSingle();
   if (!data) return { title: "Negócio não encontrado" };
   return {
     title: `${data.business_name} — ${data.city}`,
@@ -25,10 +25,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function MiniSitePage({ params }: Props) {
   const { slug } = await params;
 
-  const { data: business } = await supabase.from("businesses").select("*").eq("slug", slug).single();
+  const { data: business } = await supabase.from("businesses").select("*").eq("slug", slug).maybeSingle();
   if (!business) notFound();
 
-  const { data: kit } = await supabase.from("kits").select("id").eq("site_slug", slug).single();
+  const { data: kit } = await supabase.from("kits").select("id").eq("site_slug", slug).maybeSingle();
 
   return <SiteBody business={business} kitId={kit?.id} />;
 }

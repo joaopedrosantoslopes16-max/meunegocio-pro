@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       .eq("email", normalizedEmail)
       .order("purchased_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (purchase) {
       const approved = purchase.status === "approved" || purchase.status === "active";
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       .eq("email", normalizedEmail)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (subscription) {
       const approved = subscription.status === "active" || subscription.status === "approved";
