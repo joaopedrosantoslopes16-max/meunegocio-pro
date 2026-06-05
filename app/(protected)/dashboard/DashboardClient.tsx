@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { generateCalendar } from "@/lib/calendar-generator";
 import { generateCampaigns } from "@/lib/campaign-generator";
 import { generateRecoveryMessages } from "@/lib/recovery-messages";
+import { generateExtraPosts, generateExtraMessages } from "@/lib/kit-generator";
 import { buildWhatsAppLink } from "@/lib/whatsapp-utils";
 import PostCard, { type TemplateId } from "@/components/PostCard";
 import PostEditor, { type EditedPost } from "@/components/PostEditor";
@@ -459,7 +460,7 @@ export default function DashboardClient({
                       subtitle={post.subtitle}
                       cta={post.cta}
                       business_name={business.business_name}
-                      primary_color={primaryColor}
+                      primary_color={(post as any).batch_color ?? primaryColor}
                       niche={business.niche}
                       city={business.city}
                       number={post.number}
@@ -654,10 +655,86 @@ export default function DashboardClient({
                   <ul className="space-y-1.5 text-xs text-gray-600 dark:text-gray-400 flex-1 mb-4">
                     {pkg.benefits.map((b) => <li key={b} className="flex items-center gap-1.5"><span className="text-violet-400">✓</span> {b}</li>)}
                   </ul>
-                  {pkg.active ? <div className="text-center py-2 text-sm text-green-600 font-bold">Já adicionado</div> : <a href={pkg.checkoutUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 gradient-brand text-white font-bold py-2.5 rounded-xl hover:opacity-90 transition text-xs">{pkg.cta} →</a>}
+                  {pkg.active ? <div className="text-center py-2 text-sm text-green-600 font-bold">Já adicionado ✓</div> : <a href={pkg.checkoutUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 gradient-brand text-white font-bold py-2.5 rounded-xl hover:opacity-90 transition text-xs">{pkg.cta} →</a>}
                 </div>
               ))}
             </div>
+
+            {/* ── Conteúdo dos extras adquiridos ── */}
+            {activeExtras.length > 0 && (
+              <div className="mt-8 space-y-8">
+                <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Meu conteúdo extra</h3>
+
+                {/* Posts extras (instagram-extra) */}
+                {hasInstagramExtra && (() => {
+                  const pkg = activeExtras.find(p => p.package_slug === "instagram-extra");
+                  if (!pkg) return null;
+                  const extraPosts = generateExtraPosts({ business_name: business.business_name, niche: business.niche, city: business.city, whatsapp: business.whatsapp, main_service: business.main_service }, pkg.id, pkg.posts_added || 20);
+                  return (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 rounded-full bg-amber-400" />
+                        <p className="font-bold text-gray-900 dark:text-white text-sm">Pacote Instagram Extra — {extraPosts.length} posts únicos</p>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {extraPosts.map((post, i) => (
+                          <div key={i} className="rounded-2xl overflow-hidden border border-amber-100 dark:border-amber-900">
+                            <PostCard template_type={post.template_type as TemplateId} title={post.title} subtitle={post.subtitle} cta={post.cta} business_name={business.business_name} primary_color={(post as any).batch_color ?? primaryColor} niche={business.niche} city={business.city} number={post.number} unlocked={true} />
+                            <div className="bg-white dark:bg-gray-900 px-3 py-2 text-xs text-gray-400">Post extra #{i + 1}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Mensagens extras (reativacao) */}
+                {hasReativacao && (() => {
+                  const pkg = activeExtras.find(p => p.package_slug === "reativacao");
+                  if (!pkg) return null;
+                  const extraMsgs = generateExtraMessages({ business_name: business.business_name, niche: business.niche, city: business.city, whatsapp: business.whatsapp, main_service: business.main_service }, pkg.id, pkg.messages_added || 50);
+                  return (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 rounded-full bg-green-500" />
+                        <p className="font-bold text-gray-900 dark:text-white text-sm">Reativação de Clientes — {extraMsgs.length} mensagens únicas</p>
+                      </div>
+                      <div className="space-y-2">
+                        {extraMsgs.map((msg, i) => (
+                          <div key={i} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-3 flex items-start justify-between gap-3">
+                            <p className="text-sm text-gray-700 dark:text-gray-300 flex-1">{msg}</p>
+                            <button onClick={() => { navigator.clipboard.writeText(msg); }} className="text-xs text-violet-600 font-semibold hover:underline flex-shrink-0">Copiar</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Stories (package-stories) */}
+                {hasStories && (() => {
+                  const pkg = activeExtras.find(p => p.package_slug === "stories");
+                  if (!pkg) return null;
+                  const storyIdeas = generateExtraMessages({ business_name: business.business_name, niche: business.niche, city: business.city, whatsapp: business.whatsapp, main_service: business.main_service }, pkg.id + "-stories", pkg.stories_added || 20);
+                  return (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 rounded-full bg-pink-500" />
+                        <p className="font-bold text-gray-900 dark:text-white text-sm">Pacote Stories — {storyIdeas.length} roteiros prontos</p>
+                      </div>
+                      <div className="space-y-2">
+                        {storyIdeas.map((s, i) => (
+                          <div key={i} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-3 flex items-start justify-between gap-3">
+                            <p className="text-sm text-gray-700 dark:text-gray-300 flex-1">{s}</p>
+                            <button onClick={() => navigator.clipboard.writeText(s)} className="text-xs text-violet-600 font-semibold hover:underline flex-shrink-0">Copiar</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         )}
 

@@ -104,7 +104,23 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
   return a;
 }
 
-export function generatePosts(input: GenerateKitInput & { month?: number; year?: number }): Post[] {
+// Paleta de variações de cor por lote (cada mês tem um tom diferente)
+const BATCH_COLORS = [
+  null,        // mês 1: usa cor principal do negócio
+  "#2563eb",   // mês 2: azul
+  "#059669",   // mês 3: verde esmeralda
+  "#dc2626",   // mês 4: vermelho
+  "#d97706",   // mês 5: âmbar
+  "#7c3aed",   // mês 6: violeta
+  "#0891b2",   // mês 7: ciano
+  "#db2777",   // mês 8: rosa
+  "#65a30d",   // mês 9: lima
+  "#9333ea",   // mês 10: roxo
+  "#0284c7",   // mês 11: azul claro
+  "#b45309",   // mês 12: marrom dourado
+];
+
+export function generatePosts(input: GenerateKitInput & { month?: number; year?: number; batchIndex?: number }): Post[] {
   const cfg = NICHE_CONFIG[input.niche] ?? NICHE_CONFIG.outro;
   const v = {
     NOME: input.business_name,
@@ -117,6 +133,10 @@ export function generatePosts(input: GenerateKitInput & { month?: number; year?:
   const seed = ((input.month ?? 1) * 31 + (input.year ?? 2025) * 12) ^ input.business_name.length;
   const shuffled = seededShuffle(POST_TEMPLATES, seed);
 
+  // Cor do lote: cada mês tem um accent diferente
+  const batchIdx = input.batchIndex ?? ((input.month ?? 1) - 1);
+  const batchColor = BATCH_COLORS[batchIdx % BATCH_COLORS.length] ?? null;
+
   return shuffled.map((tpl, i) => ({
     number: i + 1,
     template_type: tpl.template_type,
@@ -126,7 +146,51 @@ export function generatePosts(input: GenerateKitInput & { month?: number; year?:
     cta: t(tpl.cta, v),
     caption: "",
     is_unlocked: false,
+    batch_color: batchColor, // cor do lote — null = usa cor do negócio
   }));
+}
+
+// Gera posts extras (diferentes dos mensais — semente baseada no packageId)
+export function generateExtraPosts(input: GenerateKitInput, packageId: string, count: number): Post[] {
+  const cfg = NICHE_CONFIG[input.niche] ?? NICHE_CONFIG.outro;
+  const v = { NOME: input.business_name, CIDADE: input.city, SERVICO: input.main_service, CTA: cfg.cta };
+  const seed = packageId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) * 7919;
+  const shuffled = seededShuffle(POST_TEMPLATES, seed);
+  return shuffled.slice(0, count).map((tpl, i) => ({
+    number: i + 1,
+    template_type: tpl.template_type,
+    category: tpl.category,
+    title: t(tpl.title, v),
+    subtitle: t(tpl.subtitle, v),
+    cta: t(tpl.cta, v),
+    caption: "",
+    is_unlocked: true,
+    batch_color: "#f59e0b", // âmbar — identifica como "extra"
+  }));
+}
+
+// Gera mensagens extras (diferentes das mensais)
+export function generateExtraMessages(input: GenerateKitInput, packageId: string, count: number): string[] {
+  const cfg = NICHE_CONFIG[input.niche] ?? NICHE_CONFIG.outro;
+  const v = { NOME: input.business_name, CIDADE: input.city, SERVICO: input.main_service, CTA: cfg.cta };
+  const allMessages = [
+    t("Oi, [NOME] aqui! Você sabia que temos [SERVICO] disponível em [CIDADE]? Chama a gente!", v),
+    t("Olá! A [NOME] está com agenda aberta para [SERVICO]. Quer garantir seu horário?", v),
+    t("Oi! Faz tempo que não aparece por aqui. Que tal agendar um [SERVICO] essa semana?", v),
+    t("Olá! Trouxemos novidades para você em [SERVICO]. A [NOME] te aguarda em [CIDADE]!", v),
+    t("Oi! Você já conhece nosso [SERVICO]? A [NOME] é referência em [CIDADE]. Chama aqui!", v),
+    t("Olá! Sua última visita foi há um tempo. Podemos te atender essa semana em [SERVICO]?", v),
+    t("Oi! A [NOME] tem condição especial para clientes antigos em [SERVICO]. Interesse?", v),
+    t("Olá! Recomenda a [NOME] para alguém? Temos [SERVICO] de qualidade em [CIDADE]!", v),
+    t("Oi! Você merece um cuidado especial. A [NOME] reservou horário para [SERVICO]. Confirma?", v),
+    t("Olá! Sua satisfação é prioridade na [NOME]. Como foi seu último [SERVICO]? Nos conta!", v),
+  ];
+  const seed = packageId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) * 3571;
+  const shuffled = seededShuffle(allMessages, seed);
+  // Multiplica até atingir o count pedido
+  const result: string[] = [];
+  while (result.length < count) result.push(...shuffled);
+  return result.slice(0, count);
 }
 
 export function generateCaptions(input: GenerateKitInput): string[] {
