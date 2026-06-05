@@ -90,12 +90,13 @@ export default async function DashboardPage() {
 
   const kit = kitRaw as Kit & { businesses: Business };
 
-  // Conteúdo do mês atual
+  // Todo o conteúdo gerado (todos os meses, acumulado)
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
-  const { data: monthlyContent } = await supabaseAdmin
+  // Mês atual — para saber se ainda não gerou esse mês
+  const { data: currentMonthContent } = await supabaseAdmin
     .from("monthly_content")
     .select("*")
     .eq("user_id", user.id)
@@ -103,6 +104,40 @@ export default async function DashboardPage() {
     .eq("month", currentMonth)
     .eq("year", currentYear)
     .single();
+
+  // Todos os meses gerados — para acumular posts
+  const { data: allMonthlyContent } = await supabaseAdmin
+    .from("monthly_content")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("business_id", kit.businesses.id)
+    .order("year", { ascending: true })
+    .order("month", { ascending: true });
+
+  // Combina todos os posts de todos os meses (renumerando)
+  type AnyPost = Record<string, unknown>;
+  const allPosts: AnyPost[] = [];
+  const allCaptions: string[] = [];
+  const allMessages: string[] = [];
+  (allMonthlyContent ?? []).forEach((mc) => {
+    const posts = (mc.posts_json as AnyPost[]) ?? [];
+    const captions = (mc.captions_json as string[]) ?? [];
+    const messages = (mc.messages_json as string[]) ?? [];
+    posts.forEach((p) => allPosts.push({ ...p, number: allPosts.length + 1, is_unlocked: true }));
+    captions.forEach((c) => allCaptions.push(c));
+    messages.forEach((m) => allMessages.push(m));
+  });
+
+  // monthlyContent agora representa o acumulado total
+  const monthlyContent = currentMonthContent ? {
+    ...currentMonthContent,
+    posts_json: allPosts,
+    captions_json: allCaptions,
+    messages_json: allMessages,
+    posts_limit: allPosts.length,
+    captions_limit: allCaptions.length,
+    messages_limit: allMessages.length,
+  } : null;
 
   // Pacotes extras ativos do usuário
   const { data: extraPackages } = await supabaseAdmin

@@ -287,6 +287,7 @@ export interface UserExtraPackage {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
+  content_json?: Record<string, unknown>; // conteúdo gerado do pacote
 }
 
 export interface NicheConfig {
