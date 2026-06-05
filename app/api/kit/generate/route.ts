@@ -28,9 +28,11 @@ export async function POST(request: NextRequest) {
     .limit(1)
     .single();
 
-  let purchaseId: string | null = purchase?.id ?? null;
+  let purchaseId: string | null = null;
 
-  if (!purchase || (purchase.status !== "approved" && purchase.status !== "active")) {
+  if (purchase && (purchase.status === "approved" || purchase.status === "active")) {
+    purchaseId = purchase.id;
+  } else {
     const { data: subscription } = await admin
       .from("subscriptions")
       .select("id, status")
@@ -42,7 +44,8 @@ export async function POST(request: NextRequest) {
     if (!subscription || (subscription.status !== "active" && subscription.status !== "approved")) {
       return NextResponse.json({ error: "Nenhuma compra aprovada encontrada." }, { status: 403 });
     }
-    purchaseId = subscription.id;
+    // subscription.id não pode ir como purchase_id (foreign key aponta para purchases)
+    purchaseId = null;
   }
 
   const services = (form.services as string).split(",").map((s: string) => s.trim()).filter(Boolean);
