@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
   const form = await request.json();
 
-  // Verifica compra
+  // Verifica compra (purchases ou subscriptions)
   const { data: purchase } = await admin
     .from("purchases")
     .select("id, status")
@@ -28,8 +28,21 @@ export async function POST(request: NextRequest) {
     .limit(1)
     .single();
 
+  let purchaseId: string | null = purchase?.id ?? null;
+
   if (!purchase || (purchase.status !== "approved" && purchase.status !== "active")) {
-    return NextResponse.json({ error: "Nenhuma compra aprovada encontrada." }, { status: 403 });
+    const { data: subscription } = await admin
+      .from("subscriptions")
+      .select("id, status")
+      .eq("email", user.email!)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (!subscription || (subscription.status !== "active" && subscription.status !== "approved")) {
+      return NextResponse.json({ error: "Nenhuma compra aprovada encontrada." }, { status: 403 });
+    }
+    purchaseId = subscription.id;
   }
 
   const services = (form.services as string).split(",").map((s: string) => s.trim()).filter(Boolean);
@@ -69,7 +82,7 @@ export async function POST(request: NextRequest) {
     .insert({
       user_id: user.id,
       business_id: business.id,
-      purchase_id: purchase.id,
+      purchase_id: purchaseId,
       status: "ready",
       release_stage: 1,
       purchase_approved_at: new Date().toISOString(),
