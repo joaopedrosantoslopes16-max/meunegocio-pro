@@ -100,15 +100,15 @@ export default function CadastroPosCompraPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Seu nome</label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} required placeholder="João Silva" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} required placeholder="João Silva" style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">E-mail usado na compra</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="seuemail@gmail.com" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="seuemail@gmail.com" style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Criar senha de acesso</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Mínimo 6 caracteres" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Mínimo 6 caracteres" style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
             </div>
 
             {error && (
