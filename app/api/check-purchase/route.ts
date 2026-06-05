@@ -14,25 +14,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ approved: false, status: null, purchase_id: null });
     }
 
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Verifica na tabela purchases
     const { data: purchase } = await supabase
       .from("purchases")
       .select("id, status, email")
-      .eq("email", email.toLowerCase().trim())
+      .eq("email", normalizedEmail)
       .order("purchased_at", { ascending: false })
       .limit(1)
       .single();
 
-    if (!purchase) {
-      return NextResponse.json({ approved: false, status: null, purchase_id: null });
+    if (purchase) {
+      const approved = purchase.status === "approved" || purchase.status === "active";
+      return NextResponse.json({ approved, status: purchase.status, purchase_id: purchase.id });
     }
 
-    const approved = purchase.status === "approved" || purchase.status === "active";
+    // Fallback: verifica na tabela subscriptions
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("id, status, email")
+      .eq("email", normalizedEmail)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
 
-    return NextResponse.json({
-      approved,
-      status: purchase.status,
-      purchase_id: purchase.id,
-    });
+    if (subscription) {
+      const approved = subscription.status === "active" || subscription.status === "approved";
+      return NextResponse.json({ approved, status: subscription.status, purchase_id: subscription.id });
+    }
+
+    return NextResponse.json({ approved: false, status: null, purchase_id: null });
   } catch (err) {
     console.error("[check-purchase] Error:", err);
     return NextResponse.json({ approved: false, status: null, purchase_id: null });
