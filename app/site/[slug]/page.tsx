@@ -1,13 +1,18 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import SiteBody from "./SiteBody";
+
+// Cliente admin para leitura pública — site é acessível por qualquer visitante
+const supabase = createAdminClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 interface Props { params: Promise<{ slug: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = await createClient();
   const { data } = await supabase.from("businesses").select("business_name,city,niche,main_service").eq("slug", slug).single();
   if (!data) return { title: "Negócio não encontrado" };
   return {
@@ -19,7 +24,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function MiniSitePage({ params }: Props) {
   const { slug } = await params;
-  const supabase = await createClient();
 
   const { data: business } = await supabase.from("businesses").select("*").eq("slug", slug).single();
   if (!business) notFound();
