@@ -9,6 +9,7 @@ import {
   generateStorySequence,
   generateCaption,
   generateWhatsAppMessage,
+  generateWhatsAppVariations,
   type ContentInput,
 } from "@/lib/ai-content-service";
 import type { ContentFormat } from "@/types";
@@ -102,6 +103,7 @@ export async function POST(req: NextRequest) {
   const headlines = generateHeadlines(input);
   const caption = generateCaption({ ...input, headline: headline ?? headlines[0] });
   const whatsappMessage = generateWhatsAppMessage(input);
+  const whatsappVariations = generateWhatsAppVariations(input);
 
   // Gerar formato específico
   let script = null;
@@ -151,6 +153,7 @@ export async function POST(req: NextRequest) {
     stories,
     caption,
     whatsapp_message: whatsappMessage,
+    whatsapp_variations: whatsappVariations,
     format,
     plan: planName,
   });

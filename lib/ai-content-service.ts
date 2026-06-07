@@ -29,6 +29,46 @@ function variationIndex(seed: string, count: number): number {
   return Math.abs(h) % count;
 }
 
+// ─── Interpreta a intenção real do usuário ──────────────────
+export function interpretUserIntent(topic: string, mainService: string): {
+  specificSubject: string;
+  intent: string;
+  isSpecific: boolean;
+} {
+  const lower = topic.toLowerCase().trim();
+
+  let intent = "default";
+  if (/promo[çc][aã]o|oferta|desconto|especial|promoç/.test(lower)) intent = "promoção";
+  else if (/agenda|hor[aá]rio|vaga|reserv|agendar|marcar/.test(lower)) intent = "agenda";
+  else if (/dica|como\s|por\s+que|segredo|erro|cuidado|ensin|aprend/.test(lower)) intent = "dica";
+  else if (/bastidor|por\s+tr[aá]s|processo|rotina\s+da/.test(lower)) intent = "bastidores";
+  else if (/depoimento|avalia[çc][aã]o|feedback|cliente\s+falou|resultado\s+real|antes\s+e\s+depois/.test(lower)) intent = "depoimento";
+  else if (/lan[çc]amento|novo\s+servi[çc]o|novidade|chegou\s|lançamos/.test(lower)) intent = "lançamento";
+  else if (/produto|pe[çc]a|item|artigo|modelo|linha/.test(lower)) intent = "produto";
+
+  // Remove o prefixo de intenção para extrair o assunto específico
+  let specificSubject = topic
+    .replace(/^promo[çc][aã]o\s*(de|do|da|dos|das)?\s*/i, "")
+    .replace(/^dica\s*(de|sobre|para)?\s*/i, "")
+    .replace(/^bastidores?\s*(de|do|da|dos|das)?\s*/i, "")
+    .replace(/^agenda\s*(aberta\s*)?(de|para|do|da)?\s*/i, "")
+    .trim();
+
+  if (!specificSubject || specificSubject.length < 3) specificSubject = topic;
+
+  // Sugestões genéricas do sistema — não são "específicas"
+  const genericSuggestions = new Set([
+    "promoção da semana", "agenda aberta", "chamar clientes antigos",
+    "dica importante", "antes e depois", "bastidores", "prova social",
+    "serviço principal", "tirar dúvidas", "oferta pelo whatsapp",
+  ]);
+  const isSpecific = !genericSuggestions.has(lower) &&
+    lower !== mainService.toLowerCase() &&
+    topic.trim().length > 4;
+
+  return { specificSubject, intent, isSpecific };
+}
+
 // ─── Tópicos com ângulos pré-mapeados por nicho ──────────────
 const TOPIC_ANGLES: Record<string, Record<string, string[]>> = {
   barbearia: {
@@ -97,11 +137,14 @@ const TOPIC_ANGLES: Record<string, Record<string, string[]>> = {
 
 function getNarratives(input: ContentInput): Narrative[] {
   const cfg = NICHE_CONFIG[input.niche] ?? NICHE_CONFIG.outro;
-  const topicKey = detectTopicKey(input.topic);
+  const { intent, specificSubject, isSpecific } = interpretUserIntent(input.topic, input.mainService);
+  const topicKey = intent !== "default" ? intent : detectTopicKey(input.topic);
   const angles =
     TOPIC_ANGLES[input.niche]?.[topicKey] ??
     TOPIC_ANGLES[input.niche]?.default ??
     TOPIC_ANGLES.outro.default;
+
+  const subject = isSpecific ? specificSubject : input.mainService;
 
   return [
     {
@@ -112,121 +155,180 @@ function getNarratives(input: ContentInput): Narrative[] {
     {
       title: angles[1],
       angle: "Timing e urgência",
-      description: `Por que agora é o momento certo para o cliente buscar ${input.mainService} em ${input.city}.`,
+      description: `Por que agora é o momento certo para o cliente buscar ${subject} em ${input.city}.`,
     },
     {
-      title: angles[2],
+      title: angles[2] ?? angles[0],
       angle: "Prevenção e resultado",
-      description: `O que o cliente perde quando adia ${input.mainService} — e o que ganha ao agir agora.`,
+      description: `O que o cliente ganha ao agir agora com ${subject} na ${input.businessName}.`,
     },
     {
-      title: `${cfg.label} em ${input.city}: por que ${input.businessName}`,
+      title: `${subject} em ${input.city}: ${input.businessName}`,
       angle: "Prova e autoridade",
-      description: `Posicionamento direto da ${input.businessName} como referência em ${input.mainService} na região.`,
+      description: `Posicionamento direto de ${input.businessName} como referência em ${subject}.`,
     },
     {
-      title: `A pergunta que todo cliente de ${cfg.label.toLowerCase()} deveria fazer`,
+      title: `O que você precisa saber sobre ${subject}`,
       angle: "Educação e curiosidade",
-      description: `Conteúdo educativo que posiciona ${input.businessName} como especialista e gera engajamento.`,
+      description: `Conteúdo educativo sobre ${subject} que posiciona ${input.businessName} como especialista.`,
     },
   ];
 }
 
 function getHeadlines(input: ContentInput): string[] {
   const cfg = NICHE_CONFIG[input.niche] ?? NICHE_CONFIG.outro;
-  const topicKey = detectTopicKey(input.topic);
+  const { intent, specificSubject, isSpecific } = interpretUserIntent(input.topic, input.mainService);
+  const topicKey = intent !== "default" ? intent : detectTopicKey(input.topic);
+  const subject = isSpecific ? specificSubject : input.mainService;
 
   const headlineVariants: Record<string, string[][]> = {
     promoção: [
       [
-        `Essa promoção de ${input.mainService} encerra em breve`,
-        `Condição especial para ${input.mainService} em ${input.city} — só essa semana`,
-        `Você ainda não viu a oferta de ${input.mainService} da ${input.businessName}`,
-        `Por que tantos clientes aproveitam promoção de ${input.mainService} em ${input.city}`,
-        `${input.mainService} com condição especial — fale com a ${input.businessName} agora`,
+        `Essa promoção de ${subject} encerra em breve`,
+        `Condição especial para ${subject} em ${input.city} — só essa semana`,
+        `Você ainda não viu a oferta de ${subject} da ${input.businessName}`,
+        `Por que tantos clientes aproveitam promoção de ${subject} em ${input.city}`,
+        `${subject} com condição especial — fale com a ${input.businessName} agora`,
       ],
       [
-        `Oferta de ${input.mainService} que não vai voltar tão cedo`,
+        `Oferta de ${subject} que não vai voltar tão cedo`,
         `${input.businessName} com preço especial só até o fim desta semana`,
-        `Não deixe para depois: ${input.mainService} com desconto agora`,
+        `Não deixe para depois: ${subject} com desconto agora`,
         `Clientes da ${input.businessName} já estão aproveitando — e você?`,
-        `${input.city}: oferta imperdível de ${input.mainService} disponível agora`,
+        `${input.city}: oferta imperdível de ${subject} disponível agora`,
       ],
       [
-        `Última chamada: promoção de ${input.mainService} na ${input.businessName}`,
-        `${input.mainService} por um valor que você não esperava — só hoje`,
+        `Última chamada: promoção de ${subject} na ${input.businessName}`,
+        `${subject} por um valor que você não esperava — só hoje`,
         `Por que esperar? ${input.businessName} tem condição especial agora`,
-        `Economize em ${input.mainService} em ${input.city} — oferta válida por tempo limitado`,
+        `Economize em ${subject} em ${input.city} — oferta válida por tempo limitado`,
         `Essa promoção da ${input.businessName} vai encerrar — garanta a sua vaga`,
       ],
     ],
     agenda: [
       [
-        `Agenda aberta para ${input.mainService} em ${input.city}`,
-        `Horários disponíveis para ${input.mainService} na ${input.businessName}`,
-        `Você ainda não agendou seu ${input.mainService} este mês`,
+        `Agenda aberta para ${subject} em ${input.city}`,
+        `Horários disponíveis para ${subject} na ${input.businessName}`,
+        `Você ainda não agendou ${subject} este mês`,
         `Reserve seu horário antes de lotar — ${input.businessName} em ${input.city}`,
-        `Últimos horários da semana para ${input.mainService}`,
+        `Últimos horários da semana para ${subject}`,
       ],
       [
-        `${input.businessName} com horários abertos para ${input.mainService} hoje`,
-        `Não deixe para amanhã: agende ${input.mainService} agora em ${input.city}`,
-        `Vagas limitadas para ${input.mainService} — garanta a sua na ${input.businessName}`,
+        `${input.businessName} com horários abertos para ${subject} hoje`,
+        `Não deixe para amanhã: agende ${subject} agora em ${input.city}`,
+        `Vagas limitadas para ${subject} — garanta a sua na ${input.businessName}`,
         `Semana cheia na ${input.businessName}? Ainda tem horário para você`,
-        `${input.mainService} em ${input.city}: agenda disponível, é só chamar`,
+        `${subject} em ${input.city}: agenda disponível, é só chamar`,
       ],
       [
-        `Atenção: horários de ${input.mainService} na ${input.businessName} estão quase cheios`,
-        `Reserve hoje seu atendimento de ${input.mainService} em ${input.city}`,
-        `Você merece cuidar de ${input.mainService} — e a ${input.businessName} tem vaga agora`,
-        `Sem espera, sem burocracia: agende ${input.mainService} pelo WhatsApp`,
-        `${input.city}: últimas vagas para ${input.mainService} na ${input.businessName} esta semana`,
+        `Atenção: horários de ${subject} na ${input.businessName} estão quase cheios`,
+        `Reserve hoje seu atendimento de ${subject} em ${input.city}`,
+        `Você merece ${subject} — e a ${input.businessName} tem vaga agora`,
+        `Sem espera, sem burocracia: agende ${subject} pelo WhatsApp`,
+        `${input.city}: últimas vagas para ${subject} na ${input.businessName} esta semana`,
       ],
     ],
     dica: [
       [
-        `3 sinais de que está na hora de cuidar do ${input.mainService}`,
-        `O erro que faz muita gente adiar ${input.mainService}`,
-        `O que ninguém te conta sobre ${input.mainService} em ${input.city}`,
-        `Por que ignorar ${input.mainService} pode sair caro depois`,
-        `Como escolher o melhor profissional de ${input.mainService} em ${input.city}`,
+        `3 sinais de que está na hora de cuidar de ${subject}`,
+        `O erro que faz muita gente adiar ${subject}`,
+        `O que ninguém te conta sobre ${subject} em ${input.city}`,
+        `Por que ignorar ${subject} pode sair caro depois`,
+        `Como escolher o melhor profissional de ${subject} em ${input.city}`,
       ],
       [
-        `${input.mainService}: o que você precisa saber antes de escolher um profissional`,
-        `Evite esses erros comuns relacionados a ${input.mainService}`,
-        `Dica de quem entende: como aproveitar melhor ${input.mainService}`,
-        `Por que ${input.mainService} faz diferença no seu dia a dia`,
-        `A verdade sobre ${input.mainService} que muita gente não sabe`,
+        `${subject}: o que você precisa saber antes de escolher um profissional`,
+        `Evite esses erros comuns relacionados a ${subject}`,
+        `Dica de quem entende: como aproveitar melhor ${subject}`,
+        `Por que ${subject} faz diferença no seu dia a dia`,
+        `A verdade sobre ${subject} que muita gente não sabe`,
       ],
       [
-        `Como ${input.mainService} pode transformar sua rotina em ${input.city}`,
-        `Antes de contratar ${input.mainService}: leia isso`,
-        `${input.mainService} certo vs. ${input.mainService} errado — você sabe a diferença?`,
-        `Resultado real em ${input.mainService}: o que influencia mais do que você imagina`,
-        `Checklist: o que avaliar em um bom serviço de ${input.mainService}`,
+        `Como ${subject} pode transformar sua rotina em ${input.city}`,
+        `Antes de contratar ${subject}: leia isso`,
+        `${subject} certo vs. ${subject} errado — você sabe a diferença?`,
+        `Resultado real em ${subject}: o que influencia mais do que você imagina`,
+        `Checklist: o que avaliar em um bom serviço de ${subject}`,
+      ],
+    ],
+    bastidores: [
+      [
+        `Os bastidores de ${subject} que você nunca viu`,
+        `Por trás de ${subject}: como funciona de verdade na ${input.businessName}`,
+        `A rotina real de ${subject} — sem filtro`,
+        `O que acontece antes do resultado em ${subject}`,
+        `Mostrando o processo real de ${subject} na ${input.businessName}`,
+      ],
+      [
+        `Bastidores: veja como ${subject} é feito na ${input.businessName}`,
+        `A verdade por trás de ${subject} — e por que faz diferença`,
+        `${input.businessName} abre os bastidores de ${subject}`,
+        `Você sabia que ${subject} envolve tudo isso?`,
+        `O processo real de ${subject}: da preparação ao resultado`,
+      ],
+    ],
+    depoimento: [
+      [
+        `O que nossos clientes dizem sobre ${subject} na ${input.businessName}`,
+        `Resultado real: transformações com ${subject} em ${input.city}`,
+        `Por que clientes recomendam ${subject} na ${input.businessName}`,
+        `Antes e depois: veja a diferença que ${subject} faz`,
+        `Avaliações reais de quem já fez ${subject} na ${input.businessName}`,
+      ],
+      [
+        `Depoimento real: como ${subject} mudou a experiência de um cliente`,
+        `Quem já fez ${subject} na ${input.businessName} voltaria de novo?`,
+        `${input.businessName}: resultados reais em ${subject} em ${input.city}`,
+        `Transformação com ${subject} — histórias reais`,
+        `Clientes satisfeitos com ${subject} na ${input.businessName}`,
+      ],
+    ],
+    lançamento: [
+      [
+        `Novidade: ${subject} agora disponível na ${input.businessName}`,
+        `Chegou: ${subject} para você em ${input.city}`,
+        `${input.businessName} apresenta: ${subject}`,
+        `Novo serviço: ${subject} com a qualidade que você já conhece`,
+        `Acabou de chegar: ${subject} na ${input.businessName}`,
+      ],
+      [
+        `Lançamento: ${subject} na ${input.businessName} em ${input.city}`,
+        `${input.businessName} agora oferece ${subject} — conheça`,
+        `Você pediu e chegou: ${subject} disponível agora`,
+        `${subject}: novo na ${input.businessName}, mesma qualidade de sempre`,
+        `${input.city}: ${subject} disponível na ${input.businessName}`,
+      ],
+    ],
+    produto: [
+      [
+        `${subject}: conheça tudo sobre esse produto`,
+        `Por que ${subject} está entre os mais procurados na ${input.businessName}`,
+        `${subject} disponível na ${input.businessName} em ${input.city}`,
+        `Como ${subject} pode fazer diferença para você`,
+        `${subject} com qualidade garantida — ${input.businessName}`,
       ],
     ],
     default: [
       [
-        `${input.mainService} em ${input.city}: o que você precisa saber`,
-        `Por que a ${input.businessName} é referência em ${input.mainService}`,
-        `O que muda quando você escolhe ${input.mainService} com qualidade`,
+        `${subject} em ${input.city}: o que você precisa saber`,
+        `Por que a ${input.businessName} é referência em ${subject}`,
+        `O que muda quando você escolhe ${subject} com qualidade`,
         `${input.businessName} em ${input.city} — ${cfg.cta}`,
         `Você está deixando seus clientes esquecerem de você?`,
       ],
       [
-        `${input.businessName}: qualidade em ${input.mainService} que os clientes recomendam`,
+        `${input.businessName}: qualidade em ${subject} que os clientes recomendam`,
         `Descubra por que clientes voltam sempre para a ${input.businessName}`,
-        `${input.mainService} de verdade: veja o que a ${input.businessName} entrega`,
-        `Em ${input.city}, quem busca ${input.mainService} de qualidade vai para a ${input.businessName}`,
-        `O diferencial que faz a ${input.businessName} se destacar em ${input.mainService}`,
+        `${subject} de verdade: veja o que a ${input.businessName} entrega`,
+        `Em ${input.city}, quem busca ${subject} de qualidade vai para a ${input.businessName}`,
+        `O diferencial que faz a ${input.businessName} se destacar em ${subject}`,
       ],
       [
-        `${input.mainService} que faz a diferença — conheça a ${input.businessName}`,
-        `Para ${input.mainService} em ${input.city}, a escolha é a ${input.businessName}`,
-        `Como a ${input.businessName} mudou a experiência de ${input.mainService} em ${input.city}`,
-        `Qualidade, confiança e resultado: ${input.mainService} na ${input.businessName}`,
-        `Seu próximo ${input.mainService} pode ser o melhor que você já fez`,
+        `${subject} que faz a diferença — conheça a ${input.businessName}`,
+        `Para ${subject} em ${input.city}, a escolha é a ${input.businessName}`,
+        `Como a ${input.businessName} mudou a experiência de ${subject} em ${input.city}`,
+        `Qualidade, confiança e resultado: ${subject} na ${input.businessName}`,
+        `Seu próximo ${subject} pode ser o melhor que você já fez`,
       ],
     ],
   };
@@ -829,11 +931,41 @@ function getWhatsAppMessage(input: ContentInput): string {
   return group[v % group.length];
 }
 
+// ─── 5 variações de WhatsApp por contexto ────────────────────
+
+function getWhatsAppVariations(input: ContentInput): string[] {
+  const name = input.businessName;
+  const city = input.city;
+  const { specificSubject, isSpecific } = interpretUserIntent(input.topic, input.mainService);
+  const subject = isSpecific ? specificSubject : input.mainService;
+
+  return [
+    // 1. Curta — direta ao ponto
+    `Oi! Aqui é ${name}. Temos ${subject} disponível. Posso te ajudar?`,
+
+    // 2. Média — contexto + convite
+    `Olá! Aqui é da ${name} em ${city}. ${subject} com qualidade e atendimento rápido pelo WhatsApp. Posso te passar mais detalhes?`,
+
+    // 3. Persuasiva — senso de urgência suave
+    `Oi! Da ${name}. Você ainda não aproveitou ${subject}? Agenda aberta essa semana e pode fechar rápido. Posso te contar como funciona?`,
+
+    // 4. Cliente antigo — reativação
+    `Oi! Aqui é da ${name}. Faz tempo que você não aparece por aqui! Que tal aproveitar ${subject}? Estamos com horário disponível e seria ótimo te atender de novo.`,
+
+    // 5. Cliente novo — apresentação
+    `Olá! Aqui é da ${name}, em ${city}. Vi que você pode ter interesse em ${subject}. Posso tirar suas dúvidas e contar como funciona?`,
+  ];
+}
+
 function detectTopicKey(topic: string): string {
   const lower = topic.toLowerCase();
-  if (lower.match(/promo[çc][aã]o|oferta|desconto|especial/)) return "promoção";
-  if (lower.match(/agenda|hor[aá]rio|vaga|reserv/)) return "agenda";
-  if (lower.match(/dica|como|por que|segredo|erro|cuidado/)) return "dica";
+  if (/promo[çc][aã]o|oferta|desconto|especial/.test(lower)) return "promoção";
+  if (/agenda|hor[aá]rio|vaga|reserv|agendar/.test(lower)) return "agenda";
+  if (/dica|como\s|por\s+que|segredo|erro|cuidado/.test(lower)) return "dica";
+  if (/bastidor|por\s+tr[aá]s|rotina\s+da/.test(lower)) return "bastidores";
+  if (/depoimento|avalia[çc][aã]o|antes\s+e\s+depois|resultado\s+real/.test(lower)) return "depoimento";
+  if (/lan[çc]amento|novidade|chegou\s|novo\s+servi[çc]o/.test(lower)) return "lançamento";
+  if (/produto|pe[çc]a|item\s|artigo/.test(lower)) return "produto";
   return "default";
 }
 
@@ -865,6 +997,10 @@ export function generateCaption(input: ContentInput): string {
 
 export function generateWhatsAppMessage(input: ContentInput): string {
   return getWhatsAppMessage(input);
+}
+
+export function generateWhatsAppVariations(input: ContentInput): string[] {
+  return getWhatsAppVariations(input);
 }
 
 export function generateFullContent(input: ContentInput, format: ContentFormat) {

@@ -16,6 +16,7 @@ interface GenerationResult {
   stories: StorySequence | null;
   caption: string;
   whatsapp_message: string;
+  whatsapp_variations: string[];
   format: ContentFormat;
 }
 
@@ -51,6 +52,18 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
 
   const isPro = planName === "pro";
   const cfg = NICHE_CONFIG[business.niche] ?? NICHE_CONFIG.outro;
+
+  function buildConfirmation(): string {
+    const lower = topic.toLowerCase();
+    let intent = "conteúdo";
+    if (/promo[çc][aã]o|oferta|desconto/.test(lower)) intent = "promoção";
+    else if (/agenda|hor[aá]rio|vaga/.test(lower)) intent = "agenda";
+    else if (/dica|como\s|por\s+que/.test(lower)) intent = "dica educativa";
+    else if (/bastidor/.test(lower)) intent = "bastidores";
+    else if (/depoimento|avalia[çc][aã]o|antes\s+e\s+depois/.test(lower)) intent = "prova social";
+    else if (/lan[çc]amento|novidade/.test(lower)) intent = "lançamento";
+    return `Entendi. Vou criar ideias sobre "${topic}" no nicho de ${cfg.label}, com foco em ${intent}.`;
+  }
 
   const STEPS: { id: Step; label: string }[] = [
     { id: "topic",     label: "Tema" },
@@ -245,9 +258,11 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
             <h2 className="font-bold text-gray-900 dark:text-white">Escolha a narrativa</h2>
             <button onClick={() => setStep("topic")} className="text-xs text-gray-400 hover:text-gray-600">← Voltar</button>
           </div>
-          <p className="text-xs text-gray-500 mb-4">
-            Tema: <span className="font-bold text-violet-600">"{topic}"</span>
-          </p>
+          {/* Confirmação do que foi interpretado */}
+          <div className="bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-2.5 flex items-start gap-2 mb-1">
+            <span className="text-emerald-500 text-sm mt-0.5">✓</span>
+            <p className="text-sm text-emerald-800 dark:text-emerald-300">{buildConfirmation()}</p>
+          </div>
           <p className="text-xs text-gray-400 mb-2">Clique para selecionar. Toque no título para editar.</p>
           {narratives.map((n, i) => (
             <div
@@ -490,8 +505,28 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
           {/* ─ LEGENDA ─ */}
           <CopyCard label="Legenda" text={result.caption} copyKey="caption" copied={copied} onCopy={copy} large />
 
-          {/* ─ MENSAGEM WA ─ */}
-          <CopyCard label="Mensagem para WhatsApp" text={result.whatsapp_message} copyKey="whatsapp" copied={copied} onCopy={copy} green />
+          {/* ─ MENSAGENS WHATSAPP ─ */}
+          <div className="space-y-3">
+            <SectionTitle title="Mensagens para WhatsApp" />
+            <p className="text-xs text-gray-400">5 variações — escolha a que combina melhor com a situação.</p>
+            {(result.whatsapp_variations?.length
+              ? result.whatsapp_variations
+              : [result.whatsapp_message]
+            ).map((msg, i) => {
+              const labels = ["Curta", "Média", "Persuasiva", "Cliente antigo", "Cliente novo"];
+              return (
+                <CopyCard
+                  key={i}
+                  label={labels[i] ?? `Variação ${i + 1}`}
+                  text={msg}
+                  copyKey={`wa-${i}`}
+                  copied={copied}
+                  onCopy={copy}
+                  green
+                />
+              );
+            })}
+          </div>
 
           {/* ─ Novo conteúdo ─ */}
           <button

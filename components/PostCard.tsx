@@ -513,7 +513,7 @@ function FotoLado({ title, subtitle, cta, business_name, color, c: compact, bgIm
               <span style={{ fontSize: px(40,compact), opacity: 0.4 }}>📸</span>
             </div>
           )}
-          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: px(20,compact), background: "linear-gradient(to right, #fff, transparent)" }} />
+          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: px(32,compact), background: "linear-gradient(to right, #ffffff 0%, rgba(255,255,255,0.6) 50%, transparent 100%)" }} />
         </div>
       </div>
     </Slide>
