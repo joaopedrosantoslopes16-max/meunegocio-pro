@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 
@@ -36,6 +37,16 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Invalida cache do mini site para refletir mudanças imediatamente
+  const { data: bizSlug } = await supabaseAdmin
+    .from("businesses")
+    .select("slug")
+    .eq("id", business_id)
+    .single();
+  if (bizSlug?.slug) {
+    revalidatePath(`/site/${bizSlug.slug}`);
   }
 
   return NextResponse.json({ ok: true });

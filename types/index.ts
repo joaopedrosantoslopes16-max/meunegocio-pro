@@ -329,9 +329,19 @@ export interface ReelsScript {
   whatsapp_message: string;
 }
 
+export interface CarouselSlide {
+  slide: number;
+  text: string;
+  title?: string;
+  body?: string;
+  emoji?: string;
+  type?: "cover" | "content" | "cta";
+  bg?: "primary" | "white" | "dark";
+}
+
 export interface CarouselContent {
   theme: string;
-  slides: { slide: number; text: string }[];
+  slides: CarouselSlide[];
   caption: string;
   whatsapp_message: string;
 }

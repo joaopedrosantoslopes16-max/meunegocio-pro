@@ -453,16 +453,10 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
           {result.carousel && (
             <div className="space-y-3">
               <SectionTitle title={`Carrossel — ${result.carousel.theme}`} />
-              <div className="space-y-2">
+              <p className="text-xs text-gray-400">6 slides prontos para Instagram — use como referência para criar os posts.</p>
+              <div className="grid grid-cols-2 gap-3">
                 {result.carousel.slides.map((slide) => (
-                  <div key={slide.slide} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3 flex items-center gap-3">
-                    <span className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 text-xs font-bold flex items-center justify-center flex-shrink-0">
-                      {slide.slide}
-                    </span>
-                    <p className={`text-sm leading-snug ${slide.slide === 1 ? "font-extrabold text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}>
-                      {slide.text}
-                    </p>
-                  </div>
+                  <CarouselCard key={slide.slide} slide={slide} primaryColor={business.primary_color || "#7c3aed"} />
                 ))}
               </div>
             </div>
@@ -519,6 +513,73 @@ function SectionTitle({ title }: { title: string }) {
     <div className="flex items-center gap-2">
       <div className="w-1 h-4 rounded-full bg-violet-500 flex-shrink-0" />
       <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{title}</p>
+    </div>
+  );
+}
+
+function CarouselCard({
+  slide, primaryColor,
+}: {
+  slide: { slide: number; text: string; title?: string; body?: string; emoji?: string; type?: string; bg?: string };
+  primaryColor: string;
+}) {
+  const isCover = slide.type === "cover";
+  const isCta = slide.type === "cta";
+  const isDark = slide.bg === "dark";
+  const isColored = isCover || isCta || isDark;
+
+  const bgStyle = isCover
+    ? { background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}cc 100%)` }
+    : isCta
+    ? { background: `linear-gradient(135deg, ${primaryColor}dd 0%, ${primaryColor} 100%)` }
+    : isDark
+    ? { background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)" }
+    : { background: "#ffffff", border: `1px solid ${primaryColor}22` };
+
+  const textColor = isColored ? "#ffffff" : "#1a1a2e";
+  const subtextColor = isColored ? "rgba(255,255,255,0.75)" : "#555";
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden relative"
+      style={{ ...bgStyle, minHeight: 140, padding: "14px 14px 12px", aspectRatio: "1/1", display: "flex", flexDirection: "column", justifyContent: "space-between" }}
+    >
+      {/* Decoração de fundo */}
+      {isColored && (
+        <div style={{ position: "absolute", top: -20, right: -20, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,255,255,0.08)", pointerEvents: "none" }} />
+      )}
+
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
+        {/* Header: número + emoji */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+          <span style={{ fontSize: 9, fontWeight: 800, color: isColored ? "rgba(255,255,255,0.55)" : primaryColor, textTransform: "uppercase", letterSpacing: "0.12em" }}>
+            {isCover ? "CAPA" : isCta ? "CTA" : `SLIDE ${slide.slide - 1}`}
+          </span>
+          {slide.emoji && <span style={{ fontSize: 18, lineHeight: 1 }}>{slide.emoji}</span>}
+        </div>
+
+        {/* Título */}
+        {slide.title && (
+          <p style={{ fontSize: 12, fontWeight: 900, color: textColor, lineHeight: 1.25, letterSpacing: "-0.01em" }}>
+            {slide.title}
+          </p>
+        )}
+        {!slide.title && (
+          <p style={{ fontSize: 12, fontWeight: 800, color: textColor, lineHeight: 1.3 }}>{slide.text}</p>
+        )}
+
+        {/* Body */}
+        {slide.body && (
+          <p style={{ fontSize: 9.5, color: subtextColor, lineHeight: 1.55, flex: 1 }}>
+            {slide.body}
+          </p>
+        )}
+      </div>
+
+      {/* Barra inferior — tipo do slide */}
+      <div style={{ position: "relative", zIndex: 1, marginTop: 8, height: 3, borderRadius: 2, background: isColored ? "rgba(255,255,255,0.25)" : `${primaryColor}40` }}>
+        <div style={{ height: "100%", borderRadius: 2, background: isColored ? "rgba(255,255,255,0.7)" : primaryColor, width: `${(slide.slide / 6) * 100}%` }} />
+      </div>
     </div>
   );
 }

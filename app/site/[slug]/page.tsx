@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import SiteBody from "./SiteBody";
 
+export const dynamic = "force-dynamic";
+
 // Cliente admin para leitura pública — site é acessível por qualquer visitante
 const supabase = createAdminClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
