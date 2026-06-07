@@ -214,7 +214,7 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
             <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder={`Ex: Promoção da semana, agenda aberta, dica sobre ${business.main_service}…`}
+              placeholder="Ex: Promoção da semana, agenda aberta, dica para seus clientes…"
               rows={3}
               className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm text-gray-800 dark:text-gray-200 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-400 resize-none"
             />
@@ -282,7 +282,8 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
                   setEditedNarrativeTitles(updated);
                 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full font-bold text-gray-900 dark:text-white text-sm leading-snug mb-1 bg-transparent focus:outline-none"
+                className="w-full font-bold text-gray-900 dark:text-white text-sm leading-snug mb-1 focus:outline-none appearance-none"
+                style={{ background: "transparent", border: "none" }}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{n.description}</p>
             </div>
@@ -340,7 +341,8 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
                     setEditedHeadlines(updated);
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="flex-1 text-sm font-semibold text-gray-800 dark:text-gray-200 bg-transparent focus:outline-none leading-snug"
+                  className="flex-1 text-sm font-semibold text-gray-800 dark:text-gray-200 focus:outline-none leading-snug appearance-none"
+                  style={{ background: "transparent", border: "none" }}
                 />
               </div>
             </div>
