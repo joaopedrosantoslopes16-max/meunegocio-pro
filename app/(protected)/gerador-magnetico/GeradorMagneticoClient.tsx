@@ -282,8 +282,7 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
                   setEditedNarrativeTitles(updated);
                 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full font-bold text-gray-900 dark:text-white text-sm leading-snug mb-1 focus:outline-none appearance-none"
-                style={{ background: "transparent", border: "none" }}
+                className="input-ghost w-full font-bold text-sm leading-snug mb-1"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{n.description}</p>
             </div>
@@ -341,8 +340,7 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
                     setEditedHeadlines(updated);
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="flex-1 text-sm font-semibold text-gray-800 dark:text-gray-200 focus:outline-none leading-snug appearance-none"
-                  style={{ background: "transparent", border: "none" }}
+                  className="input-ghost flex-1 text-sm font-semibold leading-snug"
                 />
               </div>
             </div>

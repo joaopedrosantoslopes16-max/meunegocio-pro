@@ -9,13 +9,38 @@
   html { scroll-behavior: smooth; }
   body { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 
-  /* Garante texto visível em todos os campos, independente do tema do sistema */
-  input:not([type="color"]):not([type="checkbox"]):not([type="radio"]),
-  select,
-  textarea {
+  /* Campos normais — fundo branco em light mode */
+  input:not([type="color"]):not([type="checkbox"]):not([type="radio"]):not(.input-ghost),
+  select:not(.input-ghost),
+  textarea:not(.input-ghost) {
     color: #111827 !important;
     background-color: #ffffff !important;
     -webkit-text-fill-color: #111827 !important;
+  }
+
+  /* Dark mode — campos normais ficam escuros */
+  .dark input:not([type="color"]):not([type="checkbox"]):not([type="radio"]):not(.input-ghost),
+  .dark select:not(.input-ghost),
+  .dark textarea:not(.input-ghost) {
+    color: #f9fafb !important;
+    background-color: #1f2937 !important;
+    -webkit-text-fill-color: #f9fafb !important;
+  }
+
+  /* Ghost inputs — transparentes, usados dentro de cards já coloridos */
+  input.input-ghost,
+  textarea.input-ghost {
+    background-color: transparent;
+    color: #111827;
+    -webkit-text-fill-color: #111827;
+    border: none;
+    outline: none;
+  }
+  .dark input.input-ghost,
+  .dark textarea.input-ghost {
+    background-color: transparent;
+    color: #f9fafb;
+    -webkit-text-fill-color: #f9fafb;
   }
 
   /* Autofill do navegador (Chrome/Safari mudam a cor de fundo) */
@@ -27,6 +52,13 @@
     -webkit-text-fill-color: #111827 !important;
     -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
     box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  }
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #f9fafb !important;
+    -webkit-box-shadow: 0 0 0px 1000px #1f2937 inset !important;
+    box-shadow: 0 0 0px 1000px #1f2937 inset !important;
   }
 
   /* Dark mode via class strategy (ThemeProvider adiciona .dark na raiz) */
