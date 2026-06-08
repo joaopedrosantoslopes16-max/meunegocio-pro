@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Business, ImageGallery, ImageType, PlanName } from "@/types";
+import { phoneInputMask } from "@/lib/whatsapp-utils";
 
 const LINK_TYPES = [
   { id: "whatsapp",    label: "WhatsApp"    },
@@ -72,7 +73,7 @@ export default function EditarSiteClient({ business, siteSlug, images, plan = "e
   );
 
   // Contato
-  const [whatsapp,  setWhatsapp]  = useState(business.whatsapp);
+  const [whatsapp,  setWhatsapp]  = useState(phoneInputMask(business.whatsapp ?? ""));
   const [instagram, setInstagram] = useState(business.instagram ?? "");
   const [facebook,  setFacebook]  = useState((business as any).facebook ?? "");
   const [linktree,  setLinktree]  = useState((business as any).linktree ?? "");
@@ -305,8 +306,15 @@ export default function EditarSiteClient({ business, siteSlug, images, plan = "e
             <>
               <SectionTitle title="Informações de contato" />
               <Field label="WhatsApp" required>
-                <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={INPUT} placeholder="5511999999999 (com código do país)" />
-                <p className="text-xs text-gray-400 mt-1">Formato: 5511999999999 (55 + DDD + número)</p>
+                <input
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(phoneInputMask(e.target.value))}
+                  className={INPUT}
+                  placeholder="(11) 99999-9999"
+                  type="tel"
+                  maxLength={16}
+                />
+                <p className="text-xs text-gray-400 mt-1">DDD + número — Ex: (11) 99999-9999</p>
               </Field>
               <Field label="Instagram">
                 <input value={instagram} onChange={(e) => setInstagram(e.target.value)} className={INPUT} placeholder="@berbeiro_elite ou https://instagram.com/berbeiro_elite" />

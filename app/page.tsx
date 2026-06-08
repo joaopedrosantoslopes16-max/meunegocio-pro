@@ -10,7 +10,7 @@ import {
   DollarSign, Package
 } from "lucide-react";
 import { NICHE_CONFIG, NICHE_OPTIONS } from "@/lib/niche-config";
-import { buildWhatsAppLink } from "@/lib/whatsapp-utils";
+import { buildWhatsAppLink, phoneInputMask } from "@/lib/whatsapp-utils";
 import { generateInstagramBio, generateCaptions, generateWhatsAppMessages } from "@/lib/kit-generator";
 import PostCard from "@/components/PostCard";
 import PlanComparison from "@/components/PlanComparison";
@@ -286,7 +286,8 @@ export default function LandingPage() {
   }, []);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((p) => ({ ...p, [name]: name === "whatsapp" ? phoneInputMask(value) : value }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -760,7 +761,7 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">WhatsApp *</label>
-                  <input name="whatsapp" value={form.whatsapp} onChange={handleChange} required placeholder="(11) 99999-9999" className="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition" />
+                  <input name="whatsapp" value={form.whatsapp} onChange={handleChange} required placeholder="(11) 99999-9999" type="tel" maxLength={16} className="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Serviço principal *</label>

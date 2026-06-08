@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { phoneInputMask } from "@/lib/whatsapp-utils";
 
 interface LeadFormProps {
   businessId: string;
@@ -67,10 +68,11 @@ export default function LeadForm({ businessId, kitId, primaryColor }: LeadFormPr
       />
       <input
         value={whatsapp}
-        onChange={(e) => setWhatsapp(e.target.value)}
+        onChange={(e) => setWhatsapp(phoneInputMask(e.target.value))}
         required
-        placeholder="WhatsApp (com DDD)"
+        placeholder="(11) 99999-9999"
         type="tel"
+        maxLength={16}
         className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 transition bg-white"
       />
       <select

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { NICHE_OPTIONS, NICHE_CONFIG } from "@/lib/niche-config";
+import { phoneInputMask } from "@/lib/whatsapp-utils";
 import type { BusinessFormData } from "@/types";
 
 export default function GerarKitPage() {
@@ -26,10 +27,7 @@ export default function GerarKitPage() {
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     let { name, value } = e.target;
     if (name === "whatsapp") {
-      value = value.replace(/\D/g, "").slice(0, 11);
-      if (value.length > 6) value = `(${value.slice(0,2)}) ${value.slice(2,7)}-${value.slice(7)}`;
-      else if (value.length > 2) value = `(${value.slice(0,2)}) ${value.slice(2)}`;
-      else if (value.length > 0) value = `(${value}`;
+      value = phoneInputMask(value);
     }
     setForm((prev) => ({ ...prev, [name]: value }));
   }
@@ -103,7 +101,7 @@ export default function GerarKitPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">WhatsApp *</label>
-                <input name="whatsapp" value={form.whatsapp} onChange={handleChange} required placeholder="(11) 99999-9999" style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+                <input name="whatsapp" value={form.whatsapp} onChange={handleChange} required placeholder="(11) 99999-9999" type="tel" maxLength={16} style={{ color: "#111827", backgroundColor: "#ffffff" }} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Instagram</label>
