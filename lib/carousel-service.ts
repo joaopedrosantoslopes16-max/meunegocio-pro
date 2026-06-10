@@ -6,6 +6,8 @@ import type {
   CarouselVisualStyle,
 } from "@/types";
 
+// ─── Public interface ─────────────────────────────────────────
+
 export interface CarouselInput {
   topic: string;
   objective: CarouselObjective;
@@ -15,13 +17,13 @@ export interface CarouselInput {
   mainService: string;
   whatsapp: string;
   selectedImages: string[];
-  /** Per-slide image map: key = slide index (0-based), value = image URL */
   slideImagesMap?: Record<number, string>;
   visualStyle: CarouselVisualStyle;
   format: "4/5" | "1/1" | "9/16";
-  /** Number of slides to generate (4–8, default 6) */
   slideCount?: number;
 }
+
+// ─── Core helpers ─────────────────────────────────────────────
 
 function uid(): string {
   return Math.random().toString(36).slice(2, 10);
@@ -36,14 +38,12 @@ function variationIndex(seed: string, count: number): number {
   return Math.abs(h) % count;
 }
 
-// ─── Assigns images to slides ─────────────────────────────────
 function assignImages(
   images: string[],
   count: number,
   map?: Record<number, string>
 ): (string | undefined)[] {
   const result: (string | undefined)[] = Array(count).fill(undefined);
-  // Per-slide map takes priority
   if (map && Object.keys(map).length > 0) {
     Object.entries(map).forEach(([k, v]) => {
       const idx = parseInt(k);
@@ -52,78 +52,62 @@ function assignImages(
     return result;
   }
   if (!images.length) return result;
-  // Auto-distribute: cover + middle slides get images; last (CTA) never
   const slots = Array.from({ length: count - 1 }, (_, i) => i);
   slots.forEach((slot, i) => { result[slot] = images[i % images.length]; });
   return result;
 }
 
-// ─── Layout sequence per style ───────────────────────────────
+// ─── Layout system ────────────────────────────────────────────
+
 const CONTENT_LAYOUTS_WITH_IMAGES: Record<CarouselVisualStyle, CarouselLayout[]> = {
-  moderno:     ["bold_statement", "content_list", "split_image",   "image_overlay", "card_glass",   "bold_statement"],
-  premium:     ["card_glass",     "bold_statement","content_list", "split_image",   "card_glass",   "image_overlay"],
-  clean:       ["content_list",   "bold_statement","content_list", "image_overlay", "content_list", "split_image"],
-  chamativo:   ["bold_statement", "image_overlay", "content_list", "bold_statement","split_image",  "image_overlay"],
-  elegante:    ["card_glass",     "content_list",  "split_image",  "card_glass",    "content_list", "bold_statement"],
-  minimalista: ["content_list",   "bold_statement","content_list", "image_overlay", "content_list", "bold_statement"],
+  moderno:     ["bold_statement", "split_image",    "content_list",  "image_overlay", "bold_statement", "card_glass"],
+  premium:     ["card_glass",     "content_list",   "split_image",   "card_glass",    "content_list",   "image_overlay"],
+  clean:       ["content_list",   "split_image",    "content_list",  "content_list",  "split_image",    "content_list"],
+  chamativo:   ["bold_statement", "image_overlay",  "bold_statement","image_overlay", "bold_statement", "split_image"],
+  elegante:    ["card_glass",     "split_image",    "card_glass",    "content_list",  "split_image",    "card_glass"],
+  minimalista: ["content_list",   "content_list",   "split_image",   "content_list",  "content_list",   "content_list"],
 };
 
 const CONTENT_LAYOUTS_NO_IMAGES: Record<CarouselVisualStyle, CarouselLayout[]> = {
-  moderno:     ["bold_statement", "content_list", "bold_statement","content_list", "bold_statement","content_list"],
-  premium:     ["bold_statement", "content_list", "bold_statement","content_list", "bold_statement","content_list"],
-  clean:       ["content_list",   "bold_statement","content_list", "bold_statement","content_list", "bold_statement"],
-  chamativo:   ["bold_statement", "content_list", "bold_statement","content_list", "bold_statement","content_list"],
-  elegante:    ["bold_statement", "content_list", "bold_statement","content_list", "bold_statement","content_list"],
-  minimalista: ["content_list",   "bold_statement","content_list", "bold_statement","content_list", "bold_statement"],
+  moderno:     ["bold_statement", "content_list", "bold_statement", "content_list", "bold_statement", "content_list"],
+  premium:     ["card_glass",     "content_list", "card_glass",    "content_list", "card_glass",     "content_list"],
+  clean:       ["content_list",   "bold_statement","content_list", "content_list", "bold_statement", "content_list"],
+  chamativo:   ["bold_statement", "bold_statement","content_list", "bold_statement","bold_statement", "content_list"],
+  elegante:    ["card_glass",     "bold_statement","card_glass",   "content_list", "card_glass",     "bold_statement"],
+  minimalista: ["content_list",   "content_list", "content_list",  "content_list", "content_list",   "content_list"],
 };
 
 function layoutsForStyle(style: CarouselVisualStyle, hasImages: boolean, count: number): CarouselLayout[] {
   const pool = hasImages ? CONTENT_LAYOUTS_WITH_IMAGES[style] : CONTENT_LAYOUTS_NO_IMAGES[style];
   const layouts: CarouselLayout[] = ["cover_hero"];
   const contentCount = count - 2;
-  for (let i = 0; i < contentCount; i++) {
-    layouts.push(pool[i % pool.length]);
-  }
+  for (let i = 0; i < contentCount; i++) layouts.push(pool[i % pool.length]);
   layouts.push("cta_final");
   return layouts;
 }
 
-// ─── Build slide array with correct count ─────────────────────
-function buildSlideTemplates(templates: SlideTemplate[], targetCount: number): SlideTemplate[] {
-  if (templates.length === 0) return templates;
-  const cover = templates[0];
-  const cta = templates[templates.length - 1];
-  const pool = templates.slice(1, -1);
-  if (pool.length === 0) return templates;
-  const contentCount = Math.max(0, targetCount - 2);
-  const contents: SlideTemplate[] = [];
-  for (let i = 0; i < contentCount; i++) {
-    contents.push(pool[i % pool.length]);
-  }
-  return [cover, ...contents, cta];
-}
+// Overlay opacity calibrated per visual style
+const OVERLAY_OPACITY: Record<CarouselVisualStyle, { cover: number; overlay: number; card: number }> = {
+  moderno:     { cover: 0.55, overlay: 0.60, card: 0.30 },
+  premium:     { cover: 0.50, overlay: 0.55, card: 0.25 },
+  clean:       { cover: 0.45, overlay: 0.50, card: 0.20 },
+  chamativo:   { cover: 0.62, overlay: 0.68, card: 0.35 },
+  elegante:    { cover: 0.50, overlay: 0.55, card: 0.25 },
+  minimalista: { cover: 0.40, overlay: 0.45, card: 0.18 },
+};
 
-// ─── BG variant per layout position ──────────────────────────
 function bgForLayout(layout: CarouselLayout, index: number): "primary" | "dark" | "white" | "accent" {
-  if (layout === "cover_hero")   return "primary";
-  if (layout === "cta_final")    return "dark";
+  if (layout === "cover_hero")     return "primary";
+  if (layout === "cta_final")      return "dark";
   if (layout === "bold_statement") return index % 2 === 0 ? "dark" : "primary";
-  if (layout === "content_list") return index % 2 === 0 ? "white" : "accent";
-  if (layout === "split_image")  return "white";
-  if (layout === "card_glass")   return "primary";
-  if (layout === "image_overlay")return "primary";
+  if (layout === "content_list")   return index % 2 === 0 ? "white" : "accent";
+  if (layout === "split_image")    return "white";
+  if (layout === "card_glass")     return "primary";
+  if (layout === "image_overlay")  return "primary";
   return "white";
 }
 
-// ─── Slide content by niche × objective ──────────────────────
-interface SlideTemplate {
-  badge?: string;
-  title: string;
-  subtitle?: string;
-  body?: string;
-  cta?: string;
-  listItems?: string[];
-}
+// ─── Niche classification ─────────────────────────────────────
 
 type NicheKey = "barbearia" | "odontologia" | "personal-trainer" | "restaurante" |
                 "estetica" | "loja-roupa" | "mecanica" | "imobiliaria" |
@@ -143,252 +127,359 @@ function nicheKey(niche: string): NicheKey {
   return "outro";
 }
 
-function getSlideTemplates(
-  niche: NicheKey,
-  objective: CarouselObjective,
-  subject: string,
-  businessName: string,
-  city: string,
-  mainService: string,
-  whatsapp: string
-): SlideTemplate[] {
-  const B = businessName;
-  const C = city;
-  const S = subject || mainService;
-  const W = whatsapp;
+// ─── Niche keyword banks ──────────────────────────────────────
+// [técnica, serviço principal, benefício1, benefício2, dor1, dor2, prova1, prova2]
 
-  // CTA text by objective
-  const ctaTexts: Record<CarouselObjective, string> = {
-    vender:    "Chame no WhatsApp e solicite agora",
-    educar:    "Chame no WhatsApp para saber mais",
-    promocao:  "Aproveite — chame no WhatsApp agora",
-    servico:   "Chame no WhatsApp e agende",
-    autoridade:"Fale com a gente pelo WhatsApp",
-    whatsapp:  "Chame agora no WhatsApp",
-    recuperar: "A gente te espera — chame no WhatsApp",
-    novidade:  "Fique por dentro — chame no WhatsApp",
-    duvidas:   "Ficou com dúvida? Chame no WhatsApp",
-  };
+type NicheKwTuple = [string, string, string, string, string, string, string, string];
+const NICHE_KW: Record<NicheKey, NicheKwTuple> = {
+  barbearia:         ["corte",      "barba",           "estilo",        "acabamento",    "corte mal feito",     "visual sem cuidado", "profissional dedicado",  "resultado impecável"],
+  odontologia:       ["técnica",    "sorriso",         "saúde bucal",   "bem-estar",     "descuido dental",     "dor de dente",       "prevenção eficaz",        "tratamento humanizado"],
+  "personal-trainer":["método",     "treino",          "evolução",      "resultado",     "treino sem foco",     "planejamento errado","acompanhamento real",     "resultado consistente"],
+  restaurante:       ["receita",    "ingredientes",    "sabor",         "experiência",   "comida sem qualidade","demora",             "ingredientes frescos",    "ambiente agradável"],
+  estetica:          ["procedimento","tratamento",     "beleza",        "autocuidado",   "falta de técnica",    "resultado fraco",    "procedimento correto",    "resultado visível"],
+  "loja-roupa":      ["curadoria",  "peças",           "estilo",        "look completo", "roupa sem qualidade", "tamanho errado",     "curadoria exclusiva",     "atendimento personalizado"],
+  mecanica:          ["diagnóstico","revisão",         "segurança",     "confiança",     "problema sem solução","carro parado",       "orçamento transparente",  "prazo garantido"],
+  imobiliaria:       ["negociação", "imóvel",          "realização",    "segurança",     "processo complicado", "documentação errada","experiência de mercado",  "negociação eficaz"],
+  "clinica-medica":  ["diagnóstico","consulta",        "saúde",         "bem-estar",     "descuido com saúde",  "consulta atrasada",  "atendimento humanizado",  "resultado responsável"],
+  outro:             ["processo",   "serviço",         "qualidade",     "resultado",     "falta de atenção",    "resultado abaixo do esperado","dedicação real","experiência comprovada"],
+};
 
-  const ctaFinal = ctaTexts[objective];
+// Badge cover by niche
+const NICHE_COVER_BADGE: Record<NicheKey, string> = {
+  barbearia: "VISUAL", odontologia: "SORRISO", "personal-trainer": "TREINO",
+  restaurante: "HOJE", estetica: "BELEZA", "loja-roupa": "NOVIDADE",
+  mecanica: "AUTO", imobiliaria: "IMÓVEL", "clinica-medica": "SAÚDE", outro: "DESTAQUE",
+};
 
-  type NicheTemplates = Partial<Record<CarouselObjective | "default", SlideTemplate[]>>;
-  const templatesByNiche: Record<NicheKey, NicheTemplates> = {
-    barbearia: {
-      vender: [
-        { badge: "VISUAL", title: "Seu visual fala antes de você", subtitle: "Cuide do que as pessoas veem primeiro." },
-        { badge: "01", title: "Um corte certo muda tudo", body: "Não é só estética. É confiança. É presença. É como você se apresenta para o mundo a cada dia." },
-        { badge: "02", title: "O que a gente faz por você", listItems: ["Corte masculino", "Barba na navalha", "Acabamento preciso", "Atendimento sem enrolação"] },
-        { badge: "03", title: "Estilo que combina com você", body: `Em ${C}, você encontra cortes modernos e personalizados na ${B}. Agende pelo WhatsApp.` },
-        { badge: "04", title: "Resultado que você vê no espelho", body: "Cuidado com os detalhes, respeito pelo seu tempo e um corte que dura." },
-        { badge: "CTA", title: "Agende agora pelo WhatsApp", cta: ctaFinal },
-      ],
-      promocao: [
-        { badge: "OFERTA", title: "Semana de preço especial na barbearia", subtitle: "Corte + barba com condição exclusiva." },
-        { badge: "01", title: "Aproveite enquanto dura", body: "Promoção válida essa semana. Atendimento com hora marcada para você." },
-        { badge: "02", title: "O que está incluído", listItems: ["Corte masculino", "Barba completa", "Produto pós-barba", "Horário garantido"] },
-        { badge: "03", title: "Agenda limitada", body: "Os horários estão preenchendo rápido. Reserve o seu antes que acabe." },
-        { badge: "04", title: "É só chamar no WhatsApp", body: `Manda uma mensagem pra ${B} e garante seu horário agora.` },
-        { badge: "CTA", title: "Garantir meu horário agora", cta: ctaFinal },
-      ],
-      default: [
-        { badge: "BARBEARIA", title: "Corte e barba de verdade", subtitle: `${B} — ${C}` },
-        { badge: "01", title: `Serviços na ${B}`, listItems: ["Corte masculino", "Barba", "Acabamento", "Navalha"] },
-        { badge: "02", title: "Cuidado de verdade", body: "Cada cliente é atendido com atenção, técnica e respeito pelo seu estilo." },
-        { badge: "03", title: `Localização: ${C}`, body: "Fácil de chegar, fácil de agendar. Atendimento com hora marcada pelo WhatsApp." },
-        { badge: "04", title: "Confira o resultado", body: "Clientes que chegam de novo e indicam para os amigos." },
-        { badge: "CTA", title: "Agende seu horário agora", cta: ctaFinal },
-      ],
-    },
-    odontologia: {
-      educar: [
-        { badge: "SAÚDE", title: "Seu sorriso conta uma história", subtitle: "E você merece que ela seja bonita." },
-        { badge: "01", title: "Por que cuidar da saúde bucal agora?", body: "Problemas que não doem hoje podem virar tratamentos caros amanhã. Prevenção é o melhor caminho." },
-        { badge: "02", title: "3 hábitos que fazem diferença", listItems: ["Escovar 3× ao dia com técnica correta", "Usar fio dental todos os dias", "Consulta a cada 6 meses"] },
-        { badge: "03", title: "O que avaliamos na consulta", body: "Gengiva, esmalte, mordida, desgastes — tudo é observado para garantir sua saúde a longo prazo." },
-        { badge: "04", title: "Prevenção é tratamento também", body: `Na ${B} em ${C}, cada consulta é um investimento no seu sorriso.` },
-        { badge: "CTA", title: "Agende sua avaliação", cta: ctaFinal },
-      ],
-      vender: [
-        { badge: "SORRISO", title: "Um sorriso bonito começa com uma avaliação", subtitle: "Primeira consulta com análise completa." },
-        { badge: "01", title: "Você já pensou no seu sorriso?", body: "Clarear, alinhar, corrigir ou só manter saudável — tudo começa com saber onde você está." },
-        { badge: "02", title: "O que oferecemos", listItems: ["Clareamento dental", "Ortodontia", "Implantes", "Limpeza e prevenção"] },
-        { badge: "03", title: "Resultado que você vê e sente", body: `Atendimento humanizado, tecnologia atual e cuidado real com cada paciente da ${B}.` },
-        { badge: "04", title: "Sem enrolação, com cuidado", body: `Em ${C}, você agenda direto pelo WhatsApp e já garante seu horário.` },
-        { badge: "CTA", title: "Agendar avaliação gratuita", cta: ctaFinal },
-      ],
-      default: [
-        { badge: "ODONTO", title: "Cuidado com seu sorriso", subtitle: `${B} — ${C}` },
-        { badge: "01", title: "Nossos serviços", listItems: ["Limpeza", "Clareamento", "Ortodontia", "Implantes"] },
-        { badge: "02", title: "Saúde bucal em dia", body: "Consultas preventivas salvam seu sorriso e seu bolso a longo prazo." },
-        { badge: "03", title: "Atendimento humanizado", body: "Cada paciente é tratado com atenção e cuidado individualizado." },
-        { badge: "04", title: `Localizado em ${C}`, body: "Agendamento fácil pelo WhatsApp. Horários flexíveis para sua rotina." },
-        { badge: "CTA", title: "Agende sua consulta", cta: ctaFinal },
-      ],
-    },
-    "personal-trainer": {
-      vender: [
-        { badge: "TREINO", title: "Resultados reais precisam de método", subtitle: "Não de sorte, não de improviso." },
-        { badge: "01", title: "Por que treinar com acompanhamento?", body: "Treino sem orientação é tempo perdido. Com método certo, cada semana conta." },
-        { badge: "02", title: "O que você vai ter", listItems: ["Planilha personalizada", "Acompanhamento semanal", "Ajustes conforme evolução", "Suporte via WhatsApp"] },
-        { badge: "03", title: "Sem achismo, com ciência", body: `Na ${B}, cada treino é montado para o seu corpo, seus objetivos e sua rotina.` },
-        { badge: "04", title: "Resultados consistentes", body: "Quem segue o método evolui. Simples assim." },
-        { badge: "CTA", title: "Começar agora", cta: ctaFinal },
-      ],
-      default: [
-        { badge: "FITNESS", title: "Transforme sua rotina de treino", subtitle: `${B} — ${C}` },
-        { badge: "01", title: "Personal training personalizado", listItems: ["Avaliação física inicial", "Treino sob medida", "Acompanhamento contínuo", "Resultados mensuráveis"] },
-        { badge: "02", title: "Seu objetivo, nosso método", body: "Emagrecer, ganhar massa, melhorar performance — cada meta tem um caminho." },
-        { badge: "03", title: "Treino onde você preferir", body: "Academia, ar livre ou online. A orientação vai com você." },
-        { badge: "04", title: `Personal em ${C}`, body: "Agende uma avaliação gratuita e veja como podemos trabalhar juntos." },
-        { badge: "CTA", title: "Agendar avaliação", cta: ctaFinal },
-      ],
-    },
-    restaurante: {
-      vender: [
-        { badge: "HOJE", title: "Uma refeição que vale a visita", subtitle: "Comida boa, ambiente gostoso, sem complicação." },
-        { badge: "01", title: "O que tem no prato hoje", body: "Ingredientes frescos, receitas que fazem você voltar e um cardápio pensado com cuidado." },
-        { badge: "02", title: "Destaques do cardápio", listItems: [mainService, "Pratos executivos", "Sobremesas da casa", "Opções para entrega"] },
-        { badge: "03", title: "Peça pelo WhatsApp", body: "Delivery ou reserva de mesa — tudo direto pelo WhatsApp, sem complicação." },
-        { badge: "04", title: `O melhor da cozinha em ${C}`, body: `${B} — onde cada prato é feito com capricho.` },
-        { badge: "CTA", title: "Fazer pedido agora", cta: ctaFinal },
-      ],
-      default: [
-        { badge: "CARDÁPIO", title: "Venha experimentar", subtitle: `${B} — ${C}` },
-        { badge: "01", title: "Destaques de hoje", listItems: [mainService, "Pratos especiais", "Sobremesas", "Bebidas"] },
-        { badge: "02", title: "Feito com cuidado", body: "Ingredientes selecionados e receitas tradicionais que conquistam." },
-        { badge: "03", title: "Entrega e salão", body: "Peça pelo WhatsApp ou venha visitar o salão. Atendimento rápido e gostoso." },
-        { badge: "04", title: `Em ${C}`, body: "Funcionamos todos os dias. Consulte horários pelo WhatsApp." },
-        { badge: "CTA", title: "Pedir agora", cta: ctaFinal },
-      ],
-    },
-    estetica: {
-      vender: [
-        { badge: "BELEZA", title: "Cuidado que você sente na pele", subtitle: "Procedimentos que entregam resultado." },
-        { badge: "01", title: "Você merece esse cuidado", body: "Rotina corrida demais? Um horário reservado só para você faz toda a diferença." },
-        { badge: "02", title: "Nossos tratamentos", listItems: [mainService, "Skincare personalizado", "Procedimentos faciais", "Relaxamento"] },
-        { badge: "03", title: "Resultado visível", body: `${B} usa técnicas e produtos selecionados para entregar o melhor resultado para você.` },
-        { badge: "04", title: `Estética em ${C}`, body: "Agende pelo WhatsApp. Horários disponíveis essa semana." },
-        { badge: "CTA", title: "Agendar horário", cta: ctaFinal },
-      ],
-      default: [
-        { badge: "ESTÉTICA", title: "Cuide de você", subtitle: `${B} — ${C}` },
-        { badge: "01", title: "Tratamentos disponíveis", listItems: [mainService, "Faciais", "Corporais", "Relaxantes"] },
-        { badge: "02", title: "Profissional qualificada", body: "Atendimento especializado, ambiente acolhedor e técnicas atualizadas." },
-        { badge: "03", title: "Resultado que você vê", body: "Cada tratamento é planejado para você alcançar o resultado que deseja." },
-        { badge: "04", title: `Localizada em ${C}`, body: "Agende pelo WhatsApp e garante seu horário essa semana." },
-        { badge: "CTA", title: "Agendar agora", cta: ctaFinal },
-      ],
-    },
-    "loja-roupa": {
-      vender: [
-        { badge: "NOVIDADE", title: "Peças que acabaram de chegar", subtitle: "Escolhas feitas para facilitar o seu estilo." },
-        { badge: "01", title: "O que chegou essa semana", body: "Peças novas com estilo, qualidade e opções para montar looks completos." },
-        { badge: "02", title: "Por que comprar aqui", listItems: ["Qualidade real", "Tamanhos variados", "Entrega rápida", "Fotos reais sem filtro"] },
-        { badge: "03", title: "Monte seu look", body: "Combine as peças, peça sugestões pelo WhatsApp e receba em casa." },
-        { badge: "04", title: "Atendimento pelo WhatsApp", body: `Tire dúvidas, veja disponibilidade e faça seu pedido direto com ${B}.` },
-        { badge: "CTA", title: "Ver peças disponíveis", cta: ctaFinal },
-      ],
-      default: [
-        { badge: "MODA", title: "Estilo do seu jeito", subtitle: `${B} — ${C}` },
-        { badge: "01", title: "O que você encontra aqui", listItems: ["Roupas femininas", "Looks completos", "Tamanhos especiais", "Novidades semanais"] },
-        { badge: "02", title: "Qualidade que você vê", body: "Peças selecionadas com cuidado para entregar moda acessível e real." },
-        { badge: "03", title: "Atendimento pelo WhatsApp", body: "Fotos reais, preços diretos e entrega para sua casa." },
-        { badge: "04", title: "Loja online", body: `Chame no WhatsApp da ${B} e veja as opções disponíveis hoje.` },
-        { badge: "CTA", title: "Ver peças agora", cta: ctaFinal },
-      ],
-    },
-    mecanica: {
-      vender: [
-        { badge: "AUTO", title: "Seu carro merece cuidado de verdade", subtitle: "Diagnóstico preciso. Serviço honesto." },
-        { badge: "01", title: "O que pode estar errado no seu carro?", body: "Barulho estranho, luz acesa no painel, freio mole — cada sinal merece atenção antes de virar problema maior." },
-        { badge: "02", title: "Serviços que fazemos", listItems: ["Revisão geral", "Freios e suspensão", "Troca de óleo", "Diagnóstico eletrônico"] },
-        { badge: "03", title: "Orçamento sem surpresa", body: "A gente mostra o que precisa antes de fazer. Sem custo oculto, sem enrolação." },
-        { badge: "04", title: `Mecânica em ${C}`, body: `${B} — anos de experiência cuidando do seu veículo.` },
-        { badge: "CTA", title: "Pedir orçamento agora", cta: ctaFinal },
-      ],
-      default: [
-        { badge: "MECÂNICA", title: "Cuidado com seu veículo", subtitle: `${B} — ${C}` },
-        { badge: "01", title: "Nossos serviços", listItems: ["Revisão completa", "Troca de óleo", "Freios", "Suspensão"] },
-        { badge: "02", title: "Diagnóstico honesto", body: "Você sabe o que está sendo feito no seu carro antes de aprovar qualquer serviço." },
-        { badge: "03", title: "Orçamento rápido", body: "Manda foto ou descreve o problema pelo WhatsApp e recebe orçamento em minutos." },
-        { badge: "04", title: `Em ${C}`, body: "Atendemos com hora marcada e sem enrolação. Seu carro pronto no prazo." },
-        { badge: "CTA", title: "Pedir orçamento", cta: ctaFinal },
-      ],
-    },
-    imobiliaria: {
-      vender: [
-        { badge: "IMÓVEL", title: "Seu próximo endereço começa aqui", subtitle: "Comprar, vender ou alugar com quem conhece o mercado." },
-        { badge: "01", title: "O que você está procurando?", body: "Apartamento, casa ou comercial — a gente tem opções e conhece o que está disponível na região." },
-        { badge: "02", title: "Por que contar com um corretor?", listItems: ["Acesso a imóveis exclusivos", "Negociação especializada", "Documentação sem erro", "Processo seguro"] },
-        { badge: "03", title: "Encontramos o imóvel certo", body: `${B} em ${C} — anos de mercado e carteira qualificada de imóveis.` },
-        { badge: "04", title: "Primeira conversa sem compromisso", body: "Chame no WhatsApp, conta o que você precisa e a gente te apresenta as melhores opções." },
-        { badge: "CTA", title: "Falar com corretor agora", cta: ctaFinal },
-      ],
-      default: [
-        { badge: "IMÓVEL", title: "Realize seu sonho", subtitle: `${B} — ${C}` },
-        { badge: "01", title: "Especialidades", listItems: ["Compra e venda", "Locação", "Imóveis comerciais", "Consultoria"] },
-        { badge: "02", title: "Atendimento personalizado", body: "Cada cliente tem necessidades únicas. Encontramos o imóvel certo para você." },
-        { badge: "03", title: "Mercado local", body: `Conhecemos ${C} profundamente — bairros, preços, tendências.` },
-        { badge: "04", title: "Negociação sem estresse", body: "Cuidamos de toda a documentação e tratativas para você." },
-        { badge: "CTA", title: "Conversar com especialista", cta: ctaFinal },
-      ],
-    },
-    "clinica-medica": {
-      educar: [
-        { badge: "SAÚDE", title: "Informação é o primeiro cuidado", subtitle: "Conteúdo de saúde com responsabilidade." },
-        { badge: "01", title: "Prevenção vale mais que tratamento", body: "Consultas periódicas identificam problemas cedo, quando o tratamento é mais simples e acessível." },
-        { badge: "02", title: "Hábitos que protegem sua saúde", listItems: ["Consultas preventivas anuais", "Exames em dia", "Sono regular", "Alimentação equilibrada"] },
-        { badge: "03", title: "Quando procurar o médico?", body: "Sintomas persistentes, mesmo leves, merecem atenção. Não espere o problema se agravar." },
-        { badge: "04", title: `Atendimento em ${C}`, body: `${B} — cuidado médico humanizado e responsável.` },
-        { badge: "CTA", title: "Agendar consulta", cta: ctaFinal },
-      ],
-      default: [
-        { badge: "SAÚDE", title: "Cuide da sua saúde", subtitle: `${B} — ${C}` },
-        { badge: "01", title: "Especialidades", listItems: [mainService, "Consultas preventivas", "Exames", "Orientação médica"] },
-        { badge: "02", title: "Atendimento humanizado", body: "Cada paciente é ouvido com atenção. Diagnóstico responsável e transparente." },
-        { badge: "03", title: "Prevenção primeiro", body: "Manter a saúde em dia evita complicações maiores. Consultas regulares fazem diferença." },
-        { badge: "04", title: `Localizado em ${C}`, body: "Agende sua consulta pelo WhatsApp. Horários disponíveis essa semana." },
-        { badge: "CTA", title: "Agendar consulta", cta: ctaFinal },
-      ],
-    },
-    outro: {
-      vender: [
-        { badge: "DESTAQUE", title: `${S || mainService}`, subtitle: `${B} — ${C}` },
-        { badge: "01", title: "O que fazemos por você", body: `Na ${B}, cada cliente recebe atenção personalizada e resultado de qualidade.` },
-        { badge: "02", title: "Por que escolher a gente", listItems: ["Atendimento ágil", "Qualidade comprovada", "Preço justo", "Suporte pelo WhatsApp"] },
-        { badge: "03", title: "Como funciona", body: "Chame no WhatsApp, conta o que você precisa e recebe atendimento rápido." },
-        { badge: "04", title: `Em ${C}`, body: "Presença local, atendimento humano. Sua satisfação é nossa prioridade." },
-        { badge: "CTA", title: "Entrar em contato agora", cta: ctaFinal },
-      ],
-      default: [
-        { badge: "SERVIÇO", title: S || mainService, subtitle: `${B} — ${C}` },
-        { badge: "01", title: "Nossos serviços", listItems: [mainService, "Atendimento personalizado", "Orçamento rápido", "Resultado garantido"] },
-        { badge: "02", title: "Qualidade em cada detalhe", body: `${B} se dedica a entregar o melhor resultado para cada cliente.` },
-        { badge: "03", title: "Atendimento ágil", body: "Chame no WhatsApp para orçamento, dúvidas ou agendamento." },
-        { badge: "04", title: `Localizado em ${C}`, body: "Atendemos com compromisso e seriedade. Veja nosso trabalho." },
-        { badge: "CTA", title: "Falar agora", cta: ctaFinal },
-      ],
-    },
-  };
+// ─── Angle system ─────────────────────────────────────────────
 
-  const nicheTemplates = templatesByNiche[niche];
-  const templates = nicheTemplates[objective] ?? nicheTemplates["vender"] ?? nicheTemplates["default"] ?? templatesByNiche.outro["default"]!;
-  return templates;
+type AngleId = "confianca" | "educativo" | "urgencia" | "diferenciais" | "resultado" | "inspiracao";
+
+const COVER_TITLES: Record<AngleId, string[]> = {
+  confianca: [
+    "Segurança em {sub} que você vai sentir na prática",
+    "Profissionalismo em {sub}: veja como funciona de verdade",
+    "Confiança e qualidade em {sub}: o que faz a diferença",
+    "Quando {sub} é feito com cuidado, o resultado aparece",
+  ],
+  educativo: [
+    "O que você precisa entender sobre {sub}",
+    "{sub}: um guia direto e sem enrolação",
+    "Informação que faz diferença em {sub}",
+    "O essencial sobre {sub} em poucos passos claros",
+  ],
+  urgencia: [
+    "Condições especiais em {sub} — aproveite antes que acabe",
+    "Agora é o momento certo para {sub}",
+    "{sub}: oportunidade real por tempo limitado",
+    "Essa janela em {sub} fecha em breve — confira",
+  ],
+  diferenciais: [
+    "O que separa {B} de qualquer outro em {sub}",
+    "{sub} do jeito que deveria ser feito",
+    "O diferencial real em {sub}: o que muda tudo",
+    "Por que a escolha certa em {sub} começa aqui",
+  ],
+  resultado: [
+    "O resultado de {sub} feito com dedicação",
+    "{sub}: a transformação que você vai perceber",
+    "Resultado real quando {sub} é bem conduzido",
+    "{sub} com resultado que você pode medir e sentir",
+  ],
+  inspiracao: [
+    "{sub} pode mudar sua trajetória",
+    "A oportunidade em {sub} está aqui agora",
+    "O próximo passo que faz diferença começa em {sub}",
+    "Uma boa decisão em {sub} muda muita coisa",
+  ],
+};
+
+const COVER_SUBTITLES: Record<AngleId, string[]> = {
+  confianca:    ["Qualidade que você vai ver e sentir.", "Transparência em cada etapa do processo."],
+  educativo:    ["Conteúdo direto, sem enrolação.", "Informação que vale a pena guardar."],
+  urgencia:     ["Aproveite enquanto está disponível.", "Oportunidade real, por tempo limitado."],
+  diferenciais: ["Veja o que nos torna diferentes.", "Qualidade que se comprova na prática."],
+  resultado:    ["Resultado real, não só promessa.", "Antes e depois que você vai perceber."],
+  inspiracao:   ["Uma decisão que faz diferença.", "Comece hoje, veja o impacto amanhã."],
+};
+
+const ANGLES_BY_OBJECTIVE: Record<CarouselObjective, AngleId[]> = {
+  vender:    ["confianca",    "resultado",   "diferenciais"],
+  educar:    ["educativo",    "resultado",   "inspiracao"],
+  promocao:  ["urgencia",     "diferenciais","resultado"],
+  servico:   ["diferenciais", "resultado",   "confianca"],
+  autoridade:["diferenciais", "confianca",   "educativo"],
+  whatsapp:  ["urgencia",     "confianca",   "diferenciais"],
+  recuperar: ["inspiracao",   "resultado",   "confianca"],
+  novidade:  ["resultado",    "diferenciais","inspiracao"],
+  duvidas:   ["educativo",    "confianca",   "resultado"],
+};
+
+// ─── Narrative structure system ───────────────────────────────
+
+type SlideRole =
+  "problema" | "solucao" | "beneficio" | "prova" |
+  "curiosidade" | "explicacao" | "vantagem" | "autoridade_slide" |
+  "lista" | "diferencial" | "prova_social" |
+  "erro" | "causa" | "resultado_slide" |
+  "identidade" | "oferta";
+
+type StructureId = "A" | "B" | "C" | "D" | "E";
+
+// Content roles between cover and CTA — cycles if slideCount > 6
+const STRUCTURES: Record<StructureId, SlideRole[]> = {
+  A: ["problema",    "solucao",    "beneficio",     "prova"],
+  B: ["curiosidade", "explicacao", "vantagem",      "autoridade_slide"],
+  C: ["lista",       "beneficio",  "diferencial",   "prova_social"],
+  D: ["erro",        "causa",      "solucao",       "resultado_slide"],
+  E: ["identidade",  "diferencial","prova_social",  "beneficio"],
+};
+
+const STRUCTURES_BY_OBJECTIVE: Record<CarouselObjective, StructureId[]> = {
+  vender:    ["A", "C", "E"],
+  educar:    ["B", "C", "D"],
+  promocao:  ["A", "C", "E"],
+  servico:   ["E", "A", "B"],
+  autoridade:["E", "B", "C"],
+  whatsapp:  ["C", "A", "E"],
+  recuperar: ["A", "E", "B"],
+  novidade:  ["B", "C", "A"],
+  duvidas:   ["B", "D", "C"],
+};
+
+// ─── Slide template ───────────────────────────────────────────
+
+interface SlideTemplate {
+  badge?: string;
+  title: string;
+  subtitle?: string;
+  body?: string;
+  cta?: string;
+  listItems?: string[];
 }
 
-// ─── Content interpretation ──────────────────────────────────
+// ─── Role content generators ──────────────────────────────────
+// v = (baseVariation + slideIndex) % 3  →  picks variant per slide
+
+type RoleFn = (sub: string, B: string, C: string, svc: string, kw: NicheKwTuple, v: number) => SlideTemplate;
+
+const ROLE_FNS: Record<SlideRole, RoleFn> = {
+
+  problema: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "ATENÇÃO",    title: `O que trava o resultado em ${sub}`,
+        body: `Sem a abordagem certa, ${sub} vira frustração. A diferença está nos detalhes que a maioria ignora.` },
+      { badge: "REALIDADE",  title: `Por que ${sub} muitas vezes não entrega o esperado`,
+        body: `Muita gente chega até aqui sem clareza sobre ${sub}. Isso tem um custo real no resultado final.` },
+      { badge: "O PROBLEMA", title: `O erro mais comum em ${sub}`,
+        body: `A falta de ${kw[0]} e ${kw[1]} é o que faz ${sub} não funcionar como deveria.` },
+    ];
+    return variants[v % variants.length];
+  },
+
+  solucao: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "A SOLUÇÃO",     title: `Como ${B} trata ${sub} diferente`,
+        body: `Na ${B}, ${sub} é conduzido com ${kw[0]}, ${kw[2]} e atenção a cada detalhe que faz diferença.` },
+      { badge: "COMO FAZEMOS",  title: `A abordagem que realmente funciona em ${sub}`,
+        body: `O processo correto começa por entender o que cada cliente precisa. Não tem atalho: é assim que ${sub} entrega resultado.` },
+      { badge: "NOSSA RESPOSTA",title: `O que muda quando ${sub} é feito certo`,
+        body: `Com ${kw[2]} e ${kw[3]}, ${sub} deixa de ser problema e passa a ser resultado consistente.` },
+    ];
+    return variants[v % variants.length];
+  },
+
+  beneficio: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "BENEFÍCIOS",      title: `O que você ganha com ${sub} feito certo`,
+        listItems: [`${kw[2]} de qualidade`, `${kw[3]} dedicado`, "Processo transparente", "Resultado que dura"] },
+      { badge: "VANTAGENS",       title: `Por que vale cada investimento em ${sub}`,
+        body: `Além do resultado imediato, ${sub} traz ${kw[2]} que você vai notar no dia a dia. ${B} garante isso com cada atendimento.` },
+      { badge: "O QUE VOCÊ GANHA",title: `${sub}: muito além do resultado imediato`,
+        listItems: [`Mais ${kw[2]}`, `Melhor ${kw[3]}`, "Processo sem surpresas", "Suporte pelo WhatsApp"] },
+    ];
+    return variants[v % variants.length];
+  },
+
+  prova: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "NA PRÁTICA",  title: `Resultado real, não promessa`,
+        body: `Os clientes da ${B} em ${C} chegam com dúvida e saem com ${kw[2]}. É isso que faz a diferença.` },
+      { badge: "RESULTADO",   title: `${B} — anos de prática em ${sub}`,
+        body: `Cada atendimento é uma oportunidade de confirmar o compromisso com ${kw[2]} e ${kw[3]} real.` },
+      { badge: "CONFIANÇA",   title: `Por que clientes voltam e indicam ${B}`,
+        body: `${kw[6]} e ${kw[2]} consistente são a base de tudo que fazemos em ${C}.` },
+    ];
+    return variants[v % variants.length];
+  },
+
+  curiosidade: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "VOCÊ SABIA?", title: `O que a maioria não sabe sobre ${sub}`,
+        body: `A diferença entre resultado médio e resultado real em ${sub} começa muito antes do que você imagina. Arrasta para entender.` },
+      { badge: "FATO REAL",   title: `${sub} pode ser diferente do que você viveu até hoje`,
+        body: `Nem todo ${sub} é igual. ${kw[0]} e ${kw[2]} dependem de como cada etapa é conduzida.` },
+      { badge: "VALE SABER",  title: `Um fato sobre ${sub} que muda sua perspectiva`,
+        body: `Com o profissional certo, ${sub} vai além do básico. É ${kw[2]}, ${kw[3]} e ${kw[6]} ao mesmo tempo.` },
+    ];
+    return variants[v % variants.length];
+  },
+
+  explicacao: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "COMO FUNCIONA", title: `O processo por trás de ${sub}`,
+        body: `Em ${B}, cada etapa de ${sub} é pensada para garantir ${kw[2]} e ${kw[3]} do início ao fim.` },
+      { badge: "ETAPA A ETAPA", title: `Veja como ${sub} funciona na prática`,
+        listItems: [`Entendemos o que você precisa`, `Planejamento personalizado`, `Execução com ${kw[0]}`, `Resultado verificável`] },
+      { badge: "POR DENTRO",    title: `O que envolve ${sub} de verdade`,
+        body: `${sub} bem feito exige ${kw[0]}, ${kw[2]} e atenção constante. É isso que ${B} oferece em cada atendimento.` },
+    ];
+    return variants[v % variants.length];
+  },
+
+  vantagem: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "AS VANTAGENS",  title: `Por que ${sub} na ${B} faz diferença`,
+        listItems: [`${kw[6]}`, `${kw[2]} consistente`, `Processo claro e direto`, `Atendimento em ${C}`] },
+      { badge: "O QUE MUDA",    title: `As vantagens de ${sub} bem feito`,
+        body: `Quando ${sub} é conduzido com ${kw[2]} real, os benefícios vão além do esperado — você percebe na prática.` },
+      { badge: "DIFERENÇA REAL",title: `O que você não encontra em qualquer lugar`,
+        listItems: [`${kw[0]} acima da média`, `${kw[3]} personalizada`, "Transparência total", `Equipe em ${C}`] },
+    ];
+    return variants[v % variants.length];
+  },
+
+  autoridade_slide: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "QUEM SOMOS",  title: `${B}: referência em ${sub} em ${C}`,
+        body: `Anos de prática e ${kw[6]} formam a base do trabalho da ${B}. Cada cliente percebe a diferença.` },
+      { badge: "NOSSA HISTÓRIA",title: `O que construímos com ${sub}`,
+        body: `${B} nasceu do compromisso com ${kw[2]} e ${kw[7]}. Isso não mudou desde o primeiro dia.` },
+      { badge: "EXPERTISE",   title: `Por que confiar em ${B} para ${sub}`,
+        body: `${kw[6]} e ${kw[7]} que se provam na prática. Em ${C}, ${B} é escolha de quem não abre mão de ${kw[2]}.` },
+    ];
+    return variants[v % variants.length];
+  },
+
+  lista: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "PONTOS CHAVE",    title: `O que realmente importa em ${sub}`,
+        listItems: [`${kw[0]} comprovado`, `${kw[2]} real`, `${kw[3]} em cada etapa`, `Atendimento em ${C}`] },
+      { badge: "4 PONTOS",        title: `4 coisas que fazem diferença em ${sub}`,
+        listItems: [`1. ${kw[0]}`, `2. ${kw[2]}`, `3. ${kw[3]}`, `4. ${kw[6]}`] },
+      { badge: "O QUE VOCÊ MERECE",title: `Por que ${sub} precisa dessas características`,
+        listItems: [`${kw[6]}`, `${kw[0]} correto`, "Transparência total", "Satisfação garantida"] },
+    ];
+    return variants[v % variants.length];
+  },
+
+  diferencial: (sub, B, C, svc, kw, v) => {
+    const badges = ["DIFERENCIAL", "POR QUE A GENTE", `SÓ NA ${B}`];
+    const variants: SlideTemplate[] = [
+      { badge: badges[0], title: `O que ${B} tem que poucos têm`,
+        body: `${kw[6]}, ${kw[2]} e compromisso real com cada cliente. Não é padrão. É escolha.` },
+      { badge: badges[1], title: `Por que escolher ${B} para ${sub}`,
+        listItems: [`${kw[6]}`, `Localizado em ${C}`, `${kw[0]} verificável`, `Atendimento pelo WhatsApp`] },
+      { badge: badges[2], title: `O que você não vai encontrar em outro lugar`,
+        body: `${kw[2]} e ${kw[3]} que ${B} entrega em ${C} vêm de uma combinação única de ${kw[0]} e ${kw[7]}.` },
+    ];
+    return variants[v % variants.length];
+  },
+
+  prova_social: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "NA PRÁTICA",     title: `Clientes que já confiaram na ${B}`,
+        body: `Em ${C}, quem escolheu ${B} para ${sub} percebeu a diferença. ${kw[7]} e ${kw[6]} que geram retorno.` },
+      { badge: "HISTÓRIAS REAIS",title: `O que quem passou por aqui diz`,
+        body: `Cada cliente saiu com mais do que esperava: ${kw[2]}, ${kw[3]} e a segurança de ter escolhido certo.` },
+      { badge: "CONFIAM NA GENTE",title: `Por que nossos clientes voltam e indicam`,
+        body: `Resultado não é sorte. É ${kw[0]}, ${kw[2]} e ${kw[6]} que ${B} oferece em cada visita.` },
+    ];
+    return variants[v % variants.length];
+  },
+
+  erro: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "ATENÇÃO",   title: `O erro mais comum em ${sub}`,
+        body: `Falta de ${kw[0]} na hora certa. Isso costuma custar mais caro do que parece no início.` },
+      { badge: "EVITE ISSO",title: `O que atrapalha seus resultados em ${sub}`,
+        body: `${kw[4]} e ${kw[5]} são mais comuns do que deveriam. E têm solução.` },
+      { badge: "REALIDADE",  title: `Por que ${sub} não funciona para muita gente`,
+        body: `Sem o profissional certo, ${sub} vira decepção. A causa quase sempre está em ${kw[4]} desde o início.` },
+    ];
+    return variants[v % variants.length];
+  },
+
+  causa: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "A CAUSA",  title: `Por que isso acontece em ${sub}`,
+        body: `A raiz do problema em ${sub} quase sempre está na falta de ${kw[0]} e ${kw[6]}. Mas tem como mudar.` },
+      { badge: "ENTENDA",  title: `O que está por trás do problema`,
+        body: `Sem ${kw[2]} e ${kw[3]} desde o início, ${sub} não entrega o que deveria.` },
+      { badge: "ORIGEM",   title: `De onde vem o problema em ${sub}`,
+        body: `${kw[4]} no processo inicial gera a maior parte dos problemas. Identificar é o primeiro passo.` },
+    ];
+    return variants[v % variants.length];
+  },
+
+  resultado_slide: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "RESULTADO",      title: `O que muda quando ${sub} é feito certo`,
+        body: `Com ${kw[2]} real e ${kw[0]} correto, ${sub} entrega exatamente o que você precisava desde o início.` },
+      { badge: "TRANSFORMAÇÃO",  title: `A diferença que você vai sentir`,
+        body: `${kw[2]} que você vê, ${kw[3]} que você sente. Isso é ${sub} feito com ${kw[6]}.` },
+      { badge: "ANTES E DEPOIS", title: `O impacto de ${sub} feito corretamente`,
+        body: `Quem passou pelo processo certo em ${B} saiu com mais ${kw[2]}, mais clareza e mais confiança.` },
+    ];
+    return variants[v % variants.length];
+  },
+
+  identidade: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "QUEM SOMOS",     title: `${B} — ${sub} em ${C}`,
+        body: `Uma equipe dedicada a entregar ${kw[2]} e ${kw[3]} de qualidade. Do atendimento à execução, tudo planejado pra você.` },
+      { badge: "NOSSA MISSÃO",   title: `Por que ${B} existe`,
+        body: `Nascemos do compromisso com ${kw[2]} real em ${sub}. Em ${C}, somos referência para quem não abre mão de ${kw[6]}.` },
+      { badge: "CONHEÇA A GENTE",title: `${B}: quem são, o que fazem, onde estão`,
+        listItems: [`Especializados em ${sub}`, `Localizados em ${C}`, `${kw[6]}`, `Agendamento pelo WhatsApp`] },
+    ];
+    return variants[v % variants.length];
+  },
+
+  oferta: (sub, B, C, svc, kw, v) => {
+    const variants: SlideTemplate[] = [
+      { badge: "OFERTA",      title: `Condição especial em ${sub} — por tempo limitado`,
+        body: `${B} preparou uma oportunidade real para você. Disponível em ${C} pelo WhatsApp enquanto durar.` },
+      { badge: "OPORTUNIDADE",title: `${sub} com condições que valem aproveitar agora`,
+        body: `Essa janela em ${sub} não vai durar. Chame no WhatsApp e garanta sua condição antes que feche.` },
+      { badge: "ESPECIAL",    title: `O melhor momento para ${sub}`,
+        body: `Condições exclusivas em ${C}. ${B} está com disponibilidade limitada. Aproveite agora.` },
+    ];
+    return variants[v % variants.length];
+  },
+};
+
+// ─── CTA by objective ─────────────────────────────────────────
+
+const CTA_BY_OBJECTIVE: Record<CarouselObjective, string[]> = {
+  vender:    ["Chame no WhatsApp e solicite agora", "Fale com a gente e garanta o seu", "Chame agora e saiba mais"],
+  educar:    ["Ficou com dúvida? Chame no WhatsApp", "Quer saber mais? É só chamar", "Converse com a gente"],
+  promocao:  ["Aproveite — chame agora no WhatsApp", "Garanta sua condição pelo WhatsApp", "Chame antes que acabe"],
+  servico:   ["Agende pelo WhatsApp", "Chame e marque seu horário", "Solicite pelo WhatsApp"],
+  autoridade:["Fale com quem entende do assunto", "Chame no WhatsApp para conversar", "Converse com especialista"],
+  whatsapp:  ["Chame agora no WhatsApp", "É só mandar mensagem", "Atendimento direto pelo WhatsApp"],
+  recuperar: ["A gente te espera — chame agora", "Volte e fale com a gente", "Retome seu atendimento"],
+  novidade:  ["Chame e conheça a novidade", "Descubra mais pelo WhatsApp", "Fique por dentro — chame agora"],
+  duvidas:   ["Ficou com dúvida? Chame no WhatsApp", "Tire suas dúvidas na hora", "Converse com a gente agora"],
+};
+
+// ─── Input interpretation ─────────────────────────────────────
 
 const META_PREFIXES: RegExp[] = [
-  // "quero criar carrossel sobre X" / "preciso de um post de X"
   /^(quero|preciso)\s+(?:de\s+)?(criar?|gerar?|fazer?|fa[çc]a|escrever?)\s+(um|uma)?\s*(carrossel|post|conte[uú]do|roteiro|legenda)?\s*(de|sobre|do|da|para)?\s*/i,
-  // "quero carrossel sobre X" / "preciso post de X"
   /^(quero|preciso)\s+(de\s+)?(um|uma)?\s*(carrossel|post|conte[uú]do|texto|legenda)\s*(de|sobre|do|da|para)?\s*/i,
-  // "criar carrossel sobre X" / "fazer post de X" / "gere uma legenda sobre X"
   /^(criar?|gerar?|fazer?|fa[çc]a|escrever?)\s+(um|uma)?\s*(carrossel|post|conte[uú]do|roteiro|legenda)?\s*(de|sobre|do|da|para)?\s*/i,
-  // "me ajuda com um carrossel sobre X"
   /^(me\s+)?(ajuda|ajude|crie|cria|gere|gera)\s+(?:com\s+)?(um|uma)?\s*(carrossel|post|conte[uú]do)?\s*(de|sobre|do|da|para)?\s*/i,
-  // "com um carrossel de X" (leftover after iterative strip)
   /^com\s+(?:um|uma)\s*(?:carrossel|post|conte[uú]do)?\s*(?:de|sobre|do|da|para)?\s*/i,
   /^carrossel\s+(de|sobre|do|da)?\s*/i,
   /^posts?\s+(de|sobre|do|da)?\s*/i,
@@ -400,7 +491,6 @@ const META_PREFIXES: RegExp[] = [
   /^promo[çc][aã]o\s+(?:de|do|da|dos|das)?\s*/i,
   /^dica\s+(?:de|sobre|para)?\s*/i,
   /^(?:algo\s+)?sobre\s+/i,
-  // Possessivos soltos no início ("minha loja de bolos" → "loja de bolos")
   /^(?:meu|minha|nosso|nossa)\s+/i,
 ];
 
@@ -418,226 +508,159 @@ function extractCleanSubject(topic: string, mainService: string): string {
   return s.length >= 3 ? s : mainService;
 }
 
-const TITLE_TEMPLATES: Record<CarouselObjective, string[]> = {
-  vender: [
-    "{subject} com quem entende do assunto",
-    "Qualidade em {subject} que você vai notar",
-    "Por que escolher {businessName} para {subject}",
-    "{subject} — resultado que fala por si",
-    "A diferença está em {subject}",
+// ─── Caption hooks and WA messages by angle ───────────────────
+
+const CAPTION_HOOKS: Record<AngleId, string[]> = {
+  confianca: [
+    "{sub}: quando é feito com cuidado real, você percebe a diferença. Arrasta.",
+    "Confiança em {sub} começa com o profissional certo. Veja o que {B} entrega.",
+    "Qualidade em {sub} que você vai ver e sentir. Desliza para conhecer.",
   ],
-  educar: [
-    "{subject}: o que você precisa saber",
-    "Tudo sobre {subject} em poucos slides",
-    "{subject} — dicas que fazem diferença",
-    "Entenda de vez {subject}",
-    "O guia rápido de {subject}",
+  educativo: [
+    "Tudo que você precisa entender sobre {sub} — em poucos slides diretos. Salva.",
+    "Informação que muda a forma de ver {sub}. Arrasta e aprende.",
+    "{sub}: conteúdo que vale a pena guardar. Desliza e confere.",
   ],
-  promocao: [
-    "Promoção especial em {subject}",
-    "{subject} com condições imperdíveis",
-    "Oferta limitada: confira tudo sobre {subject}",
-    "{subject} — oportunidade por tempo limitado",
-    "Condições exclusivas em {subject}",
+  urgencia: [
+    "Essa oportunidade em {sub} não vai durar. Arrasta antes que acabe.",
+    "Condições especiais em {sub} por tempo limitado. Veja tudo no carrossel.",
+    "{sub} com condições que você não vai encontrar todo dia. Desliza agora.",
   ],
-  servico: [
-    "Como funciona: {subject}",
-    "{subject} — veja o processo completo",
-    "Tudo o que envolve {subject}",
-    "{subject}: do início ao resultado",
-    "O processo de {subject} explicado",
+  diferenciais: [
+    "Nem todo lugar entrega {sub} assim. Arrasta e vê o que nos separa.",
+    "O diferencial de {B} em {sub} está em cada detalhe. Desliza para conferir.",
+    "{sub} feito como deveria ser. Veja o que muda quando você escolhe certo.",
   ],
-  autoridade: [
-    "{businessName} em {subject}: expertise que se vê",
-    "Por que somos referência em {subject}",
-    "{subject} com profissionalismo de verdade",
-    "Quem entende de {subject} escolhe {businessName}",
-    "Nossa experiência em {subject}",
+  resultado: [
+    "O resultado de {sub} feito com dedicação fala por si. Arrasta e vê.",
+    "{sub}: o que muda quando é conduzido certo. Desliza para entender.",
+    "Veja o que {sub} entrega quando feito com método. Conteúdo no carrossel.",
   ],
-  whatsapp: [
-    "Chame e fale sobre {subject}",
-    "{subject} — atendimento direto pelo WhatsApp",
-    "Atendimento rápido sobre {subject}",
-    "Fale com a gente sobre {subject}",
-    "{subject}: tudo pelo WhatsApp",
-  ],
-  recuperar: [
-    "Sentimos sua falta em {businessName}",
-    "Volte para {businessName} — sua agenda está aberta",
-    "{businessName} tem novidades pra você",
-    "A gente não esqueceu de você",
-    "Retorne: {subject} esperando por você",
-  ],
-  novidade: [
-    "{subject}: a novidade chegou",
-    "Novidade: {subject} em {businessName}",
-    "Apresentando {subject} — novo no catálogo",
-    "{subject} — recém-chegado",
-    "Conheça a nova opção: {subject}",
-  ],
-  duvidas: [
-    "Respondendo suas dúvidas sobre {subject}",
-    "{subject}: perguntas respondidas",
-    "FAQ de {subject} — tire suas dúvidas",
-    "O que você pergunta sobre {subject}",
-    "{subject}: tudo esclarecido",
+  inspiracao: [
+    "{sub} pode ser o passo que muda sua trajetória. Arrasta e descobre.",
+    "A oportunidade em {sub} está aqui agora. Desliza para ver tudo.",
+    "Uma decisão em {sub} pode fazer muita diferença. Confira no carrossel.",
   ],
 };
 
-const CAPTION_OPENERS: Record<CarouselObjective, string[]> = {
-  vender: [
-    "Arrasta para ver o que {businessName} tem pra você.",
-    "Se você busca qualidade em {subject}, esse conteúdo é pra você.",
-    "Confira tudo sobre {subject} no carrossel abaixo.",
-    "O que você precisa saber sobre {subject} está aqui.",
-    "Desliza para descobrir o que {businessName} pode fazer por você.",
+const WA_MESSAGES: Record<AngleId, string[]> = {
+  confianca: [
+    "Olá! Vi o conteúdo sobre {sub} e gostaria de saber mais.",
+    "Oi! Vim pelo Instagram. O post sobre {sub} me convenceu. Quero conversar.",
+    "Olá, vim pelo Instagram! Quero saber mais sobre {sub}.",
   ],
-  educar: [
-    "Entender {subject} pode mudar completamente o seu resultado. Arrasta.",
-    "Tudo sobre {subject} em poucos slides — salva esse conteúdo.",
-    "Você sabe tudo sobre {subject}? Arrasta e descobre.",
-    "Informação que vale ouro sobre {subject}. Salva e compartilha.",
-    "Desliza e aprende tudo sobre {subject} de forma simples.",
+  educativo: [
+    "Olá! O conteúdo sobre {sub} foi muito útil. Tenho interesse em saber mais.",
+    "Oi! Vi o post explicando {sub} e fiquei com interesse. Como funciona?",
+    "Olá! Vi o guia sobre {sub} e quero agendar uma conversa.",
   ],
-  promocao: [
-    "Promoção por tempo limitado — arrasta antes que acabe.",
-    "Condições especiais em {subject}. Não deixa passar.",
-    "Essa oportunidade em {subject} não vai durar. Confira agora.",
-    "Salva esse post: temos uma oferta especial em {subject}.",
-    "Desliza para ver as condições da promoção.",
+  urgencia: [
+    "Olá! Vi a oportunidade sobre {sub} e vim antes que passe. Ainda está disponível?",
+    "Oi! Vim pelo post de {sub}. Quero aproveitar a condição especial.",
+    "Olá! Vi a oferta de {sub} e quero garantir logo. Tem disponibilidade?",
   ],
-  servico: [
-    "Sabia que funciona assim? Arrasta e vê o processo completo.",
-    "Tudo sobre como funciona {subject}. Desliza para entender.",
-    "Conhece bem o processo? Arrasta e descobre cada etapa.",
-    "Transparência em tudo que fazemos — desliza e vê.",
-    "Arrasta para ver como {subject} funciona na prática.",
+  diferenciais: [
+    "Olá! O diferencial de vocês em {sub} me chamou atenção. Quero conversar.",
+    "Oi! Vi o post sobre {sub} e gostei muito da abordagem. Quero saber mais.",
+    "Olá! Vim pelo Instagram. O conteúdo sobre {sub} me interessou bastante.",
   ],
-  autoridade: [
-    "{businessName} tem algo importante pra compartilhar. Arrasta.",
-    "Expertise que você vê e sente. Desliza para conferir.",
-    "Anos de experiência em {subject} resumidos nesse carrossel.",
-    "Conteúdo de quem realmente entende de {subject}.",
-    "Quem cuida da qualidade, cuida dos detalhes. Arrasta.",
+  resultado: [
+    "Olá! Os resultados de {sub} que vi no post foram impressionantes. Quero saber mais.",
+    "Oi! Vi o post sobre {sub} e o resultado me convenceu. Como funciona?",
+    "Olá! Quero esse resultado em {sub}. Pode me contar como funciona?",
   ],
-  whatsapp: [
-    "Rápido, prático e sem complicação. Desliza e chame no WhatsApp.",
-    "Arrasta para ver o que oferecemos — depois manda mensagem.",
-    "Conteúdo rápido. Depois chama no WhatsApp e a gente resolve.",
-    "Tudo que você precisa saber antes de chamar. Arrasta.",
-    "Prefere resolver pelo WhatsApp? Tudo aqui — depois chama.",
-  ],
-  recuperar: [
-    "Faz tempo que não aparece, mas a gente não esqueceu de você.",
-    "Sua vaga ainda está aqui. Arrasta e vê as novidades.",
-    "Saudade? Desliza que tem novidade pra você.",
-    "Voltou? Que bom. Arrasta para ver o que preparamos.",
-    "A gente reservou um espaço pra você. Desliza.",
-  ],
-  novidade: [
-    "Novidade no catálogo — arrasta para conferir tudo.",
-    "Chegou {subject} em {businessName}. Desliza e vê todos os detalhes.",
-    "Tem coisa nova aqui — arrasta antes de todo mundo.",
-    "Novidade que você vai querer. Confira no carrossel.",
-    "Acabou de chegar. Arrasta e não perde.",
-  ],
-  duvidas: [
-    "Resposta rápida para quem tem dúvidas sobre {subject}. Salva.",
-    "As dúvidas mais comuns sobre {subject} — respondidas aqui.",
-    "Você perguntou, a gente respondeu. Arrasta e tira suas dúvidas.",
-    "FAQ sobre {subject}: salva esse post para não esquecer.",
-    "Dúvida sobre {subject}? Arrasta que está tudo explicado.",
+  inspiracao: [
+    "Olá! O post sobre {sub} me inspirou bastante. Quero saber como posso começar.",
+    "Oi! Vi o conteúdo sobre {sub} e quero dar esse passo. Me conta mais.",
+    "Olá! Vim pelo Instagram. O post sobre {sub} me motivou a entrar em contato.",
   ],
 };
 
-const WA_TEMPLATES: Record<CarouselObjective, string[]> = {
-  vender: [
-    "Olá, vim pelo Instagram! Quero saber mais sobre {subject}.",
-    "Oi! Vi o post e tenho interesse. Pode me contar mais sobre {subject}?",
-    "Olá! Adorei o conteúdo. Gostaria de saber valores para {subject}.",
-  ],
-  educar: [
-    "Olá! Vi o conteúdo no Instagram e fiquei com interesse. Como faço para agendar?",
-    "Oi, vim pelo Instagram! Queria tirar uma dúvida sobre {subject}.",
-    "Olá! O post foi muito útil. Posso marcar uma consulta?",
-  ],
-  promocao: [
-    "Olá! Vi a promoção no Instagram e quero aproveitar. Ainda está disponível?",
-    "Oi! Vim pelo post de promoção. Pode me dar mais detalhes?",
-    "Olá! Vi a oferta especial de {subject}. Ainda dá tempo?",
-  ],
-  servico: [
-    "Olá! Vi como funciona o processo e gostei. Quero agendar.",
-    "Oi, vim pelo Instagram! Quero saber mais sobre o serviço de {subject}.",
-    "Olá! Vi o post explicando tudo e tenho interesse. Qual o próximo passo?",
-  ],
-  autoridade: [
-    "Olá! Vi o conteúdo de {businessName} e quero conversar.",
-    "Oi! Vim pelo Instagram e gostei muito do trabalho. Quero saber mais.",
-    "Olá! Fiquei impressionado com o conteúdo. Posso agendar uma conversa?",
-  ],
-  whatsapp: [
-    "Olá! Vim pelo Instagram.",
-    "Oi, vi o post e vim falar com vocês!",
-    "Olá! Vi o conteúdo e vim pelo Instagram mesmo.",
-  ],
-  recuperar: [
-    "Olá! Faz um tempo que não apareço. Quero marcar horário.",
-    "Oi! Vi o post e resolvi voltar. Tem vaga essa semana?",
-    "Olá, vim pelo Instagram! Quero retomar meu atendimento.",
-  ],
-  novidade: [
-    "Olá! Vi a novidade no Instagram e quero saber mais sobre {subject}.",
-    "Oi! Vi o lançamento e quero garantir o meu.",
-    "Olá! Adorei a novidade. Pode me contar os detalhes?",
-  ],
-  duvidas: [
-    "Olá! Vi o post com as dúvidas sobre {subject} e ainda tenho uma pergunta.",
-    "Oi! Vi o FAQ e gostaria de conversar um pouco mais.",
-    "Olá! O post foi ótimo. Posso tirar mais uma dúvida sobre {subject}?",
-  ],
-};
+// ─── Planning ─────────────────────────────────────────────────
 
-function fillTemplate(tpl: string, vars: Record<string, string>): string {
-  return tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] || "");
-}
-
-interface CarouselInterpretation {
+interface CarouselPlan {
   cleanSubject: string;
-  professionalTitle: string;
+  angle: AngleId;
+  structure: StructureId;
+  keywords: NicheKwTuple;
+  baseVariation: number;
+  carouselTitle: string;
+  coverTitle: string;
+  coverSubtitle: string;
+  contentRoles: SlideRole[];
+  ctaText: string;
   captionHook: string;
   waMessage: string;
 }
 
-function interpretCarouselRequest(
+function planCarouselContent(
   topic: string,
   objective: CarouselObjective,
-  businessName: string,
-  mainService: string
-): CarouselInterpretation {
-  const cleanSubject = extractCleanSubject(topic, mainService);
-  const seed = topic + businessName;
-  const vars = { subject: cleanSubject, businessName };
-
-  const titleTpls = TITLE_TEMPLATES[objective];
-  const professionalTitle = fillTemplate(titleTpls[variationIndex(seed, titleTpls.length)], vars);
-
-  const capTpls = CAPTION_OPENERS[objective];
-  const captionHook = fillTemplate(capTpls[variationIndex(seed + "cap", capTpls.length)], vars);
-
-  const waTpls = WA_TEMPLATES[objective];
-  const waMessage = fillTemplate(waTpls[variationIndex(seed + "wa", waTpls.length)], vars);
-
-  return { cleanSubject, professionalTitle, captionHook, waMessage };
-}
-
-// ─── Caption generation ───────────────────────────────────────
-function generateCaption(
-  hook: string,
+  niche: NicheKey,
   businessName: string,
   city: string,
-  whatsapp: string
-): string {
+  mainService: string,
+  targetCount: number
+): CarouselPlan {
+  const cleanSubject = extractCleanSubject(topic, mainService);
+  const seed = topic + businessName + objective;
+
+  // Angle: picked deterministically from the pool for this objective
+  const availableAngles = ANGLES_BY_OBJECTIVE[objective];
+  const angle = availableAngles[variationIndex(seed, availableAngles.length)];
+
+  // Structure: picked independently from angle
+  const availableStructures = STRUCTURES_BY_OBJECTIVE[objective];
+  const structureId = availableStructures[variationIndex(seed + "s", availableStructures.length)];
+  const structureRoles = STRUCTURES[structureId];
+
+  // Base variation (0-2) drives which content variant to use
+  const baseVariation = variationIndex(seed + "v", 3);
+
+  // Keywords
+  const keywords = NICHE_KW[niche];
+
+  // Cover
+  const coverTitlePool = COVER_TITLES[angle];
+  const coverTitle = coverTitlePool[variationIndex(seed + "ct", coverTitlePool.length)]
+    .replace(/{sub}/g, cleanSubject).replace(/{B}/g, businessName);
+
+  const coverSubPool = COVER_SUBTITLES[angle];
+  const coverSubtitle = coverSubPool[variationIndex(seed + "cs", coverSubPool.length)];
+
+  // Carousel title (slightly different from cover title)
+  const altIdx = (variationIndex(seed + "ct", coverTitlePool.length) + 1) % coverTitlePool.length;
+  const carouselTitle = coverTitlePool[altIdx]
+    .replace(/{sub}/g, cleanSubject).replace(/{B}/g, businessName);
+
+  // Content roles — scale to targetCount - 2, cycling if needed
+  const contentCount = Math.max(1, targetCount - 2);
+  const contentRoles: SlideRole[] = [];
+  for (let i = 0; i < contentCount; i++) contentRoles.push(structureRoles[i % structureRoles.length]);
+
+  // CTA
+  const ctaPool = CTA_BY_OBJECTIVE[objective];
+  const ctaText = ctaPool[variationIndex(seed + "cta", ctaPool.length)];
+
+  // Caption
+  const capPool = CAPTION_HOOKS[angle];
+  const captionHook = capPool[variationIndex(seed + "cap", capPool.length)]
+    .replace(/{sub}/g, cleanSubject).replace(/{B}/g, businessName);
+
+  // WhatsApp
+  const waPool = WA_MESSAGES[angle];
+  const waMessage = waPool[variationIndex(seed + "wa", waPool.length)]
+    .replace(/{sub}/g, cleanSubject).replace(/{B}/g, businessName);
+
+  return {
+    cleanSubject, angle, structure: structureId, keywords, baseVariation,
+    carouselTitle, coverTitle, coverSubtitle, contentRoles, ctaText, captionHook, waMessage,
+  };
+}
+
+// ─── Caption assembler ────────────────────────────────────────
+
+function buildCaption(hook: string, businessName: string, city: string, whatsapp: string): string {
   const phone = whatsapp.replace(/\D/g, "");
   const waLink = phone ? `https://wa.me/55${phone}` : "";
   const closer = waLink
@@ -647,25 +670,49 @@ function generateCaption(
 }
 
 // ─── Main generator ───────────────────────────────────────────
+
 export function generatePremiumCarousel(input: CarouselInput): PremiumCarousel {
   const { topic, objective, niche: nicheRaw, businessName, city, mainService,
           whatsapp, selectedImages, slideImagesMap, visualStyle, format } = input;
 
   const targetCount = Math.min(8, Math.max(4, input.slideCount ?? 6));
   const hasImages = selectedImages.length > 0 || (slideImagesMap && Object.keys(slideImagesMap).length > 0);
-
-  const { cleanSubject, professionalTitle, captionHook, waMessage } =
-    interpretCarouselRequest(topic, objective, businessName, mainService);
-
   const niche = nicheKey(nicheRaw);
-  const rawTemplates = getSlideTemplates(niche, objective, cleanSubject, businessName, city, mainService, whatsapp);
-  const templates = buildSlideTemplates(rawTemplates, targetCount);
 
-  const layouts = layoutsForStyle(visualStyle, !!hasImages, targetCount);
+  const plan = planCarouselContent(topic, objective, niche, businessName, city, mainService, targetCount);
+  const { cleanSubject, keywords, baseVariation, coverTitle, coverSubtitle, contentRoles, ctaText } = plan;
+
+  // Build slide templates from plan
+  const templates: SlideTemplate[] = [];
+
+  // Cover
+  templates.push({
+    badge: NICHE_COVER_BADGE[niche],
+    title: coverTitle,
+    subtitle: coverSubtitle,
+  });
+
+  // Content slides — vary content within the carousel via (baseVariation + i)
+  contentRoles.forEach((role, i) => {
+    const fn = ROLE_FNS[role];
+    if (fn) templates.push(fn(cleanSubject, businessName, city, mainService, keywords, (baseVariation + i) % 3));
+  });
+
+  // CTA slide
+  templates.push({ badge: "CTA", title: ctaText, cta: ctaText });
+
+  // Assemble slides
+  const layouts = layoutsForStyle(visualStyle, !!hasImages, templates.length);
   const imageMap = assignImages(selectedImages, templates.length, slideImagesMap);
+  const opacities = OVERLAY_OPACITY[visualStyle];
 
   const slides: PremiumCarouselSlide[] = templates.map((t, i) => {
     const layout = layouts[i] ?? (i === templates.length - 1 ? "cta_final" : "content_list");
+    const overlayOpacity =
+      layout === "cover_hero"    ? opacities.cover   :
+      layout === "image_overlay" ? opacities.overlay :
+      layout === "card_glass"    ? opacities.card    : 0;
+
     return {
       id: uid(),
       slideNumber: i + 1,
@@ -677,20 +724,20 @@ export function generatePremiumCarousel(input: CarouselInput): PremiumCarousel {
       badge: t.badge,
       listItems: t.listItems,
       imageUrl: imageMap[i],
-      overlayOpacity: layout === "cover_hero" ? 0.55 : layout === "card_glass" ? 0.3 : layout === "image_overlay" ? 0.6 : 0,
+      overlayOpacity,
       bgVariant: bgForLayout(layout, i),
     };
   });
 
   return {
-    title: professionalTitle,
+    title: plan.carouselTitle,
     topic,
     objective,
     format,
     visualStyle,
     slides,
-    caption: generateCaption(captionHook, businessName, city, whatsapp),
-    whatsappMessage: waMessage,
+    caption: buildCaption(plan.captionHook, businessName, city, whatsapp),
+    whatsappMessage: plan.waMessage,
     selectedImages,
   };
 }
