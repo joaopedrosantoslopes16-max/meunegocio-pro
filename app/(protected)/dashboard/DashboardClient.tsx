@@ -298,6 +298,15 @@ export default function DashboardClient({
                   <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Gerar agora</p>
                 </div>
               </Link>
+              {isPro && (
+                <Link href="/gerador-carrossel" className="col-span-2 flex items-center justify-between bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 hover:border-pink-300 dark:hover:border-pink-700 transition shadow-sm">
+                  <div>
+                    <p className="text-xs font-bold mb-0.5" style={{ color: "#db2777" }}>Carrossel Premium</p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Criar carrossel profissional com suas fotos</p>
+                  </div>
+                  <span className="text-xl flex-shrink-0 ml-2">🎨</span>
+                </Link>
+              )}
             </div>
 
             {/* Conteúdos do mês */}
@@ -391,6 +400,16 @@ export default function DashboardClient({
                     <p className="text-sm text-gray-500 dark:text-gray-400">Escolha um objetivo e receba post + legenda + mensagem WhatsApp</p>
                   </div>
                   <span className="text-gray-400 text-lg">→</span>
+                </Link>
+                <Link href="/gerador-carrossel" className="flex items-center justify-between rounded-2xl p-5 hover:opacity-95 transition shadow-sm border border-pink-200 dark:border-pink-900" style={{ background: "linear-gradient(135deg, #7c3aed22, #db277722)" }}>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-bold text-gray-900 dark:text-white">Gerador de Carrossel Premium</p>
+                      <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-pink-100 dark:bg-pink-900 text-pink-700 dark:text-pink-300">Novo</span>
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Carrossel com visual profissional — imagem, layout, contraste, CTA</p>
+                  </div>
+                  <span className="text-2xl">🎨</span>
                 </Link>
               </>
             ) : (

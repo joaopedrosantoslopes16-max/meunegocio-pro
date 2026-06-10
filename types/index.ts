@@ -422,6 +422,70 @@ export interface BusinessFormData {
   tagline?: string;
 }
 
+// ─── Premium Carousel ─────────────────────────────────────────
+export type CarouselLayout =
+  | "cover_hero"       // full-bleed image/gradient, big headline bottom
+  | "bold_statement"   // solid dark/brand bg, oversized title
+  | "split_image"      // image left (45%) + content right
+  | "card_glass"       // full-bleed image + frosted glass card
+  | "content_list"     // clean bg, title + bullet list
+  | "image_overlay"    // full image + bottom gradient + text
+  | "cta_final";       // dark bg, CTA + WhatsApp button
+
+export type CarouselObjective =
+  | "vender" | "educar" | "promocao" | "servico"
+  | "autoridade" | "whatsapp" | "recuperar" | "novidade" | "duvidas";
+
+export type CarouselVisualStyle =
+  | "moderno" | "premium" | "clean" | "chamativo" | "elegante" | "minimalista";
+
+export interface PremiumCarouselSlide {
+  id: string;
+  slideNumber: number;
+  layout: CarouselLayout;
+  title: string;
+  subtitle?: string;
+  body?: string;
+  cta?: string;
+  badge?: string;
+  listItems?: string[];
+  imageUrl?: string;
+  overlayOpacity: number;
+  bgVariant: "primary" | "dark" | "white" | "accent";
+}
+
+export interface PremiumCarousel {
+  id?: string;
+  title: string;
+  topic: string;
+  objective: CarouselObjective;
+  format: "4/5" | "1/1" | "9/16";
+  visualStyle: CarouselVisualStyle;
+  slides: PremiumCarouselSlide[];
+  caption: string;
+  whatsappMessage: string;
+  selectedImages: string[];
+}
+
+export interface GeneratedCarousel {
+  id: string;
+  user_id: string;
+  business_id: string;
+  title: string;
+  topic: string;
+  objective: string;
+  niche: string;
+  visual_style: string;
+  format: string;
+  slides_json: PremiumCarouselSlide[];
+  caption: string;
+  whatsapp_message: string;
+  selected_images_json: string[];
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PreviewData {
   business_name: string;
   niche: string;

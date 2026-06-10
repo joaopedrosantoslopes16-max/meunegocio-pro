@@ -21,6 +21,8 @@ interface Props {
   backgroundImageUrl?: string;
   overlayOpacity?: number; // 0–1, default 0.55
   imagePositionY?: number; // 0=topo, 50=centro, 100=base — default 50
+  imagePositionX?: number; // 0=esq, 50=centro, 100=dir — default 50
+  imageZoom?: number; // 1.0=normal, 2.0=2× zoom — default 1
   postFormat?: "1/1" | "4/5" | "9/16" | "16/9"; // default 1/1
   secondaryColor?: string;
   fontFamily?: string;
@@ -32,9 +34,9 @@ const FONT = "'Inter', 'system-ui', sans-serif";
 function s(value: number, compact: boolean) { return compact ? Math.round(value * 0.52) : value; }
 function px(value: number, compact: boolean) { return `${s(value, compact)}px`; }
 
-function Slide({ bg, children, compact, backgroundImageUrl, overlayOpacity = 0.55, imagePositionY = 50, postFormat = "1/1", fontFamily }: {
+function Slide({ bg, children, compact, backgroundImageUrl, overlayOpacity = 0.55, imagePositionY = 50, imagePositionX = 50, imageZoom = 1, postFormat = "1/1", fontFamily }: {
   bg: string; children: React.ReactNode; compact: boolean;
-  backgroundImageUrl?: string; overlayOpacity?: number; imagePositionY?: number; postFormat?: string; fontFamily?: string;
+  backgroundImageUrl?: string; overlayOpacity?: number; imagePositionY?: number; imagePositionX?: number; imageZoom?: number; postFormat?: string; fontFamily?: string;
 }) {
   return (
     <div style={{
@@ -49,14 +51,17 @@ function Slide({ bg, children, compact, backgroundImageUrl, overlayOpacity = 0.5
     }}>
       {backgroundImageUrl && (
         <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={backgroundImageUrl}
-            alt=""
+          <div
             style={{
-              position: "absolute", inset: 0, width: "100%", height: "100%",
-              objectFit: "cover",
-              objectPosition: `center ${imagePositionY}%`,
+              position: "absolute",
+              width: `${200 * imageZoom}%`,
+              height: `${200 * imageZoom}%`,
+              left: `${-(imagePositionX * (2 * imageZoom - 1) / 100)}%`,
+              top: `${-(imagePositionY * (2 * imageZoom - 1) / 100)}%`,
+              backgroundImage: `url(${backgroundImageUrl})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center center",
+              backgroundRepeat: "no-repeat",
             }}
           />
           <div style={{
@@ -113,11 +118,11 @@ function Locked({ number, compact }: { number?: number; compact: boolean }) {
 }
 
 // ── 1. WHATSAPP CTA ──────────────────────────────────────────
-function WhatsAppCTA({ title, subtitle, cta, business_name, color, city, c: compact, bgImg, ov, pos, fmt, color2, font, textColor }: any) {
+function WhatsAppCTA({ title, subtitle, cta, business_name, color, city, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font, textColor }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(32, compact);
   return (
-    <Slide bg="#0A0D14" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.65 : undefined)} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg="#0A0D14" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.65 : undefined)} imagePositionY={pos} imagePositionX={posX} imageZoom={zoom} postFormat={fmt} fontFamily={font}>
       <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-60%)", width: px(400, compact), height: px(400, compact), borderRadius: "50%", background: `radial-gradient(circle, ${color}22 0%, transparent 70%)`, pointerEvents: "none" }} />
       {!bgImg && <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.04 }} viewBox="0 0 400 400">{Array.from({ length: 9 }, (_, i) => <line key={`h${i}`} x1="0" y1={i * 50} x2="400" y2={i * 50} stroke="white" strokeWidth="0.5"/>)}{Array.from({ length: 9 }, (_, i) => <line key={`v${i}`} x1={i * 50} y1="0" x2={i * 50} y2="400" stroke="white" strokeWidth="0.5"/>)}</svg>}
       <div style={{ padding: `${pad}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
@@ -147,11 +152,11 @@ function WhatsAppCTA({ title, subtitle, cta, business_name, color, city, c: comp
 }
 
 // ── 2. MAIN SERVICE ──────────────────────────────────────────
-function MainService({ title, subtitle, cta, business_name, color, niche, c: compact, bgImg, ov, pos, fmt, color2, font, textColor }: any) {
+function MainService({ title, subtitle, cta, business_name, color, niche, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font, textColor }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(28, compact);
   return (
-    <Slide bg="#0D0D0D" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.65 : undefined)} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg="#0D0D0D" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.65 : undefined)} imagePositionY={pos} imagePositionX={posX} imageZoom={zoom} postFormat={fmt} fontFamily={font}>
       {!bgImg && <>
         <div style={{ position: "absolute", top: 0, right: 0, width: px(280, compact), height: px(280, compact), background: `radial-gradient(circle at top right, ${color}28 0%, transparent 65%)`, pointerEvents: "none" }} />
         <div style={{ position: "absolute", top: 0, left: 0, width: px(3, compact), height: "45%", background: `linear-gradient(180deg, ${color} 0%, transparent 100%)` }} />
@@ -185,11 +190,11 @@ function MainService({ title, subtitle, cta, business_name, color, niche, c: com
 }
 
 // ── 3. PROMOTION ─────────────────────────────────────────────
-function Promotion({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, fmt, color2, font, textColor }: any) {
+function Promotion({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font, textColor }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(32, compact);
   return (
-    <Slide bg={`linear-gradient(145deg, ${color}ee 0%, ${color}66 100%)`} compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.60 : undefined)} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg={`linear-gradient(145deg, ${color}ee 0%, ${color}66 100%)`} compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.60 : undefined)} imagePositionY={pos} imagePositionX={posX} imageZoom={zoom} postFormat={fmt} fontFamily={font}>
       {!bgImg && <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.06 }} viewBox="0 0 400 400">{Array.from({ length: 12 }, (_, i) => <line key={i} x1={i * 50 - 100} y1="0" x2={i * 50 + 300} y2="400" stroke="white" strokeWidth="1.5"/>)}</svg>}
       <div style={{ padding: `${pad}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: px(6,compact), marginBottom: px(20,compact) }}>
@@ -216,11 +221,11 @@ function Promotion({ title, subtitle, cta, business_name, color, c: compact, bgI
 }
 
 // ── 4. AUTHORITY ─────────────────────────────────────────────
-function Authority({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, fmt, color2, font, textColor }: any) {
+function Authority({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font, textColor }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(28, compact);
   return (
-    <Slide bg="#fff" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.55 : undefined)} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg="#fff" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.55 : undefined)} imagePositionY={pos} imagePositionX={posX} imageZoom={zoom} postFormat={fmt} fontFamily={font}>
       {!bgImg && <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: px(80, compact), background: `linear-gradient(180deg, ${color}f0 0%, ${color}c0 100%)` }} />}
       <div style={{ padding: `${pad}px`, paddingLeft: bgImg ? `${pad}px` : `${s(80, compact) + s(20, compact)}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
         <div style={{ marginBottom: px(16, compact) }}>
@@ -245,11 +250,11 @@ function Authority({ title, subtitle, cta, business_name, color, c: compact, bgI
 }
 
 // ── 5. LOCATION ──────────────────────────────────────────────
-function Location({ title, subtitle, cta, business_name, color, city, c: compact, bgImg, ov, pos, fmt, color2, font, textColor }: any) {
+function Location({ title, subtitle, cta, business_name, color, city, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font, textColor }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(32, compact);
   return (
-    <Slide bg="#181C24" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.60 : undefined)} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg="#181C24" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.60 : undefined)} imagePositionY={pos} imagePositionX={posX} imageZoom={zoom} postFormat={fmt} fontFamily={font}>
       {!bgImg && city && <div style={{ position: "absolute", bottom: px(40, compact), left: 0, right: 0, textAlign: "center", fontSize: px(90, compact), fontWeight: 900, color: "rgba(255,255,255,0.025)", letterSpacing: "-0.04em", lineHeight: 1, pointerEvents: "none", userSelect: "none", fontFamily: FONT }}>{city.toUpperCase()}</div>}
       <div style={{ padding: `${pad}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: px(8, compact), marginBottom: px(16, compact) }}>
@@ -272,11 +277,11 @@ function Location({ title, subtitle, cta, business_name, color, city, c: compact
 }
 
 // ── 6. OFERTA ────────────────────────────────────────────────
-function Oferta({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, fmt, color2, font, textColor }: any) {
+function Oferta({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font, textColor }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(32, compact);
   return (
-    <Slide bg="#0A0D14" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.65 : undefined)} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg="#0A0D14" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.65 : undefined)} imagePositionY={pos} imagePositionX={posX} imageZoom={zoom} postFormat={fmt} fontFamily={font}>
       {!bgImg && <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: px(6, compact), background: `linear-gradient(180deg, ${color} 0%, ${color}55 100%)` }} />}
       <div style={{ padding: `${pad}px ${pad}px ${pad}px ${bgImg ? pad : pad + s(10,compact)}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: px(6,compact), background: color, borderRadius: px(8,compact), padding: `${s(6,compact)}px ${s(12,compact)}px`, width: "fit-content", marginBottom: px(16,compact) }}>
@@ -308,7 +313,7 @@ function Oferta({ title, subtitle, cta, business_name, color, c: compact, bgImg,
 }
 
 // ── 7. AGENDA ────────────────────────────────────────────────
-function Agenda({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, fmt, color2, font, textColor }: any) {
+function Agenda({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font, textColor }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(28, compact);
   const days = [
@@ -319,7 +324,7 @@ function Agenda({ title, subtitle, cta, business_name, color, c: compact, bgImg,
     { d: "Sex", slots: "Quase lotado",     active: false },
   ];
   return (
-    <Slide bg="#0D1117" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.75 : undefined)} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg="#0D1117" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.75 : undefined)} imagePositionY={pos} imagePositionX={posX} imageZoom={zoom} postFormat={fmt} fontFamily={font}>
       {!bgImg && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: px(3, compact), background: `linear-gradient(90deg, ${color} 0%, ${color}55 100%)` }} />}
       <div style={{ padding: `${pad}px`, paddingTop: `${s(32, compact)}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: px(18, compact) }}>
@@ -357,11 +362,11 @@ function Agenda({ title, subtitle, cta, business_name, color, c: compact, bgImg,
 }
 
 // ── 8. DEPOIMENTO ────────────────────────────────────────────
-function Depoimento({ title, subtitle, cta, business_name, color, city, c: compact, bgImg, ov, pos, fmt, color2, font, textColor }: any) {
+function Depoimento({ title, subtitle, cta, business_name, color, city, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font, textColor }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(32, compact);
   return (
-    <Slide bg={`linear-gradient(160deg, ${color}f5 0%, ${color}cc 100%)`} compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.55 : undefined)} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg={`linear-gradient(160deg, ${color}f5 0%, ${color}cc 100%)`} compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.55 : undefined)} imagePositionY={pos} imagePositionX={posX} imageZoom={zoom} postFormat={fmt} fontFamily={font}>
       <div style={{ padding: `${pad}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", gap: px(3, compact), marginBottom: px(20, compact) }}>
           {Array.from({ length: 5 }, (_, i) => <span key={i}>{Icons.star(s(14, compact))}</span>)}
@@ -391,11 +396,11 @@ function Depoimento({ title, subtitle, cta, business_name, color, city, c: compa
 }
 
 // ── 9. COMPARAÇÃO ────────────────────────────────────────────
-function Comparacao({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, fmt, color2, font }: any) {
+function Comparacao({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(28, compact);
   return (
-    <Slide bg="#fff" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.80 : undefined)} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg="#fff" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.80 : undefined)} imagePositionY={pos} imagePositionX={posX} imageZoom={zoom} postFormat={fmt} fontFamily={font}>
       <div style={{ padding: `${pad}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1 }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: px(12, compact), marginBottom: px(16, compact) }}>
           <div style={{ background: bgImg ? "rgba(255,255,255,0.15)" : "#f5f5f5", borderRadius: px(8, compact), padding: `${s(8,compact)}px`, textAlign: "center" }}>
@@ -431,11 +436,11 @@ function Comparacao({ title, subtitle, cta, business_name, color, c: compact, bg
 }
 
 // ── 10. STRONG CTA ───────────────────────────────────────────
-function StrongCTA({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, fmt, color2, font, textColor }: any) {
+function StrongCTA({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font, textColor }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(32, compact);
   return (
-    <Slide bg="#0A0D14" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.60 : undefined)} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg="#0A0D14" compact={compact} backgroundImageUrl={bgImg} overlayOpacity={ov ?? (bgImg ? 0.60 : undefined)} imagePositionY={pos} imagePositionX={posX} imageZoom={zoom} postFormat={fmt} fontFamily={font}>
       {!bgImg && <>
         <div style={{ position: "absolute", top: "40%", left: "50%", transform: "translate(-50%,-50%)", width: px(340, compact), height: px(340, compact), borderRadius: "50%", background: `radial-gradient(circle, ${color}20 0%, transparent 65%)`, pointerEvents: "none" }} />
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: px(300, compact), height: px(300, compact), borderRadius: "50%", border: `1px solid ${color}15`, pointerEvents: "none" }} />
@@ -455,11 +460,11 @@ function StrongCTA({ title, subtitle, cta, business_name, color, c: compact, bgI
 }
 
 // ── 11. FOTO FUNDO (template novo com imagem obrigatória) ─────
-function FotoFundo({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, fmt, color2, font, textColor }: any) {
+function FotoFundo({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font, textColor }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(28, compact);
   return (
-    <Slide bg="#111" compact={compact} backgroundImageUrl={bgImg ?? undefined} overlayOpacity={ov ?? 0.50} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg="#111" compact={compact} backgroundImageUrl={bgImg ?? undefined} overlayOpacity={ov ?? 0.50} imagePositionY={pos} imagePositionX={posX} imageZoom={zoom} postFormat={fmt} fontFamily={font}>
       {/* Gradiente inferior para legibilidade */}
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "55%", background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)", zIndex: 1, pointerEvents: "none" }} />
       <div style={{ padding: `${pad}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 2 }}>
@@ -483,7 +488,7 @@ function FotoFundo({ title, subtitle, cta, business_name, color, c: compact, bgI
 }
 
 // ── 12. FOTO LADO (imagem à direita) ─────────────────────────
-function FotoLado({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, fmt, color2, font, textColor }: any) {
+function FotoLado({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font, textColor }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(24, compact);
   return (
@@ -507,7 +512,7 @@ function FotoLado({ title, subtitle, cta, business_name, color, c: compact, bgIm
         <div style={{ width: "45%", position: "relative", overflow: "hidden" }}>
           {bgImg ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={bgImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: `center ${pos ?? 50}%` }} />
+            <img src={bgImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: `${posX ?? 50}% ${pos ?? 50}%` }} />
           ) : (
             <div style={{ width: "100%", height: "100%", background: `linear-gradient(160deg, ${color}dd 0%, ${color}88 100%)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ fontSize: px(40,compact), opacity: 0.4 }}>📸</span>
@@ -521,11 +526,11 @@ function FotoLado({ title, subtitle, cta, business_name, color, c: compact, bgIm
 }
 
 // ── 13. CARD SOBRE FOTO ──────────────────────────────────────
-function CardSobreFoto({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, fmt, color2, font, textColor }: any) {
+function CardSobreFoto({ title, subtitle, cta, business_name, color, c: compact, bgImg, ov, pos, posX, zoom, fmt, color2, font, textColor }: any) {
   const p = (v: number) => px(v, compact);
   const pad = s(20, compact);
   return (
-    <Slide bg="#111" compact={compact} backgroundImageUrl={bgImg ?? undefined} overlayOpacity={ov ?? 0.40} imagePositionY={pos} postFormat={fmt} fontFamily={font}>
+    <Slide bg="#111" compact={compact} backgroundImageUrl={bgImg ?? undefined} overlayOpacity={ov ?? 0.40} imagePositionY={pos} imagePositionX={posX} imageZoom={zoom} postFormat={fmt} fontFamily={font}>
       <div style={{ padding: `${pad}px`, display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1, justifyContent: "flex-end" }}>
         {/* Card sobre a foto */}
         <div style={{
@@ -708,7 +713,7 @@ function RetroBorder({ title, subtitle, cta, business_name, color, c: compact, f
 export default function PostCard({
   template_type, title, subtitle, cta, business_name, primary_color,
   niche, city, number, unlocked = true, compact = false,
-  backgroundImageUrl, overlayOpacity, imagePositionY, postFormat = "1/1",
+  backgroundImageUrl, overlayOpacity, imagePositionY, imagePositionX, imageZoom, postFormat = "1/1",
   secondaryColor, fontFamily, textColor,
 }: Props) {
   if (!unlocked) return <Locked number={number} compact={compact} />;
@@ -722,6 +727,8 @@ export default function PostCard({
     bgImg: backgroundImageUrl,
     ov: overlayOpacity,
     pos: imagePositionY,
+    posX: imagePositionX,
+    zoom: imageZoom,
     fmt: postFormat,
     font: fontFamily || FONT,
     textColor,

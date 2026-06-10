@@ -79,6 +79,24 @@ const NICHE_COVER: Record<string, { emoji: string; bg: string }> = {
   outro:               { emoji: "⭐", bg: "linear-gradient(135deg,#2c3e50 0%,#3d5a80 60%,#98c1d9 100%)" },
 };
 
+function isDark(hex: string): boolean {
+  try {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 < 128;
+  } catch { return false; }
+}
+function tint(hex: string, amt: number): string {
+  const clamp = (v: number) => Math.min(255, Math.max(0, v));
+  try {
+    const r = clamp(parseInt(hex.slice(1, 3), 16) + amt);
+    const g = clamp(parseInt(hex.slice(3, 5), 16) + amt);
+    const b = clamp(parseInt(hex.slice(5, 7), 16) + amt);
+    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+  } catch { return hex; }
+}
+
 function buildAboutText(businessName: string, niche: string, city: string, mainService: string): string {
   const sensitive = ["clinica-medica", "odontologia"];
   if (sensitive.includes(niche)) {
@@ -152,6 +170,15 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
     ? { background: siteBgColor, backgroundImage: `url(${siteBgImg})`, backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed", backgroundBlendMode: "overlay" }
     : { background: siteBgColor };
 
+  const dark      = isDark(siteBgColor);
+  const sectionAlt = dark ? tint(siteBgColor, 12) : "#f9f9f9";
+  const cardBg    = dark ? tint(siteBgColor, 22) : "#ffffff";
+  const cardAlt   = dark ? tint(siteBgColor, 14) : "#fafafa";
+  const tp  = siteTextColor;
+  const ts  = dark ? "rgba(255,255,255,0.60)" : "#555555";
+  const brd = dark ? "rgba(255,255,255,0.09)" : "#f0f0f0";
+  const brdMd = dark ? "rgba(255,255,255,0.14)" : "#e5e7eb";
+
   return (
     <div style={{ minHeight: "100vh", ...siteRootStyle, fontFamily, WebkitFontSmoothing: "antialiased", color: siteTextColor, paddingBottom: "80px" }}>
       <style>{`
@@ -218,9 +245,14 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
 
         {/* STATS STRIP */}
         <div style={{ display: "flex", background: "#0d0d0d", borderBottom: `2px solid ${color}` }}>
-          {[`⚡ Online`, `📍 ${business.city}`, "💬 Resposta rápida"].map((item, i) => (
-            <div key={i} style={{ flex: 1, padding: "10px 6px", textAlign: "center", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
-              <p style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>{item}</p>
+          {[
+            { dot: "#22c55e", text: "Online" },
+            { dot: color, text: business.city },
+            { dot: color, text: "Resposta rápida" },
+          ].map((item, i) => (
+            <div key={i} style={{ flex: 1, padding: "10px 6px", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.08)" : "none", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" }}>
+              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: item.dot, flexShrink: 0 }} />
+              <p style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>{item.text}</p>
             </div>
           ))}
         </div>
@@ -228,7 +260,7 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
         {/* CTA PRINCIPAL */}
         <div style={{ padding: "16px 20px 0", maxWidth: "560px", margin: "0 auto" }}>
           {business.short_description && (
-            <p style={{ fontSize: "14px", color: "#666", lineHeight: 1.6, marginBottom: "14px", paddingTop: "4px" }}>{business.short_description}</p>
+            <p style={{ fontSize: "14px", color: ts, lineHeight: 1.6, marginBottom: "14px", paddingTop: "4px" }}>{business.short_description}</p>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <a href={waMain} target="_blank" rel="noopener noreferrer" className="wa-btn" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", background: "#25D366", color: "#fff", fontWeight: 800, fontSize: "16px", padding: "16px 24px", borderRadius: "16px", boxShadow: "0 8px 28px rgba(37,211,102,0.35)", transition: "transform .2s, box-shadow .2s", textDecoration: "none" }}>
@@ -236,19 +268,19 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
               {cfg.cta} pelo WhatsApp
             </a>
             {igUrl && (
-              <a href={igUrl} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", background: "#fff", border: "1.5px solid #e5e7eb", color: "#333", fontWeight: 700, fontSize: "15px", padding: "14px 24px", borderRadius: "16px", textDecoration: "none" }}>
+              <a href={igUrl} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", background: cardBg, border: `1.5px solid ${brdMd}`, color: tp, fontWeight: 700, fontSize: "15px", padding: "14px 24px", borderRadius: "16px", textDecoration: "none" }}>
                 <IconIG /> {igHandle || "Ver no Instagram"}
               </a>
             )}
           </div>
-          <div style={{ height: "1px", background: "#f0f0f0", margin: "28px 0" }} />
+          <div style={{ height: "1px", background: brd, margin: "28px 0" }} />
         </div>
       </section>
 
       {/* ══ SOBRE ══════════════════════════════════════════════ */}
       <section style={{ padding: "0 20px 40px", maxWidth: "560px", margin: "0 auto" }}>
         <p style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: color, marginBottom: "8px" }}>Sobre</p>
-        <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "12px" }}>
+        <h2 style={{ fontSize: "22px", fontWeight: 900, color: tp, letterSpacing: "-0.02em", marginBottom: "12px" }}>
           Sobre a {business.business_name}
         </h2>
 
@@ -264,11 +296,12 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
           </div>
         )}
 
-        <p style={{ fontSize: "15px", color: "#555", lineHeight: 1.75, marginBottom: "20px" }}>{aboutText}</p>
+        <p style={{ fontSize: "15px", color: ts, lineHeight: 1.75, marginBottom: "20px" }}>{aboutText}</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-          {[`📍 ${business.city}`, `✅ ${cfg.label}`, "💬 Resposta rápida"].map((pill) => (
-            <div key={pill} style={{ background: "#f5f5f5", borderRadius: "100px", padding: "6px 14px", fontSize: "12px", fontWeight: 600, color: "#555", border: "1px solid #ebebeb" }}>
-              {pill}
+          {[business.city, cfg.label, "Resposta rápida"].map((text) => (
+            <div key={text} style={{ display: "flex", alignItems: "center", gap: "6px", background: dark ? "rgba(255,255,255,0.08)" : "#f5f5f5", borderRadius: "100px", padding: "6px 14px", fontSize: "12px", fontWeight: 600, color: ts, border: `1px solid ${brd}` }}>
+              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: color, flexShrink: 0 }} />
+              {text}
             </div>
           ))}
         </div>
@@ -295,20 +328,20 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
       )}
 
       {/* ══ SERVIÇOS ══════════════════════════════════════════ */}
-      <section style={{ padding: "40px 20px", background: "#f9f9f9" }}>
+      <section style={{ padding: "40px 20px", background: sectionAlt }}>
         <div style={{ maxWidth: "560px", margin: "0 auto" }}>
           <p style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: color, marginBottom: "8px" }}>O que oferecemos</p>
-          <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "20px" }}>Serviços</h2>
+          <h2 style={{ fontSize: "22px", fontWeight: 900, color: tp, letterSpacing: "-0.02em", marginBottom: "20px" }}>Serviços</h2>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div style={{ background: "#fff", borderRadius: "18px", padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", border: `1.5px solid ${color}30`, boxShadow: `0 4px 20px ${color}12` }}>
+            <div style={{ background: cardBg, borderRadius: "18px", padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", border: `1.5px solid ${color}30`, boxShadow: `0 4px 20px ${color}12` }}>
               <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                 <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `linear-gradient(135deg, ${color} 0%, ${color}bb 100%)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>
                   {serviceEmojis[0]}
                 </div>
                 <div>
                   <p style={{ fontSize: "11px", fontWeight: 700, color: color, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: "2px" }}>Especialidade</p>
-                  <p style={{ fontSize: "16px", fontWeight: 800, color: "#111" }}>{business.main_service}</p>
+                  <p style={{ fontSize: "16px", fontWeight: 800, color: tp }}>{business.main_service}</p>
                 </div>
               </div>
               <a href={buildWhatsAppLink(business.whatsapp, `Olá! Quero saber mais sobre ${business.main_service}.`)} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#25D366", color: "#fff", fontSize: "12px", fontWeight: 700, padding: "8px 14px", borderRadius: "10px", flexShrink: 0 }}>
@@ -317,12 +350,12 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
             </div>
 
             {rawServices.filter((s: string) => s !== business.main_service).map((s: string, i: number) => (
-              <div key={i} className="svc-card" style={{ background: "#fff", borderRadius: "16px", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", border: "1.5px solid #f0f0f0", transition: "all .2s", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+              <div key={i} className="svc-card" style={{ background: cardBg, borderRadius: "16px", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", border: `1.5px solid ${brd}`, transition: "all .2s", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: `${color}10`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", flexShrink: 0 }}>
-                    {serviceEmojis[(i + 1) % serviceEmojis.length]}
+                  <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: `${color}20`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: color }} />
                   </div>
-                  <p style={{ fontSize: "15px", fontWeight: 700, color: "#222" }}>{s}</p>
+                  <p style={{ fontSize: "15px", fontWeight: 700, color: tp }}>{s}</p>
                 </div>
                 <a href={buildWhatsAppLink(business.whatsapp, `Olá! Quero saber mais sobre ${s}.`)} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", fontWeight: 700, color: color, border: `1px solid ${color}30`, padding: "6px 12px", borderRadius: "8px", flexShrink: 0, background: `${color}08` }}>
                   Falar →
@@ -334,36 +367,36 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
       </section>
 
       {/* ══ BENEFÍCIOS / POR QUE ESCOLHER ═══════════════════ */}
-      <section style={{ padding: "48px 20px", background: "#fff" }}>
+      <section style={{ padding: "48px 20px", background: siteBgColor }}>
         <div style={{ maxWidth: "560px", margin: "0 auto" }}>
           <p style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: color, marginBottom: "8px" }}>Por que a gente</p>
-          <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "20px" }}>Por que escolher a {business.business_name}?</h2>
+          <h2 style={{ fontSize: "22px", fontWeight: 900, color: tp, letterSpacing: "-0.02em", marginBottom: "20px" }}>Por que escolher a {business.business_name}?</h2>
 
           {benefits.length > 0 ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {benefits.map((benefit, i) => (
-                <div key={i} className="card-lift" style={{ display: "flex", gap: "16px", alignItems: "flex-start", background: "#fafafa", borderRadius: "18px", padding: "18px 20px", border: "1.5px solid #f0f0f0", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "all .2s" }}>
-                  <div style={{ width: "44px", height: "44px", borderRadius: "14px", background: `${color}12`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", flexShrink: 0 }}>
-                    {["⚡", "🎯", "📍", "✅", "💡", "🏆", "⭐", "🔥"][i % 8]}
+                <div key={i} className="card-lift" style={{ display: "flex", gap: "16px", alignItems: "flex-start", background: cardAlt, borderRadius: "18px", padding: "18px 20px", border: `1.5px solid ${brd}`, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "all .2s" }}>
+                  <div style={{ width: "44px", height: "44px", borderRadius: "14px", background: `${color}20`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: color }} />
                   </div>
-                  <p style={{ fontSize: "14px", color: "#444", lineHeight: 1.65, paddingTop: "4px" }}>{benefit}</p>
+                  <p style={{ fontSize: "14px", color: ts, lineHeight: 1.65, paddingTop: "4px" }}>{benefit}</p>
                 </div>
               ))}
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {[
-                { icon: "⚡", title: "Atendimento fácil e direto", desc: `Fale direto pelo WhatsApp com a equipe da ${business.business_name}. Sem fila, sem secretária eletrônica.` },
-                { icon: "🎯", title: `Especialistas em ${business.main_service}`, desc: `A ${business.business_name} é focada em ${business.main_service} e entende as necessidades de quem busca esse serviço em ${business.city}.` },
-                { icon: "📍", title: `Presente em ${business.city}`, desc: `Atendimento local, perto de você. A ${business.business_name} atende em ${business.city} e conhece bem o que o cliente da região precisa.` },
+                { title: "Atendimento fácil e direto", desc: `Fale direto pelo WhatsApp com a equipe da ${business.business_name}. Sem fila, sem secretária eletrônica.` },
+                { title: `Especialistas em ${business.main_service}`, desc: `A ${business.business_name} é focada em ${business.main_service} e entende as necessidades de quem busca esse serviço em ${business.city}.` },
+                { title: `Presente em ${business.city}`, desc: `Atendimento local, perto de você. A ${business.business_name} atende em ${business.city} e conhece bem o que o cliente da região precisa.` },
               ].map((item) => (
-                <div key={item.title} className="card-lift" style={{ display: "flex", gap: "16px", alignItems: "flex-start", background: "#fafafa", borderRadius: "18px", padding: "20px", border: "1.5px solid #f0f0f0", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "all .2s" }}>
-                  <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `${color}12`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>
-                    {item.icon}
+                <div key={item.title} className="card-lift" style={{ display: "flex", gap: "16px", alignItems: "flex-start", background: cardAlt, borderRadius: "18px", padding: "20px", border: `1.5px solid ${brd}`, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "all .2s" }}>
+                  <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `${color}20`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div style={{ width: "14px", height: "14px", borderRadius: "50%", background: color }} />
                   </div>
                   <div>
-                    <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#111", marginBottom: "4px" }}>{item.title}</h3>
-                    <p style={{ fontSize: "13px", color: "#666", lineHeight: 1.65 }}>{item.desc}</p>
+                    <h3 style={{ fontSize: "16px", fontWeight: 800, color: tp, marginBottom: "4px" }}>{item.title}</h3>
+                    <p style={{ fontSize: "13px", color: ts, lineHeight: 1.65 }}>{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -373,11 +406,11 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
       </section>
 
       {/* ══ HORÁRIO ═══════════════════════════════════════════ */}
-      <section style={{ padding: "48px 20px", background: "#f9f9f9" }}>
+      <section style={{ padding: "48px 20px", background: sectionAlt }}>
         <div style={{ maxWidth: "560px", margin: "0 auto" }}>
           <p style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: color, marginBottom: "8px" }}>Funcionamento</p>
-          <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "20px" }}>Horário de atendimento</h2>
-          <div style={{ background: "#fff", borderRadius: "20px", overflow: "hidden", border: "1.5px solid #f0f0f0", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
+          <h2 style={{ fontSize: "22px", fontWeight: 900, color: tp, letterSpacing: "-0.02em", marginBottom: "20px" }}>Horário de atendimento</h2>
+          <div style={{ background: cardBg, borderRadius: "20px", overflow: "hidden", border: `1.5px solid ${brd}`, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
             {hoursEntries.length > 0 ? (
               hoursEntries.map(([day, hours], i) => {
                 const closed = hours.toLowerCase().includes("fechad");
@@ -385,9 +418,9 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
                   <div key={day} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: i < hoursEntries.length - 1 ? "1px solid #f5f5f5" : "none" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: closed ? "#d1d5db" : "#22c55e", flexShrink: 0 }} />
-                      <span style={{ fontSize: "14px", fontWeight: 600, color: "#333" }}>{day}</span>
+                      <span style={{ fontSize: "14px", fontWeight: 600, color: tp }}>{day}</span>
                     </div>
-                    <span style={{ fontSize: "14px", fontWeight: 700, color: closed ? "#aaa" : "#111" }}>{hours}</span>
+                    <span style={{ fontSize: "14px", fontWeight: 700, color: closed ? (dark ? "rgba(255,255,255,0.25)" : "#aaa") : tp }}>{hours}</span>
                   </div>
                 );
               })
@@ -397,12 +430,12 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
                 { day: "Sábado",          hours: "Consulte disponibilidade", open: true },
                 { day: "Domingo",         hours: "Fechado",                  open: false },
               ].map((row, i) => (
-                <div key={row.day} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: i < 2 ? "1px solid #f5f5f5" : "none" }}>
+                <div key={row.day} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: i < 2 ? `1px solid ${brd}` : "none" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: row.open ? "#22c55e" : "#d1d5db", flexShrink: 0 }} />
-                    <span style={{ fontSize: "14px", fontWeight: 600, color: "#333" }}>{row.day}</span>
+                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: row.open ? "#22c55e" : (dark ? "rgba(255,255,255,0.2)" : "#d1d5db"), flexShrink: 0 }} />
+                    <span style={{ fontSize: "14px", fontWeight: 600, color: tp }}>{row.day}</span>
                   </div>
-                  <span style={{ fontSize: "14px", fontWeight: 700, color: row.open ? "#111" : "#aaa" }}>{row.hours}</span>
+                  <span style={{ fontSize: "14px", fontWeight: 700, color: row.open ? tp : (dark ? "rgba(255,255,255,0.25)" : "#aaa") }}>{row.hours}</span>
                 </div>
               ))
             )}
@@ -415,23 +448,23 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
 
       {/* ══ DEPOIMENTOS ═══════════════════════════════════════ */}
       {testimonials.length > 0 && (
-        <section style={{ padding: "48px 20px", background: "#fff" }}>
+        <section style={{ padding: "48px 20px", background: siteBgColor }}>
           <div style={{ maxWidth: "560px", margin: "0 auto" }}>
             <p style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: color, marginBottom: "8px" }}>O que falam de nós</p>
-            <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "20px" }}>Depoimentos</h2>
+            <h2 style={{ fontSize: "22px", fontWeight: 900, color: tp, letterSpacing: "-0.02em", marginBottom: "20px" }}>Depoimentos</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               {testimonials.map((t, i) => (
-                <div key={i} className="card-lift" style={{ background: "#fafafa", borderRadius: "20px", padding: "22px", border: "1.5px solid #f0f0f0", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "all .2s" }}>
+                <div key={i} className="card-lift" style={{ background: cardAlt, borderRadius: "20px", padding: "22px", border: `1.5px solid ${brd}`, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "all .2s" }}>
                   {(t.stars ?? 5) > 0 && (
                     <div style={{ display: "flex", gap: "3px", marginBottom: "12px" }}>
                       {[1, 2, 3, 4, 5].map((s) => (
-                        <span key={s} style={{ color: s <= (t.stars ?? 5) ? "#FFD700" : "#e0e0e0" }}>
+                        <span key={s} style={{ color: s <= (t.stars ?? 5) ? "#FFD700" : (dark ? "rgba(255,255,255,0.15)" : "#e0e0e0") }}>
                           <IconStar filled={s <= (t.stars ?? 5)} />
                         </span>
                       ))}
                     </div>
                   )}
-                  <p style={{ fontSize: "15px", color: "#444", lineHeight: 1.7, fontStyle: "italic", marginBottom: "12px" }}>"{t.text}"</p>
+                  <p style={{ fontSize: "15px", color: ts, lineHeight: 1.7, fontStyle: "italic", marginBottom: "12px" }}>"{t.text}"</p>
                   <p style={{ fontSize: "13px", fontWeight: 700, color: color }}>— {t.author}</p>
                 </div>
               ))}
@@ -441,20 +474,20 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
       )}
 
       {/* ══ LOCALIZAÇÃO ═══════════════════════════════════════ */}
-      <section style={{ padding: "48px 20px", background: "#f9f9f9" }}>
+      <section style={{ padding: "48px 20px", background: sectionAlt }}>
         <div style={{ maxWidth: "560px", margin: "0 auto" }}>
           <p style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: color, marginBottom: "8px" }}>Onde estamos</p>
-          <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#111", letterSpacing: "-0.02em", marginBottom: "20px" }}>Localização</h2>
-          <div style={{ background: "#fff", borderRadius: "20px", padding: "24px", border: "1.5px solid #f0f0f0" }}>
+          <h2 style={{ fontSize: "22px", fontWeight: 900, color: tp, letterSpacing: "-0.02em", marginBottom: "20px" }}>Localização</h2>
+          <div style={{ background: cardBg, borderRadius: "20px", padding: "24px", border: `1.5px solid ${brd}` }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: "14px", marginBottom: "20px" }}>
-              <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `${color}14`, display: "flex", alignItems: "center", justifyContent: "center", color: color, flexShrink: 0 }}>
+              <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `${color}20`, display: "flex", alignItems: "center", justifyContent: "center", color: color, flexShrink: 0 }}>
                 <IconPin />
               </div>
               <div>
-                <p style={{ fontSize: "16px", fontWeight: 800, color: "#111", marginBottom: "2px" }}>
+                <p style={{ fontSize: "16px", fontWeight: 800, color: tp, marginBottom: "2px" }}>
                   {business.address || business.city}
                 </p>
-                <p style={{ fontSize: "14px", color: "#777", fontWeight: 500 }}>{business.city}</p>
+                <p style={{ fontSize: "14px", color: ts, fontWeight: 500 }}>{business.city}</p>
               </div>
             </div>
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -463,9 +496,9 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
                   href={business.google_maps_url ?? `https://maps.google.com/?q=${encodeURIComponent(`${business.address}, ${business.city}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: "140px", background: "#fff", border: "1.5px solid #e5e7eb", borderRadius: "12px", padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: "#333", justifyContent: "center" }}
+                  style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: "140px", background: cardBg, border: `1.5px solid ${brdMd}`, borderRadius: "12px", padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: tp, justifyContent: "center" }}
                 >
-                  📍 Ver no mapa
+                  Ver no mapa
                 </a>
               )}
               <a href={waMain} target="_blank" rel="noopener noreferrer" className="wa-btn" style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: "140px", background: "#25D366", borderRadius: "12px", padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: "#fff", justifyContent: "center", boxShadow: "0 4px 16px rgba(37,211,102,0.30)", transition: "transform .2s, box-shadow .2s" }}>
@@ -500,17 +533,19 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
       </section>
 
       {/* ══ LEAD FORM ════════════════════════════════════════ */}
-      <section style={{ padding: "48px 20px", background: "#f9f9f9" }}>
+      <section style={{ padding: "48px 20px", background: sectionAlt }}>
         <div style={{ maxWidth: "560px", margin: "0 auto" }}>
-          <div style={{ background: "#fff", borderRadius: "24px", padding: "28px", boxShadow: "0 8px 32px rgba(0,0,0,0.06)", border: "1.5px solid #f0f0f0" }}>
+          <div style={{ background: cardBg, borderRadius: "24px", padding: "28px", boxShadow: "0 8px 32px rgba(0,0,0,0.06)", border: `1.5px solid ${brd}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>
-              <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: `${color}12`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>🔔</div>
+              <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: `${color}20`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: "14px", height: "14px", borderRadius: "50%", background: color }} />
+              </div>
               <div>
                 <p style={{ fontSize: "11px", fontWeight: 800, color: color, letterSpacing: "0.18em", textTransform: "uppercase" }}>Fique por dentro</p>
-                <h3 style={{ fontSize: "18px", fontWeight: 900, color: "#111" }}>Receba novidades</h3>
+                <h3 style={{ fontSize: "18px", fontWeight: 900, color: tp }}>Receba novidades</h3>
               </div>
             </div>
-            <p style={{ fontSize: "13px", color: "#777", lineHeight: 1.65, margin: "10px 0 20px" }}>
+            <p style={{ fontSize: "13px", color: ts, lineHeight: 1.65, margin: "10px 0 20px" }}>
               Deixe seu WhatsApp e avisamos sobre promoções e novidades da {business.business_name}.
             </p>
             {demoMode ? (
@@ -544,9 +579,9 @@ export default function SiteBody({ business, kitId, demoMode }: SiteBodyProps) {
               </a>
             )}
           </div>
-          <p style={{ fontSize: "11px", color: "#2a2a2a", marginTop: "4px" }}>
+          <a href="https://meunegociopro.com.br" target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: "#666", marginTop: "4px", textDecoration: "none" }}>
             Feito com <span style={{ color: color, fontWeight: 700 }}>MeuNegócio Pro</span>
-          </p>
+          </a>
         </div>
       </footer>
 

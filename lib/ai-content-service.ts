@@ -46,12 +46,21 @@ export function interpretUserIntent(topic: string, mainService: string): {
   else if (/lan[çc]amento|novo\s+servi[çc]o|novidade|chegou\s|lançamos/.test(lower)) intent = "lançamento";
   else if (/produto|pe[çc]a|item|artigo|modelo|linha/.test(lower)) intent = "produto";
 
-  // Remove o prefixo de intenção para extrair o assunto específico
+  // Remove meta-frases ("quero algo para postar...") e prefixos de intenção
   let specificSubject = topic
+    // Meta-pedidos ao sistema — extrai o assunto real
+    .replace(/^(quero|preciso\s*de?|me\s+ajuda\s*com?|me\s+ajude)\s+(algo|um|uma|conteúdo|conteudo|post|coisa)?\s*(para\s+postar|de\s+post|para\s+criar|para\s+divulgar|sobre|de|do|da)?\s*/i, "")
+    .replace(/^(cria?|gera?|faz|faça|escreve?)\s+(um|uma)?\s*(post|conteúdo|conteudo|roteiro|legenda)?\s*(sobre|de|do|da|para)?\s*/i, "")
+    // Qualificadores que não fazem parte do assunto
+    .replace(/\s*no\s+meu\s+nicho(\s+(que\s+[eéè]|de|do|da))?\s*/gi, " ")
+    .replace(/\s*mostrando\s+(o\s+)?(nosso|meu|nossa|minha)\s+/gi, " ")
+    .replace(/\s*para\s+(meu|minha|nosso|nossa)\s+(negócio|negocio|empresa|loja|marca)\s*/gi, " ")
+    // Prefixos de intenção
     .replace(/^promo[çc][aã]o\s*(de|do|da|dos|das)?\s*/i, "")
     .replace(/^dica\s*(de|sobre|para)?\s*/i, "")
     .replace(/^bastidores?\s*(de|do|da|dos|das)?\s*/i, "")
     .replace(/^agenda\s*(aberta\s*)?(de|para|do|da)?\s*/i, "")
+    .replace(/\s+/g, " ")
     .trim();
 
   if (!specificSubject || specificSubject.length < 3) specificSubject = topic;
@@ -62,9 +71,17 @@ export function interpretUserIntent(topic: string, mainService: string): {
     "dica importante", "antes e depois", "bastidores", "prova social",
     "serviço principal", "tirar dúvidas", "oferta pelo whatsapp",
   ]);
-  const isSpecific = !genericSuggestions.has(lower) &&
+
+  // Se o assunto ainda parecer uma frase/pedido longo, não é específico
+  const looksLikeSentence = specificSubject.length > 45 ||
+    /\s+(que|quero|preciso|mostrando|para\s+postar)\s/.test(specificSubject);
+
+  const isSpecific = !looksLikeSentence &&
+    !genericSuggestions.has(lower) &&
     lower !== mainService.toLowerCase() &&
     topic.trim().length > 4;
+
+  if (!isSpecific && looksLikeSentence) specificSubject = mainService;
 
   return { specificSubject, intent, isSpecific };
 }

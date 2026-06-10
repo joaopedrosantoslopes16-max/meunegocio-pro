@@ -62,6 +62,8 @@ export interface EditedPost {
   backgroundImageUrl?: string;
   overlayOpacity: number;
   imagePositionY: number;
+  imagePositionX: number;
+  imageZoom: number;
   postFormat: "1/1" | "4/5" | "9/16" | "16/9";
 }
 
@@ -96,6 +98,8 @@ export default function PostEditor({
   const [bgImageUrl,   setBgImageUrl]   = useState<string | undefined>();
   const [overlayOp,    setOverlayOp]    = useState(0.55);
   const [imagePosY,    setImagePosY]    = useState(50);
+  const [imagePosX,    setImagePosX]    = useState(50);
+  const [imageZoom,    setImageZoom]    = useState(1.0);
   const [postFormat,   setPostFormat]   = useState<"1/1" | "4/5" | "9/16" | "16/9">("1/1");
   const [activeTab,    setActiveTab]    = useState<"texto" | "estilo" | "imagem">("texto");
   const [saved,        setSaved]        = useState(false);
@@ -123,7 +127,7 @@ export default function PostEditor({
   }
 
   function handleSave() {
-    const post: EditedPost = { title, subtitle, cta, template_type: template, primary_color: color, textColor, fontStyle, backgroundImageUrl: bgImageUrl, overlayOpacity: overlayOp, imagePositionY: imagePosY, postFormat };
+    const post: EditedPost = { title, subtitle, cta, template_type: template, primary_color: color, textColor, fontStyle, backgroundImageUrl: bgImageUrl, overlayOpacity: overlayOp, imagePositionY: imagePosY, imagePositionX: imagePosX, imageZoom, postFormat };
     onSave?.(post);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -417,21 +421,67 @@ export default function PostEditor({
                           />
                           <span className="text-[10px] font-bold text-gray-400">B</span>
                         </div>
-                        <div className="flex justify-between text-[10px] text-gray-400">
+                        <div className="flex justify-between text-[10px] text-gray-400 mb-2">
                           <span>Topo</span>
                           <span className="font-semibold text-violet-500">{imagePosY === 0 ? "Topo" : imagePosY === 100 ? "Base" : imagePosY === 50 ? "Centro" : `${imagePosY}%`}</span>
                           <span>Base</span>
                         </div>
-                        <div className="flex gap-1.5 mt-2">
-                          {[{ label: "Topo", v: 10 }, { label: "Centro", v: 50 }, { label: "Base", v: 85 }].map((opt) => (
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] font-bold text-gray-400">E</span>
+                          <input
+                            type="range" min="0" max="100" step="1"
+                            value={imagePosX}
+                            onChange={(e) => setImagePosX(Number(e.target.value))}
+                            className="flex-1 accent-violet-600"
+                          />
+                          <span className="text-[10px] font-bold text-gray-400">D</span>
+                        </div>
+                        <div className="flex justify-between text-[10px] text-gray-400 mb-2">
+                          <span>Esq</span>
+                          <span className="font-semibold text-violet-500">{imagePosX === 0 ? "Esquerda" : imagePosX === 100 ? "Direita" : imagePosX === 50 ? "Centro" : `${imagePosX}%`}</span>
+                          <span>Dir</span>
+                        </div>
+                        <div className="flex gap-1.5 mt-1">
+                          {[{ label: "Topo", vy: 10, vx: 50 }, { label: "Centro", vy: 50, vx: 50 }, { label: "Base", vy: 85, vx: 50 }].map((opt) => (
                             <button
-                              key={opt.v}
-                              onClick={() => setImagePosY(opt.v)}
-                              className={`flex-1 text-[10px] py-1.5 rounded-lg border font-semibold transition ${imagePosY === opt.v ? "border-violet-500 bg-violet-50 dark:bg-violet-950 text-violet-700" : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-violet-300"}`}
+                              key={opt.label}
+                              onClick={() => { setImagePosY(opt.vy); setImagePosX(opt.vx); }}
+                              className={`flex-1 text-[10px] py-1.5 rounded-lg border font-semibold transition ${imagePosY === opt.vy && imagePosX === opt.vx ? "border-violet-500 bg-violet-50 dark:bg-violet-950 text-violet-700" : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-violet-300"}`}
                             >
                               {opt.label}
                             </button>
                           ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                          Zoom da foto
+                        </label>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] font-bold text-gray-400">1×</span>
+                          <input
+                            type="range" min="1.0" max="2.5" step="0.05"
+                            value={imageZoom}
+                            onChange={(e) => setImageZoom(Number(e.target.value))}
+                            className="flex-1 accent-violet-600"
+                          />
+                          <span className="text-[10px] font-bold text-gray-400">2.5×</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px] text-gray-400">
+                          <span>Normal</span>
+                          <span className="font-semibold text-violet-500">{imageZoom.toFixed(2)}×</span>
+                          <div className="flex gap-1.5">
+                            {[1.0, 1.5, 2.0].map((v) => (
+                              <button
+                                key={v}
+                                onClick={() => setImageZoom(v)}
+                                className={`px-2 py-1 rounded-lg border font-semibold transition ${imageZoom === v ? "border-violet-500 bg-violet-50 dark:bg-violet-950 text-violet-700" : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-violet-300"}`}
+                              >
+                                {v}×
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </>
@@ -476,6 +526,8 @@ export default function PostEditor({
                 backgroundImageUrl={bgImageUrl}
                 overlayOpacity={overlayOp}
                 imagePositionY={imagePosY}
+                imagePositionX={imagePosX}
+                imageZoom={imageZoom}
                 postFormat={postFormat}
                 textColor={textColor}
                 fontFamily={FONT_OPTIONS.find(f => f.id === fontStyle)?.css}
