@@ -314,15 +314,65 @@ export interface NicheConfig {
 export type ContentFormat = "reels" | "carrossel" | "story" | "post" | "whatsapp";
 export type ImageType = "cover" | "logo" | "professional" | "post" | "story" | "general";
 
+export type RefinementMode =
+  | "mais-vendedor" | "mais-educativo" | "mais-criativo"
+  | "mais-direto" | "mais-elegante" | "menos-generico" | "trocar-angulo";
+
 export interface Narrative {
   title: string;
   angle: string;
   description: string;
+  // Campos estendidos (opcionais — retrocompatíveis)
+  tipo?: string;
+  gancho?: string;
+  dor?: string;
+  desejo?: string;
+  promessa?: string;
+  formatos?: ContentFormat[];
+  cta?: string;
+  exemplo?: string;
+}
+
+export interface KeywordSet {
+  nicho: string[];
+  desejo: string[];
+  dor: string[];
+  acao: string[];
+  conversao: string[];
+  autoridade: string[];
+  formato: string[];
+}
+
+export interface MagneticInterpretation {
+  temaInterpretado: string;
+  intencaoUsuario: string;
+  nichoLabel: string;
+  publicoFinal: string;
+  objetivoProbavel: string;
+  palavrasChave: KeywordSet;
+  doresPublico: string[];
+  desejosPublico: string[];
+  angulosPossiveis: string[];
+  formatosRecomendados: ContentFormat[];
+  tomDeVoz: string;
+  isFreeTheme?: boolean;
+}
+
+export interface ReelsScene {
+  scene: number;
+  duracao: string;
+  description: string;
+  fala: string;
+  textoNaTela?: string;
 }
 
 export interface ReelsScript {
   title: string;
-  scenes: { scene: number; description: string; fala: string }[];
+  gancho: string;
+  duracaoTotal: string;
+  vibeEdicao: string;
+  musicaSugerida: string;
+  scenes: ReelsScene[];
   screen_text: string;
   caption: string;
   cta: string;
@@ -346,8 +396,18 @@ export interface CarouselContent {
   whatsapp_message: string;
 }
 
+export interface StorySlide {
+  story: number;
+  text: string;
+  type?: string;
+  background?: string;
+  sticker?: string;
+  emoji?: string;
+  subtext?: string;
+}
+
 export interface StorySequence {
-  stories: { story: number; text: string; type?: string }[];
+  stories: StorySlide[];
   cta: string;
   whatsapp_message: string;
 }
@@ -424,13 +484,17 @@ export interface BusinessFormData {
 
 // ─── Premium Carousel ─────────────────────────────────────────
 export type CarouselLayout =
-  | "cover_hero"       // full-bleed image/gradient, big headline bottom
-  | "bold_statement"   // solid dark/brand bg, oversized title
-  | "split_image"      // image left (45%) + content right
-  | "card_glass"       // full-bleed image + frosted glass card
-  | "content_list"     // clean bg, title + bullet list
-  | "image_overlay"    // full image + bottom gradient + text
-  | "cta_final";       // dark bg, CTA + WhatsApp button
+  | "cover_hero"         // full-bleed image/gradient, big headline bottom
+  | "bold_statement"     // solid dark/brand bg, oversized title
+  | "split_image"        // image left (45%) + content right
+  | "card_glass"         // full-bleed image + frosted glass card
+  | "content_list"       // clean bg, title + bullet list
+  | "image_overlay"      // full image + bottom gradient + text
+  | "cta_final"          // dark bg, CTA + WhatsApp button
+  | "before_after"       // split antes/depois comparison — niche-specific
+  | "stats_card"         // big number + secondary stats — proof/numbers
+  | "testimonial_quote"  // large quote testimonial — social proof
+  | "steps_process";     // numbered 3-step process — how it works
 
 export type CarouselObjective =
   | "vender" | "educar" | "promocao" | "servico"
@@ -451,6 +515,7 @@ export interface PremiumCarouselSlide {
   listItems?: string[];
   imageUrl?: string;
   overlayOpacity: number;
+  colorOverride?: string;
   bgVariant: "primary" | "dark" | "white" | "accent";
 }
 
@@ -465,6 +530,14 @@ export interface PremiumCarousel {
   caption: string;
   whatsappMessage: string;
   selectedImages: string[];
+  interpretedTheme?: string;
+  reelsScript?: {
+    videoTitle: string;
+    hook: string;
+    script: string;
+    screenText: string[];
+    cta: string;
+  };
 }
 
 export interface GeneratedCarousel {

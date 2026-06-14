@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { generateGeminiReels, generateGeminiHeadlines, generateGeminiStory } from "@/lib/gemini-reels";
 import {
   generateNarratives,
   generateHeadlines,
@@ -8,9 +9,13 @@ import {
   generateCarouselContent,
   generateStorySequence,
   generateCaption,
+  generateCaptionVariations,
   generateWhatsAppMessage,
   generateWhatsAppVariations,
+  getQuickTopicSuggestions,
+  getInterpretation,
   type ContentInput,
+  type RefinementMode,
 } from "@/lib/ai-content-service";
 import type { ContentFormat } from "@/types";
 
@@ -24,7 +29,6 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
-  // Verificar plano Pro para recursos completos
   const { data: subscription } = await supabaseAdmin
     .from("subscriptions")
     .select("plan_name, status")
@@ -41,19 +45,29 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { business_id, topic, format, narrative, headline } = body as {
+  const {
+    business_id,
+    topic,
+    format,
+    narrative,
+    headline,
+    refinementMode,
+    platform,
+  } = body as {
     business_id: string;
     topic: string;
     format: ContentFormat;
     narrative?: string;
     headline?: string;
+    refinementMode?: RefinementMode;
+    platform?: "reels" | "shorts";
   };
 
   if (!business_id || !topic) {
     return NextResponse.json({ error: "business_id e topic são obrigatórios." }, { status: 400 });
   }
 
-  // Verificar ownership pelo kits (businesses não tem user_id direto)
+  // Verifica ownership via kits
   const { data: kit } = await supabaseAdmin
     .from("kits")
     .select("business_id")
@@ -65,9 +79,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Negócio não encontrado." }, { status: 404 });
   }
 
+  // Busca dados completos do negócio para contexto rico
   const { data: business } = await supabaseAdmin
     .from("businesses")
-    .select("id, business_name, niche, city, whatsapp, main_service")
+    .select("id, business_name, niche, city, whatsapp, main_service, services_json, short_description, services")
     .eq("id", business_id)
     .single();
 
@@ -78,13 +93,21 @@ export async function POST(req: NextRequest) {
   const isPro = planName === "pro";
   const proFormats: ContentFormat[] = ["reels", "story"];
 
-  // Reels e Stories são exclusivos do Pro
   if (proFormats.includes(format) && !isPro) {
     return NextResponse.json({
       error: "Roteiros para Reels e Stories estão disponíveis apenas no plano Pro.",
       upgrade: true,
     }, { status: 403 });
   }
+
+  // Seed aleatório — garante variação a cada geração
+  const variationSeed = Math.floor(Math.random() * 1000);
+
+  // Combina arrays de serviços (services pode vir como array ou services_json)
+  const allServices: string[] = [
+    ...(Array.isArray(business.services) ? business.services : []),
+    ...(Array.isArray(business.services_json) ? business.services_json : []),
+  ].filter(Boolean);
 
   const input: ContentInput = {
     topic,
@@ -96,29 +119,61 @@ export async function POST(req: NextRequest) {
     narrative,
     headline,
     plan: planName,
+    variationSeed,
+    refinementMode,
+    services: allServices.length > 0 ? allServices : undefined,
+    shortDescription: business.short_description ?? undefined,
   };
 
-  // Gerar narrativas e headlines sempre
+  // Gera interpretação do pedido (para retornar ao frontend)
+  const interpretation = getInterpretation(input);
+
+  // Input Gemini reutilizado em headlines e roteiro
+  const videoPlatform = platform ?? "reels";
+  const geminiInput = {
+    topic,
+    niche: business.niche,
+    businessName: business.business_name,
+    city: business.city,
+    mainService: business.main_service,
+    services: allServices.length > 0 ? allServices : undefined,
+    shortDescription: business.short_description ?? undefined,
+    platform: videoPlatform,
+  };
+
+  // Roda narrativas, headlines (template + Gemini) e roteiro em paralelo
   const narratives = generateNarratives(input);
-  const headlines = generateHeadlines(input);
-  const caption = generateCaption({ ...input, headline: headline ?? headlines[0] });
+  const templateHeadlines = generateHeadlines(input);
+
+  const [geminiHeadlines, geminiScript, geminiStories] = await Promise.all([
+    format === "reels" ? generateGeminiHeadlines(geminiInput) : Promise.resolve(null),
+    format === "reels" ? generateGeminiReels(geminiInput) : Promise.resolve(null),
+    format === "story" ? generateGeminiStory(geminiInput) : Promise.resolve(null),
+  ]);
+
+  // Usa Gemini se disponível, senão cai nos templates
+  const headlines = geminiHeadlines ?? templateHeadlines;
+
+  const captionInput = { ...input, headline: headline ?? headlines[0] };
+  const caption = generateCaption(captionInput);
+  const captionVariations = generateCaptionVariations(captionInput);
   const whatsappMessage = generateWhatsAppMessage(input);
   const whatsappVariations = generateWhatsAppVariations(input);
 
-  // Gerar formato específico
+  // Gera formato específico
   let script = null;
   let carousel = null;
   let stories = null;
 
   if (format === "reels") {
-    script = generateReelsScript({ ...input, headline: headline ?? headlines[0] });
+    script = geminiScript ?? generateReelsScript({ ...input, headline: headline ?? headlines[0] });
   } else if (format === "carrossel") {
     carousel = generateCarouselContent({ ...input, headline: headline ?? headlines[0] });
   } else if (format === "story") {
-    stories = generateStorySequence({ ...input, headline: headline ?? headlines[0] });
+    stories = geminiStories ?? generateStorySequence({ ...input, headline: headline ?? headlines[0] });
   }
 
-  // Salvar no banco
+  // Salva no banco (não falhar se der erro de save)
   const { data: saved, error: saveError } = await supabase
     .from("content_generations")
     .insert({
@@ -140,7 +195,6 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (saveError) {
-    // Não falhar por erro de save — retornar o conteúdo mesmo assim
     console.error("Erro ao salvar geração:", saveError);
   }
 
@@ -152,10 +206,14 @@ export async function POST(req: NextRequest) {
     carousel,
     stories,
     caption,
+    caption_variations: captionVariations,
     whatsapp_message: whatsappMessage,
     whatsapp_variations: whatsappVariations,
     format,
+    platform: videoPlatform,
     plan: planName,
+    interpretation,
+    variationSeed,
   });
 }
 
@@ -166,6 +224,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const business_id = searchParams.get("business_id");
+  const niche = searchParams.get("niche");
 
   const query = supabase
     .from("content_generations")
@@ -179,5 +238,8 @@ export async function GET(req: NextRequest) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ generations: data ?? [] });
+  // Retorna sugestões rápidas baseadas no nicho se pedido
+  const suggestions = niche ? getQuickTopicSuggestions(niche) : null;
+
+  return NextResponse.json({ generations: data ?? [], suggestions });
 }
