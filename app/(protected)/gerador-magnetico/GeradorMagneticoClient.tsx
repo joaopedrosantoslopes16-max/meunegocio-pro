@@ -8,6 +8,13 @@ import type { VideoPlatform } from "@/lib/gemini-reels";
 
 type ContentMode = VideoPlatform | "story";
 
+interface ContentAngle {
+  id: string;
+  label: string;
+  description: string;
+  icon: "camera" | "heart" | "lightbulb" | "star" | "clock" | "fire";
+}
+
 interface GenerationResult {
   id: string | null;
   script: ReelsScript | null;
@@ -16,11 +23,68 @@ interface GenerationResult {
   whatsapp_message: string;
   whatsapp_variations: string[];
   mode: ContentMode;
+  angle: string;
 }
 
 interface Props {
   business: Business;
   planName: "essencial" | "pro";
+}
+
+// ── Ângulos de conteúdo ─────────────────────────────────────────
+const BASE_ANGLES: ContentAngle[] = [
+  {
+    id: "bastidores",
+    label: "Mostrar por dentro",
+    description: "Câmera ligada no seu trabalho — o processo que o cliente nunca vê",
+    icon: "camera",
+  },
+  {
+    id: "dor-cliente",
+    label: "Falar com a dor",
+    description: "Começa com o problema real do cliente — prende quem está passando por isso",
+    icon: "heart",
+  },
+  {
+    id: "revelar",
+    label: "Revelar algo",
+    description: "Uma informação que surpreende — fato, mito ou segredo do nicho",
+    icon: "lightbulb",
+  },
+  {
+    id: "resultado",
+    label: "Mostrar resultado",
+    description: "Antes e depois, transformação real — o que muda com o seu serviço",
+    icon: "star",
+  },
+  {
+    id: "urgencia",
+    label: "Criar urgência",
+    description: "Por que resolver isso agora e não depois — consequências de adiar",
+    icon: "clock",
+  },
+  {
+    id: "autoridade",
+    label: "Mostrar autoridade",
+    description: "Posiciona você como referência — experiência, diferencial, conquistas",
+    icon: "fire",
+  },
+];
+
+function getAnglesForMode(mode: ContentMode, niche: string): ContentAngle[] {
+  if (mode === "story") {
+    return [
+      BASE_ANGLES[1], // dor-cliente
+      BASE_ANGLES[2], // revelar
+      BASE_ANGLES[3], // resultado
+    ];
+  }
+  // Reels e Shorts — varia por nicho
+  const serviceNiches = ["mecanica", "serralheria", "contabilidade"];
+  if (serviceNiches.includes(niche)) {
+    return [BASE_ANGLES[0], BASE_ANGLES[2], BASE_ANGLES[3]];
+  }
+  return [BASE_ANGLES[0], BASE_ANGLES[1], BASE_ANGLES[2]];
 }
 
 // ── Ícones SVG ──────────────────────────────────────────────────
@@ -47,12 +111,49 @@ function IconRefresh({ className = "w-3.5 h-3.5" }) {
     </svg>
   );
 }
-function IconCamera({ className = "w-3.5 h-3.5" }) {
+function IconCamera({ className = "w-5 h-5" }) {
   return (
     <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
       <rect x="1" y="4" width="14" height="10" rx="2" />
       <circle cx="8" cy="9" r="2.5" />
       <path d="M5 4l1-2h4l1 2" />
+    </svg>
+  );
+}
+function IconHeart({ className = "w-5 h-5" }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 13.5S1.5 9.5 1.5 5.5a3.5 3.5 0 0 1 6.5-1.8A3.5 3.5 0 0 1 14.5 5.5C14.5 9.5 8 13.5 8 13.5z" />
+    </svg>
+  );
+}
+function IconLightbulb({ className = "w-5 h-5" }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 1a5 5 0 0 1 3 9l-1 1H6l-1-1A5 5 0 0 1 8 1z" />
+      <path d="M6 11v1a2 2 0 0 0 4 0v-1" />
+    </svg>
+  );
+}
+function IconStar({ className = "w-5 h-5" }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="8 1.5 10 6 14.5 6.5 11.2 9.5 12.2 14 8 11.5 3.8 14 4.8 9.5 1.5 6.5 6 6" />
+    </svg>
+  );
+}
+function IconClock({ className = "w-5 h-5" }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="8" r="6.5" />
+      <polyline points="8 4.5 8 8 10.5 10" />
+    </svg>
+  );
+}
+function IconFire({ className = "w-5 h-5" }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 14c-3 0-5-2-5-5 0-2 1-3.5 2.5-4.5 0 1.5 1 2.5 1 2.5S7 5 7 3c3 1 4 3.5 4 5.5 0 .8-.2 1.6-.6 2.2C11 10 11 9 11 9c0 2-1.5 5-3 5z" />
     </svg>
   );
 }
@@ -82,28 +183,12 @@ function IconMusic({ className = "w-3.5 h-3.5" }) {
     </svg>
   );
 }
-function IconClock({ className = "w-3.5 h-3.5" }) {
-  return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="8" cy="8" r="6.5" />
-      <polyline points="8 4.5 8 8 10.5 10" />
-    </svg>
-  );
-}
 function IconScissors({ className = "w-3.5 h-3.5" }) {
   return (
     <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="3.5" cy="4" r="2" />
       <circle cx="3.5" cy="12" r="2" />
       <path d="M5.5 4.5L14 10M5.5 11.5L14 6" />
-    </svg>
-  );
-}
-function IconLightbulb({ className = "w-3.5 h-3.5" }) {
-  return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 1a5 5 0 0 1 3 9l-1 1H6l-1-1A5 5 0 0 1 8 1z" />
-      <path d="M6 11v1a2 2 0 0 0 4 0v-1" />
     </svg>
   );
 }
@@ -153,6 +238,23 @@ function IconStories({ className = "w-5 h-5" }) {
       <line x1="9" y1="15" x2="13" y2="15" />
     </svg>
   );
+}
+function IconArrowLeft({ className = "w-4 h-4" }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13L5 8l5-5" />
+    </svg>
+  );
+}
+
+function AngleIcon({ icon, className }: { icon: ContentAngle["icon"]; className?: string }) {
+  const cls = className ?? "w-5 h-5";
+  if (icon === "camera") return <IconCamera className={cls} />;
+  if (icon === "heart") return <IconHeart className={cls} />;
+  if (icon === "lightbulb") return <IconLightbulb className={cls} />;
+  if (icon === "star") return <IconStar className={cls} />;
+  if (icon === "clock") return <IconClock className={cls} />;
+  return <IconFire className={cls} />;
 }
 
 // ── Config de plataforma ─────────────────────────────────────────
@@ -223,14 +325,16 @@ const REFINEMENT_BUTTONS: { mode: RefinementMode; label: string }[] = [
 
 const ALL_MODES: ContentMode[] = ["reels", "story", "shorts"];
 
+// ── Componente principal ─────────────────────────────────────────
 export default function GeradorMagneticoClient({ business, planName }: Props) {
-  const [topic, setTopic]         = useState("");
-  const [activeMode, setActiveMode] = useState<ContentMode>("reels");
-  const [result, setResult]       = useState<GenerationResult | null>(null);
-  const [loading, setLoading]     = useState(false);
-  const [loadingMode, setLoadingMode] = useState<ContentMode | null>(null);
-  const [error, setError]         = useState<string | null>(null);
-  const [copied, setCopied]       = useState<string | null>(null);
+  const [topic, setTopic]           = useState("");
+  const [step, setStep]             = useState<"input" | "angle" | "result">("input");
+  const [selectedMode, setSelectedMode] = useState<ContentMode>("reels");
+  const [selectedAngle, setSelectedAngle] = useState<ContentAngle | null>(null);
+  const [result, setResult]         = useState<GenerationResult | null>(null);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState<string | null>(null);
+  const [copied, setCopied]         = useState<string | null>(null);
   const [activeRefinement, setActiveRefinement] = useState<RefinementMode | null>(null);
 
   const isPro = planName === "pro";
@@ -243,19 +347,20 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
     setTimeout(() => setCopied(null), 2500);
   }
 
-  async function generate(mode: ContentMode, refinement?: RefinementMode) {
-    if (!topic.trim()) return;
-
-    // Stories é Pro
+  function handleModeSelect(mode: ContentMode) {
     if (mode === "story" && !isPro) {
       setError("Stories está disponível apenas no plano Pro.");
       return;
     }
-
-    setLoading(true);
-    setLoadingMode(mode);
+    if (!topic.trim()) return;
     setError(null);
-    setActiveMode(mode);
+    setSelectedMode(mode);
+    setStep("angle");
+  }
+
+  async function generate(mode: ContentMode, angle: ContentAngle, refinement?: RefinementMode) {
+    setLoading(true);
+    setError(null);
     if (!refinement) setActiveRefinement(null);
 
     try {
@@ -270,6 +375,7 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
           topic,
           format,
           platform,
+          angle: angle.id,
           refinementMode: refinement,
         }),
       });
@@ -285,23 +391,39 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
         whatsapp_message: data.whatsapp_message ?? "",
         whatsapp_variations: data.whatsapp_variations ?? [],
         mode,
+        angle: angle.id,
       });
+      setStep("result");
       if (refinement) setActiveRefinement(refinement);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Erro inesperado");
     } finally {
       setLoading(false);
-      setLoadingMode(null);
     }
+  }
+
+  function handleAngleSelect(angle: ContentAngle) {
+    setSelectedAngle(angle);
+    generate(selectedMode, angle);
   }
 
   function restart() {
     setResult(null);
     setError(null);
     setActiveRefinement(null);
+    setSelectedAngle(null);
+    setStep("input");
   }
 
-  const currentCfg = MODE_CONFIG[result?.mode ?? activeMode];
+  function backToAngles() {
+    setResult(null);
+    setError(null);
+    setActiveRefinement(null);
+    setStep("angle");
+  }
+
+  const currentCfg = MODE_CONFIG[result?.mode ?? selectedMode];
+  const angles = getAnglesForMode(selectedMode, business.niche);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -326,8 +448,8 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
         </div>
       )}
 
-      {/* ── INPUT ── */}
-      {!result && (
+      {/* ── ETAPA 1: INPUT ── */}
+      {step === "input" && (
         <div className="space-y-5">
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6">
             <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">
@@ -336,18 +458,12 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
             <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && topic.trim()) {
-                  e.preventDefault();
-                  generate(activeMode);
-                }
-              }}
-              placeholder={`Ex: "quero mostrar ${cfg.services[0] ?? "meu serviço principal"}", "promoção de fim de semana", "bastidores do meu trabalho"…`}
+              placeholder={`Ex: "quero mostrar ${cfg.services[0] ?? "meu serviço principal"}", "promoção de fim de semana", "bastidores do trabalho"…`}
               rows={3}
               className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm text-gray-800 dark:text-gray-200 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-400 resize-none"
             />
             <p className="text-xs text-gray-400 mt-1.5">
-              Quanto mais contexto você der, mais certeiro o conteúdo. Pode escrever em qualquer formato.
+              Quanto mais contexto você der, mais certeiro o conteúdo.
             </p>
           </div>
 
@@ -373,44 +489,31 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
             </div>
           </div>
 
-          {/* Plataforma + gerar */}
+          {/* Escolha de plataforma */}
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-3">
-              Escolha o formato e gere
+              Escolha o formato
             </p>
             <div className="grid grid-cols-3 gap-3">
               {ALL_MODES.map((mode) => {
                 const pc = MODE_CONFIG[mode];
-                const isLoading = loadingMode === mode;
                 const isProOnly = mode === "story" && !isPro;
                 return (
                   <button
                     key={mode}
-                    onClick={() => generate(mode)}
-                    disabled={!topic.trim() || loading}
-                    className={`relative flex flex-col items-center gap-2 px-3 py-4 rounded-2xl border-2 font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed ${
-                      pc.border
-                    } bg-white dark:bg-gray-900 ${pc.color} hover:shadow-md`}
+                    onClick={() => handleModeSelect(mode)}
+                    disabled={!topic.trim()}
+                    className={`relative flex flex-col items-center gap-2 px-3 py-4 rounded-2xl border-2 font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed ${pc.border} bg-white dark:bg-gray-900 ${pc.color} hover:shadow-md`}
                   >
-                    {mode === "reels"
-                      ? <IconInstagram className="w-6 h-6 flex-shrink-0" />
-                      : mode === "story"
-                      ? <IconStories className="w-6 h-6 flex-shrink-0" />
-                      : <IconYouTube className="w-6 h-6 flex-shrink-0" />
-                    }
+                    {mode === "reels" ? <IconInstagram className="w-6 h-6 flex-shrink-0" />
+                      : mode === "story" ? <IconStories className="w-6 h-6 flex-shrink-0" />
+                      : <IconYouTube className="w-6 h-6 flex-shrink-0" />}
                     <div className="text-center">
                       <div className="font-bold leading-none text-xs">{pc.label}</div>
                       <div className="text-xs font-normal opacity-60 mt-0.5">{pc.sub}</div>
                     </div>
                     {isProOnly && (
-                      <span className="absolute -top-2 -right-2 text-[9px] font-bold bg-violet-600 text-white px-1.5 py-0.5 rounded-full">
-                        PRO
-                      </span>
-                    )}
-                    {isLoading && (
-                      <div className="absolute right-2.5 top-2.5">
-                        <div className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
-                      </div>
+                      <span className="absolute -top-2 -right-2 text-[9px] font-bold bg-violet-600 text-white px-1.5 py-0.5 rounded-full">PRO</span>
                     )}
                   </button>
                 );
@@ -420,11 +523,79 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
         </div>
       )}
 
-      {/* ── RESULTADO ── */}
-      {result && (
+      {/* ── ETAPA 2: ÂNGULO ── */}
+      {step === "angle" && !loading && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setStep("input")}
+              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 font-medium transition"
+            >
+              <IconArrowLeft className="w-3.5 h-3.5" /> Voltar
+            </button>
+            <div className="flex items-center gap-2">
+              {selectedMode === "reels" ? <IconInstagram className={`w-4 h-4 ${MODE_CONFIG.reels.color}`} />
+                : selectedMode === "story" ? <IconStories className={`w-4 h-4 ${MODE_CONFIG.story.color}`} />
+                : <IconYouTube className={`w-4 h-4 ${MODE_CONFIG.shorts.color}`} />}
+              <span className={`text-sm font-bold ${MODE_CONFIG[selectedMode].color}`}>
+                {MODE_CONFIG[selectedMode].label} · {MODE_CONFIG[selectedMode].sub}
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-2.5 flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+            <p className="text-xs text-gray-500 dark:text-gray-400 italic">"{topic}"</p>
+          </div>
+
+          <div>
+            <p className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">
+              Que ângulo quer explorar?
+            </p>
+            <p className="text-xs text-gray-400 mb-4">
+              Escolha a abordagem — o roteiro vai ser gerado com esse foco.
+            </p>
+
+            <div className="space-y-2">
+              {angles.map((angle) => (
+                <button
+                  key={angle.id}
+                  onClick={() => handleAngleSelect(angle)}
+                  className="w-full flex items-center gap-4 px-4 py-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl hover:border-violet-300 dark:hover:border-violet-700 hover:shadow-sm transition text-left group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-100 dark:group-hover:bg-violet-900 transition">
+                    <AngleIcon icon={angle.icon} className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{angle.label}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{angle.description}</p>
+                  </div>
+                  <svg className="w-4 h-4 text-gray-300 group-hover:text-violet-500 transition flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 3l5 5-5 5" />
+                  </svg>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <div className="text-center py-16">
+          <div className="w-8 h-8 rounded-full border-2 border-violet-400 border-t-transparent animate-spin mx-auto mb-4" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Gerando {MODE_CONFIG[selectedMode].label}
+            {selectedAngle ? ` · ${selectedAngle.label}` : ""}…
+          </p>
+        </div>
+      )}
+
+      {/* ── ETAPA 3: RESULTADO ── */}
+      {step === "result" && result && !loading && (
         <div className="space-y-5">
 
-          {/* Header resultado */}
+          {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {result.mode === "reels" && <IconInstagram className={`w-4 h-4 ${MODE_CONFIG.reels.color}`} />}
@@ -433,49 +604,34 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
               <span className={`text-sm font-bold ${currentCfg.color}`}>
                 {currentCfg.label} · {currentCfg.sub}
               </span>
+              {selectedAngle && (
+                <span className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                  {selectedAngle.label}
+                </span>
+              )}
             </div>
             <button onClick={restart} className="text-xs text-violet-600 dark:text-violet-400 font-bold hover:underline">
               Novo conteúdo
             </button>
           </div>
 
-          {/* Input do usuário (referência) */}
+          {/* Referência do que foi escrito */}
           <div className="bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-2.5 flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
             <p className="text-xs text-gray-500 dark:text-gray-400 italic">"{topic}"</p>
           </div>
 
-          {/* Trocar formato */}
+          {/* Ações */}
           <div className="flex gap-2 flex-wrap">
-            {ALL_MODES.map((mode) => {
-              const pc = MODE_CONFIG[mode];
-              const isActive = result.mode === mode;
-              const isProOnly = mode === "story" && !isPro;
-              return (
-                <button
-                  key={mode}
-                  onClick={() => generate(mode)}
-                  disabled={loading || isProOnly}
-                  className={`relative flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition disabled:opacity-50 ${
-                    isActive
-                      ? `${pc.borderActive} ${pc.colorActive} shadow-sm`
-                      : `bg-white dark:bg-gray-900 ${pc.border} ${pc.color} hover:shadow-sm`
-                  }`}
-                >
-                  {mode === "reels" ? <IconInstagram className="w-3.5 h-3.5" /> : mode === "story" ? <IconStories className="w-3.5 h-3.5" /> : <IconYouTube className="w-3.5 h-3.5" />}
-                  {pc.label}
-                  {loading && loadingMode === mode && (
-                    <div className="w-3 h-3 rounded-full border border-current border-t-transparent animate-spin" />
-                  )}
-                  {isProOnly && (
-                    <span className="text-[9px] font-bold bg-violet-600 text-white px-1 py-0.5 rounded-full">PRO</span>
-                  )}
-                </button>
-              );
-            })}
-            <div className="flex-1" />
             <button
-              onClick={() => generate(result.mode)}
+              onClick={backToAngles}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:border-violet-400 hover:text-violet-600 transition"
+            >
+              <IconArrowLeft className="w-3 h-3" />
+              Outro ângulo
+            </button>
+            <button
+              onClick={() => selectedAngle && generate(result.mode, selectedAngle)}
               disabled={loading}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:border-violet-400 hover:text-violet-600 transition disabled:opacity-50"
             >
@@ -492,7 +648,7 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
                 {REFINEMENT_BUTTONS.map(({ mode, label }) => (
                   <button
                     key={mode}
-                    onClick={() => generate(result.mode, mode)}
+                    onClick={() => selectedAngle && generate(result.mode, selectedAngle, mode)}
                     disabled={loading}
                     className={`text-xs px-3 py-1.5 rounded-full border font-medium transition disabled:opacity-50 ${
                       activeRefinement === mode
@@ -507,25 +663,18 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
             </div>
           )}
 
-          {loading && (
-            <div className="text-center py-6 text-sm text-gray-400">
-              <div className="w-6 h-6 rounded-full border-2 border-violet-400 border-t-transparent animate-spin mx-auto mb-2" />
-              Gerando conteúdo…
-            </div>
-          )}
-
-          {/* ── STORIES ── */}
-          {result.mode === "story" && result.stories && !loading && (
+          {/* Stories */}
+          {result.mode === "story" && result.stories && (
             <StoriesResult stories={result.stories} copy={copy} copied={copied} />
           )}
 
-          {/* ── ROTEIRO REELS / SHORTS ── */}
-          {result.mode !== "story" && result.script && !loading && (
+          {/* Reels / Shorts */}
+          {result.mode !== "story" && result.script && (
             <ReelsResult script={result.script} platform={result.mode as VideoPlatform} copy={copy} copied={copied} />
           )}
 
-          {/* Legenda / Descrição */}
-          {result.caption && !loading && (
+          {/* Legenda */}
+          {result.caption && (
             <CopyCard
               label={result.mode === "shorts" ? "Descrição para o Shorts" : result.mode === "story" ? "Legenda para o post" : "Legenda para o Reels"}
               text={result.caption}
@@ -537,13 +686,12 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
           )}
 
           {/* WhatsApp */}
-          {result.mode !== "shorts" && result.whatsapp_variations.length > 0 && !loading && (
+          {result.mode !== "shorts" && result.whatsapp_variations.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <IconMessage className="w-4 h-4 text-violet-500" />
                 <p className="text-sm font-bold text-gray-800 dark:text-gray-200">Mensagem de divulgação para WhatsApp</p>
               </div>
-              <p className="text-xs text-gray-400">5 variações para usar na bio ou enviar para contatos.</p>
               {result.whatsapp_variations.map((msg, i) => {
                 const labels = ["Curta e direta", "Média com contexto", "Persuasiva com urgência", "Reativação de cliente", "Apresentação para novo cliente"];
                 return (
@@ -573,175 +721,88 @@ export default function GeradorMagneticoClient({ business, planName }: Props) {
   );
 }
 
-// ── Componente Stories ────────────────────────────────────────────
-function StoriesResult({
-  stories,
-  copy,
-  copied,
-}: {
-  stories: StorySequence;
-  copy: (text: string, key: string) => void;
-  copied: string | null;
-}) {
+// ── Stories ───────────────────────────────────────────────────────
+function StoriesResult({ stories, copy, copied }: { stories: StorySequence; copy: (t: string, k: string) => void; copied: string | null }) {
   return (
     <div className="space-y-3">
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
         Sequência de {stories.stories.length} Stories
       </p>
-
-      {/* Preview horizontal (estilo stories do Instagram) */}
       <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
         {stories.stories.map((slide, i) => {
-          const bgClass = (slide.background && STORY_BACKGROUNDS[slide.background])
-            ? STORY_BACKGROUNDS[slide.background]
-            : "bg-gradient-to-br from-violet-600 to-pink-500";
+          const bgClass = (slide.background && STORY_BACKGROUNDS[slide.background]) ? STORY_BACKGROUNDS[slide.background] : "bg-gradient-to-br from-violet-600 to-pink-500";
           const isLight = slide.background === "branco" || slide.background === "creme";
           const textClass = isLight ? "text-gray-900" : "text-white";
           return (
-            <div
-              key={i}
-              className={`flex-shrink-0 snap-center w-32 h-56 rounded-2xl flex flex-col justify-between p-3 ${bgClass} shadow-md`}
-            >
-              <div className="flex items-center gap-1">
-                <span className={`text-[9px] font-bold uppercase tracking-wide ${textClass} opacity-60`}>
-                  {STORY_TYPE_LABELS[slide.type ?? ""] ?? `Slide ${slide.story}`}
-                </span>
-              </div>
+            <div key={i} className={`flex-shrink-0 snap-center w-32 h-56 rounded-2xl flex flex-col justify-between p-3 ${bgClass} shadow-md`}>
+              <div><span className={`text-[9px] font-bold uppercase tracking-wide ${textClass} opacity-60`}>{STORY_TYPE_LABELS[slide.type ?? ""] ?? `Slide ${slide.story}`}</span></div>
               <div className="flex-1 flex flex-col justify-center gap-1">
-                {slide.emoji && (
-                  <span className="text-2xl">{slide.emoji}</span>
-                )}
+                {slide.emoji && <span className="text-2xl">{slide.emoji}</span>}
                 <p className={`text-xs font-bold leading-snug ${textClass}`}>{slide.text}</p>
-                {slide.subtext && (
-                  <p className={`text-[10px] ${textClass} opacity-70 leading-snug`}>{slide.subtext}</p>
-                )}
+                {slide.subtext && <p className={`text-[10px] ${textClass} opacity-70 leading-snug`}>{slide.subtext}</p>}
               </div>
               {slide.sticker && slide.sticker !== "nenhum" && (
-                <div className={`text-[9px] ${textClass} opacity-70 bg-black/10 rounded-lg px-1.5 py-1 text-center`}>
-                  {slide.sticker}
-                </div>
+                <div className={`text-[9px] ${textClass} opacity-70 bg-black/10 rounded-lg px-1.5 py-1 text-center`}>{slide.sticker}</div>
               )}
             </div>
           );
         })}
       </div>
-
-      {/* Detalhes de cada slide */}
       <div className="space-y-2">
         {stories.stories.map((slide, i) => (
-          <div
-            key={i}
-            className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden"
-          >
-            <div className="px-4 py-3">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-6 h-6 rounded-full bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
-                  {slide.story}
-                </span>
-                <span className="text-xs font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-400">
-                  {STORY_TYPE_LABELS[slide.type ?? ""] ?? `Slide ${slide.story}`}
-                </span>
-                {slide.background && (
-                  <span className="text-xs text-gray-400 bg-gray-50 dark:bg-gray-800 px-2 py-0.5 rounded-full">
-                    {slide.background}
-                  </span>
-                )}
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2.5 mb-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    {slide.emoji && <span className="text-base mr-1">{slide.emoji}</span>}
-                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{slide.text}</span>
-                    {slide.subtext && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{slide.subtext}</p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => copy(slide.text + (slide.subtext ? `\n${slide.subtext}` : ""), `slide-${i}`)}
-                    className="text-gray-400 hover:text-violet-600 flex-shrink-0"
-                  >
-                    {copied === `slide-${i}`
-                      ? <span className="text-emerald-500"><IconCheck className="w-3.5 h-3.5" /></span>
-                      : <IconCopy className="w-3.5 h-3.5" />
-                    }
-                  </button>
-                </div>
-              </div>
-
-              {slide.sticker && slide.sticker !== "nenhum" && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">Sticker:</span>
-                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 px-2 py-0.5 rounded-full">
-                    {slide.sticker}
-                  </span>
-                </div>
-              )}
+          <div key={i} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl px-4 py-3">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-6 h-6 rounded-full bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-400 text-xs font-bold flex items-center justify-center flex-shrink-0">{slide.story}</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-400">{STORY_TYPE_LABELS[slide.type ?? ""] ?? `Slide ${slide.story}`}</span>
+              {slide.background && <span className="text-xs text-gray-400 bg-gray-50 dark:bg-gray-800 px-2 py-0.5 rounded-full">{slide.background}</span>}
             </div>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2.5 mb-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1">
+                  {slide.emoji && <span className="text-base mr-1">{slide.emoji}</span>}
+                  <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{slide.text}</span>
+                  {slide.subtext && <p className="text-xs text-gray-500 mt-0.5">{slide.subtext}</p>}
+                </div>
+                <button onClick={() => copy(slide.text + (slide.subtext ? `\n${slide.subtext}` : ""), `slide-${i}`)} className="text-gray-400 hover:text-violet-600">
+                  {copied === `slide-${i}` ? <IconCheck className="w-3.5 h-3.5 text-emerald-500" /> : <IconCopy className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+            </div>
+            {slide.sticker && slide.sticker !== "nenhum" && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">Sticker:</span>
+                <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 px-2 py-0.5 rounded-full">{slide.sticker}</span>
+              </div>
+            )}
           </div>
         ))}
       </div>
-
-      {/* CTA */}
-      <CopyCard
-        label="CTA dos Stories"
-        text={stories.cta}
-        copyKey="story-cta"
-        copied={copied}
-        onCopy={copy}
-      />
+      <CopyCard label="CTA dos Stories" text={stories.cta} copyKey="story-cta" copied={copied} onCopy={copy} />
     </div>
   );
 }
 
-// ── Componente Reels/Shorts ──────────────────────────────────────
-function ReelsResult({
-  script,
-  platform,
-  copy,
-  copied,
-}: {
-  script: ReelsScript;
-  platform: VideoPlatform;
-  copy: (text: string, key: string) => void;
-  copied: string | null;
-}) {
+// ── Reels / Shorts ────────────────────────────────────────────────
+function ReelsResult({ script, platform, copy, copied }: { script: ReelsScript; platform: VideoPlatform; copy: (t: string, k: string) => void; copied: string | null }) {
   return (
     <div className="space-y-3">
-      {/* Header do roteiro */}
       <div className="bg-gray-900 dark:bg-black rounded-2xl p-5">
         <div className="flex items-start justify-between mb-4">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <IconFilm className="w-3.5 h-3.5 text-violet-400" />
-              <span className="text-xs font-semibold text-violet-400 uppercase tracking-wide">
-                Roteiro · {platform === "reels" ? "Instagram Reels" : "YouTube Shorts"}
-              </span>
+              <span className="text-xs font-semibold text-violet-400 uppercase tracking-wide">Roteiro · {platform === "reels" ? "Instagram Reels" : "YouTube Shorts"}</span>
             </div>
             <p className="text-white font-bold text-base leading-snug">{script.title}</p>
           </div>
-          <button
-            onClick={() => copy(formatScriptForCopy(script, platform), "script-full")}
-            className="text-xs font-bold px-3 py-1.5 rounded-lg bg-violet-700 text-white hover:bg-violet-600 transition flex-shrink-0 ml-3 flex items-center gap-1.5"
-          >
-            {copied === "script-full"
-              ? <><IconCheck className="w-3 h-3" /> Copiado</>
-              : <><IconCopy className="w-3 h-3" /> Copiar tudo</>
-            }
+          <button onClick={() => copy(formatScriptForCopy(script, platform), "script-full")} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-violet-700 text-white hover:bg-violet-600 transition flex-shrink-0 ml-3 flex items-center gap-1.5">
+            {copied === "script-full" ? <><IconCheck className="w-3 h-3" /> Copiado</> : <><IconCopy className="w-3 h-3" /> Copiar tudo</>}
           </button>
         </div>
-
         <div className="flex flex-wrap gap-4 mb-4">
-          <div className="flex items-center gap-1.5">
-            <IconClock className="w-3.5 h-3.5 text-gray-500" />
-            <span className="text-xs text-gray-300 font-medium">{script.duracaoTotal}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <IconScissors className="w-3.5 h-3.5 text-gray-500" />
-            <span className="text-xs text-gray-400">{script.vibeEdicao}</span>
-          </div>
+          <div className="flex items-center gap-1.5"><IconScissors className="w-3.5 h-3.5 text-gray-500" /><span className="text-xs text-gray-300 font-medium">{script.duracaoTotal}</span></div>
+          <div className="flex items-center gap-1.5"><IconMusic className="w-3.5 h-3.5 text-gray-500" /><span className="text-xs text-gray-400">{script.vibeEdicao}</span></div>
         </div>
-
         <div className="bg-violet-900/30 border border-violet-700/30 rounded-xl p-3 mb-3">
           <div className="flex items-center gap-1.5 mb-1">
             <IconLightbulb className="w-3.5 h-3.5 text-violet-400" />
@@ -749,88 +810,45 @@ function ReelsResult({
           </div>
           <p className="text-xs text-violet-200 leading-relaxed">{script.gancho}</p>
         </div>
-
         <div className="flex items-start gap-2">
           <IconMusic className="w-3.5 h-3.5 text-gray-500 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-gray-400 leading-relaxed">
-            <span className="font-medium text-gray-300">Música:</span> {script.musicaSugerida}
-          </p>
+          <p className="text-xs text-gray-400"><span className="font-medium text-gray-300">Música:</span> {script.musicaSugerida}</p>
         </div>
       </div>
-
-      {/* Cenas */}
       <div className="space-y-2">
         {script.scenes.map((scene) => {
           const isGancho = scene.scene === 1;
           const isCta = scene.scene === script.scenes.length;
           return (
-            <div
-              key={scene.scene}
-              className={`rounded-2xl border overflow-hidden ${
-                isGancho
-                  ? "border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950"
-                  : isCta
-                  ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950"
-                  : "border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900"
-              }`}
-            >
+            <div key={scene.scene} className={`rounded-2xl border overflow-hidden ${isGancho ? "border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950" : isCta ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950" : "border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900"}`}>
               <div className="px-4 py-3">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center flex-shrink-0 ${
-                    isGancho ? "bg-violet-600 text-white" :
-                    isCta    ? "bg-emerald-600 text-white" :
-                    "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
-                  }`}>
-                    {scene.scene}
-                  </span>
-                  <div className="flex items-center gap-2 flex-1">
-                    <span className={`text-xs font-semibold uppercase tracking-wide ${
-                      isGancho ? "text-violet-600 dark:text-violet-400" :
-                      isCta    ? "text-emerald-600 dark:text-emerald-400" :
-                      "text-gray-500"
-                    }`}>
-                      {isGancho ? "Gancho" : isCta ? "CTA final" : `Cena ${scene.scene}`}
-                    </span>
-                    <span className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
-                      {scene.duracao}
-                    </span>
-                  </div>
+                  <span className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center flex-shrink-0 ${isGancho ? "bg-violet-600 text-white" : isCta ? "bg-emerald-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"}`}>{scene.scene}</span>
+                  <span className={`text-xs font-semibold uppercase tracking-wide ${isGancho ? "text-violet-600 dark:text-violet-400" : isCta ? "text-emerald-600 dark:text-emerald-400" : "text-gray-500"}`}>{isGancho ? "Gancho" : isCta ? "CTA final" : `Cena ${scene.scene}`}</span>
+                  <span className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">{scene.duracao}</span>
                 </div>
-
                 <div className="flex items-start gap-2 mb-2.5">
                   <IconCamera className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed italic">{scene.description}</p>
                 </div>
-
                 {scene.fala && (
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2.5 mb-2.5">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-start gap-2 flex-1 min-w-0">
                         <IconMic className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
-                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-relaxed italic">
-                          "{scene.fala}"
-                        </p>
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-relaxed italic">"{scene.fala}"</p>
                       </div>
-                      <button
-                        onClick={() => copy(scene.fala, `fala-${scene.scene}`)}
-                        className="text-gray-400 hover:text-violet-600 flex-shrink-0 ml-1 mt-0.5"
-                      >
-                        {copied === `fala-${scene.scene}`
-                          ? <IconCheck className="w-3.5 h-3.5 text-emerald-500" />
-                          : <IconCopy className="w-3.5 h-3.5" />
-                        }
+                      <button onClick={() => copy(scene.fala, `fala-${scene.scene}`)} className="text-gray-400 hover:text-violet-600 flex-shrink-0 ml-1 mt-0.5">
+                        {copied === `fala-${scene.scene}` ? <IconCheck className="w-3.5 h-3.5 text-emerald-500" /> : <IconCopy className="w-3.5 h-3.5" />}
                       </button>
                     </div>
                   </div>
                 )}
-
                 {scene.textoNaTela && (
                   <div className="flex items-center gap-2">
                     <IconDisplay className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
                     <span className="text-xs text-gray-400">Texto na tela:</span>
-                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 px-2 py-0.5 rounded-full">
-                      {scene.textoNaTela}
-                    </span>
+                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 px-2 py-0.5 rounded-full">{scene.textoNaTela}</span>
                   </div>
                 )}
               </div>
@@ -843,23 +861,12 @@ function ReelsResult({
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
-
 function formatScriptForCopy(script: ReelsScript, platform: VideoPlatform): string {
-  const platformLabel = platform === "shorts" ? "YOUTUBE SHORTS" : "INSTAGRAM REELS";
-  const lines: string[] = [
-    `ROTEIRO — ${platformLabel}`,
-    `${script.title}`,
-    ``,
-    `Duração: ${script.duracaoTotal}`,
-    `Edição: ${script.vibeEdicao}`,
-    `Música: ${script.musicaSugerida}`,
-    ``,
-    `Por que esse gancho funciona: ${script.gancho}`,
-    ``,
-  ];
+  const label = platform === "shorts" ? "YOUTUBE SHORTS" : "INSTAGRAM REELS";
+  const lines = [`ROTEIRO — ${label}`, script.title, ``, `Duração: ${script.duracaoTotal}`, `Edição: ${script.vibeEdicao}`, `Música: ${script.musicaSugerida}`, ``];
   script.scenes.forEach((scene) => {
-    const label = scene.scene === 1 ? "GANCHO" : scene.scene === script.scenes.length ? "CTA FINAL" : `CENA ${scene.scene}`;
-    lines.push(`─── ${label} (${scene.duracao}) ───`);
+    const lbl = scene.scene === 1 ? "GANCHO" : scene.scene === script.scenes.length ? "CTA FINAL" : `CENA ${scene.scene}`;
+    lines.push(`─── ${lbl} (${scene.duracao}) ───`);
     lines.push(`Câmera: ${scene.description}`);
     if (scene.fala) lines.push(`Fala: "${scene.fala}"`);
     if (scene.textoNaTela) lines.push(`Texto na tela: ${scene.textoNaTela}`);
@@ -870,50 +877,22 @@ function formatScriptForCopy(script: ReelsScript, platform: VideoPlatform): stri
   return lines.join("\n");
 }
 
-function CopyCard({
-  label, text, copyKey, copied, onCopy, large, green,
-}: {
-  label: string;
-  text: string;
-  copyKey: string;
-  copied: string | null;
-  onCopy: (text: string, key: string) => void;
-  large?: boolean;
-  green?: boolean;
+function CopyCard({ label, text, copyKey, copied, onCopy, large, green }: {
+  label: string; text: string; copyKey: string; copied: string | null;
+  onCopy: (t: string, k: string) => void; large?: boolean; green?: boolean;
 }) {
-  function IconCheck2() {
-    return (
-      <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="2.5 8 6.5 12 13.5 4" />
-      </svg>
-    );
-  }
-  function IconCopy2() {
-    return (
-      <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="5" y="5" width="9" height="9" rx="1.5" />
-        <path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5" />
-      </svg>
-    );
-  }
   return (
     <div className={`bg-white dark:bg-gray-900 rounded-2xl border p-4 ${green ? "border-green-100 dark:border-green-900" : "border-gray-100 dark:border-gray-800"}`}>
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
         <button
           onClick={() => onCopy(text, copyKey)}
-          className={`text-xs font-semibold px-3 py-1 rounded-lg transition flex items-center gap-1.5 ${
-            green
-              ? "bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400 hover:bg-green-200"
-              : "bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-400 hover:bg-violet-200"
-          }`}
+          className={`text-xs font-semibold px-3 py-1 rounded-lg transition flex items-center gap-1.5 ${green ? "bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400 hover:bg-green-200" : "bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-400 hover:bg-violet-200"}`}
         >
-          {copied === copyKey ? <><IconCheck2 /> Copiado</> : <><IconCopy2 /> Copiar</>}
+          {copied === copyKey ? <><IconCheck className="w-3 h-3" /> Copiado</> : <><IconCopy className="w-3 h-3" /> Copiar</>}
         </button>
       </div>
-      <p className={`text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap ${large ? "text-sm" : "text-xs"}`}>
-        {text}
-      </p>
+      <p className={`text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap ${large ? "text-sm" : "text-xs"}`}>{text}</p>
     </div>
   );
 }

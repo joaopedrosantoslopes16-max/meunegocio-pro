@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
     headline,
     refinementMode,
     platform,
+    angle,
   } = body as {
     business_id: string;
     topic: string;
@@ -61,6 +62,7 @@ export async function POST(req: NextRequest) {
     headline?: string;
     refinementMode?: RefinementMode;
     platform?: "reels" | "shorts";
+    angle?: string;
   };
 
   if (!business_id || !topic) {
@@ -139,6 +141,7 @@ export async function POST(req: NextRequest) {
     services: allServices.length > 0 ? allServices : undefined,
     shortDescription: business.short_description ?? undefined,
     platform: videoPlatform,
+    angle,
   };
 
   // Roda narrativas, headlines (template + Gemini) e roteiro em paralelo

@@ -12,6 +12,7 @@ export interface GeminiReelsInput {
   services?: string[];
   shortDescription?: string;
   platform?: VideoPlatform;
+  angle?: string;
 }
 
 const NICHE_LABELS: Record<string, string> = {
@@ -42,6 +43,16 @@ function buildPrompt(
   const desc = input.shortDescription ? `\nDescrição do negócio: ${input.shortDescription}` : "";
   const platform = input.platform ?? "reels";
 
+  const ANGLE_INSTRUCTIONS: Record<string, string> = {
+    bastidores: "Ângulo escolhido: BASTIDORES — mostre o processo por dentro, o que o cliente nunca vê. Humanize o negócio.",
+    "dor-cliente": "Ângulo escolhido: DOR DO CLIENTE — comece pela dor ou problema real que o público sente. Prenda quem está passando por isso.",
+    revelar: "Ângulo escolhido: REVELAR — compartilhe um fato surpreendente, desmistifique um mito ou revele um segredo do nicho.",
+    resultado: "Ângulo escolhido: RESULTADO/TRANSFORMAÇÃO — mostre o antes e depois, o resultado real que o cliente obtém.",
+    urgencia: "Ângulo escolhido: URGÊNCIA — mostre as consequências de adiar. Por que agir agora é importante.",
+    autoridade: "Ângulo escolhido: AUTORIDADE — posicione o negócio como referência. Experiência, diferenciais, conquistas.",
+  };
+  const angleInstruction = input.angle ? (ANGLE_INSTRUCTIONS[input.angle] ?? "") : "";
+
   const platformInstructions =
     platform === "shorts"
       ? `
@@ -68,10 +79,12 @@ Serviços: ${servicesList}${desc}
 O dono do negócio escreveu: "${input.topic}"
 Intenção detectada: ${intent}
 Assunto/tema interpretado: ${tema}
+${angleInstruction ? `\n${angleInstruction}` : ""}
 ${platformInstructions}
 
 Seu trabalho: transformar o que o dono escreveu em um roteiro de vídeo vertical (9:16) de alta qualidade.
 NUNCA repita literalmente o que o dono digitou. Use o que ele escreveu apenas como SINAL DE INTENÇÃO.
+${angleInstruction ? "Respeite o ângulo escolhido — ele define a estrutura narrativa do roteiro." : ""}
 O roteiro deve falar com o PÚBLICO-ALVO (possíveis clientes), baseado no nicho e no que eles sentem, querem ou temem.
 
 Escreva um roteiro com EXATAMENTE este formato JSON (sem markdown, sem explicações, só o JSON):
