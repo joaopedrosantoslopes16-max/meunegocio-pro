@@ -28,11 +28,12 @@ export interface ContentInput {
   narrative?: string;
   headline?: string;
   plan?: "essencial" | "pro";
-  // Campos novos
   variationSeed?: number;
   refinementMode?: RefinementMode;
   services?: string[];
   shortDescription?: string;
+  targetAudience?: string;
+  goals?: string[];
 }
 
 // ─── Variação com seed externo + fallback aleatório ──────────

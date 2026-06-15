@@ -50,6 +50,30 @@ const FORMATS: { id: "4/5" | "1/1" | "9/16"; label: string; sub: string; w: numb
 
 const SLIDE_COUNTS = [4, 5, 6, 7, 8];
 
+import { getNicheImageUrls } from "@/lib/niche-images";
+
+function inferFromText(text: string): { objective: CarouselObjective; visualStyle: CarouselVisualStyle } {
+  const t = text.toLowerCase();
+
+  let objective: CarouselObjective = "vender";
+  if (/promo[çc][aã]o|desconto|oferta|pre[çc]o especial|liquidac[aã]o|black friday/i.test(t)) objective = "promocao";
+  else if (/dica|tutorial|como |ensinar|aprenda|aprende|passo a passo|n[aã]o sabe/i.test(t)) objective = "educar";
+  else if (/whatsapp|contato|chama|liga para|falar comigo|entrar em contato/i.test(t)) objective = "whatsapp";
+  else if (/recuperar|sumiu|reativar|voltou|volta|que sumiu|cliente inativo/i.test(t)) objective = "recuperar";
+  else if (/lan[çc]amento|novidade|novo produto|novo servi[çc]o|acabou de|acabamos de|anunci/i.test(t)) objective = "novidade";
+  else if (/d[úu]vida|faq|pergunta|obje[çc][aã]o|quem pergunta|frequente/i.test(t)) objective = "duvidas";
+  else if (/autoridade|experi[êe]ncia|anos de|especialista|expert|refer[êe]ncia|reputac[aã]o/i.test(t)) objective = "autoridade";
+  else if (/servi[çc]o|apresentar|conhe[çc]a|o que [eé]|o que fazemos|quem somos/i.test(t)) objective = "servico";
+
+  let visualStyle: CarouselVisualStyle = "moderno";
+  if (/elegante|sofisticado|luxo|refinado|cl[áa]ssico/i.test(t)) visualStyle = "elegante";
+  else if (/premium|exclusivo|vip/i.test(t)) visualStyle = "premium";
+  else if (/minimalista|m[íi]nimo|simples|clean|limpo/i.test(t)) visualStyle = "minimalista";
+  else if (/chamativo|impactante|bold|urgente|chamar aten[çc][aã]o/i.test(t)) visualStyle = "chamativo";
+
+  return { objective, visualStyle };
+}
+
 // ─── SVG Icons (no emoji) ─────────────────────────────────────
 function IconBag() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>; }
 function IconBulb() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>; }
@@ -72,6 +96,11 @@ function IconSave() { return <svg width="16" height="16" viewBox="0 0 24 24" fil
 function IconPlus() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>; }
 function IconArrowRight() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>; }
 function IconShuffle() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>; }
+function IconVideo() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>; }
+function IconHeart() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>; }
+function IconBulbSmall() { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>; }
+function IconChevronDown() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>; }
+function IconChevronUp() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>; }
 
 // ─── Stepper ──────────────────────────────────────────────────
 function Stepper({ step }: { step: 1 | 2 | 3 }) {
@@ -228,8 +257,10 @@ export default function GeradorCarrosselClient({ business }: Props) {
   const [slideCount, setSlideCount] = useState(6);
   const [visualStyle, setStyle]   = useState<CarouselVisualStyle>("moderno");
   const [format, setFormat]       = useState<"4/5" | "1/1" | "9/16">("4/5");
+  const [accentColor, setAccentColor] = useState<string>(business.primary_color || "#7c3aed");
 
   // ── Step 2 ────────────────────────────────────────────────
+  const [imageMode, setImageMode]         = useState<"minhas" | "auto">("minhas");
   const [galleryImages, setGallery]       = useState<ImageGallery[]>([]);
   const [galleryLoading, setGalleryLoad]  = useState(false);
   const [galleryOpen, setGalleryOpen]     = useState(false);
@@ -243,19 +274,23 @@ export default function GeradorCarrosselClient({ business }: Props) {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
   const [carousel, setCarousel] = useState<PremiumCarousel | null>(null);
+  const [regenSeed, setRegenSeed] = useState(0);
+  const [regenHint, setRegenHint] = useState<string | undefined>(undefined);
 
   // ── Step 3 ────────────────────────────────────────────────
   const [activeSlide, setActiveSlide]     = useState(0);
   const [saving, setSaving]               = useState(false);
   const [saved, setSaved]                 = useState(false);
-  const [copied, setCopied]               = useState<"caption" | "whatsapp" | null>(null);
+  const [copied, setCopied]               = useState<"caption" | "whatsapp" | "reels" | null>(null);
   const [exportingSlide, setExportingSlide] = useState<PremiumCarouselSlide | null>(null);
   const [downloadingAll, setDownloadAll]  = useState(false);
   const exportRef                         = useRef<HTMLDivElement>(null);
+  const [showReels, setShowReels]         = useState(false);
+  const [liked, setLiked]                 = useState(false);
 
-  // ── Load gallery when step=2 ─────────────────────────────
+  // ── Load gallery when step=2 or step=3 ──────────────────
   useEffect(() => {
-    if (step !== 2 || galleryImages.length > 0) return;
+    if ((step !== 2 && step !== 3) || galleryImages.length > 0) return;
     setGalleryLoad(true);
     getAuthHeaders().then(async h => {
       try {
@@ -332,6 +367,53 @@ export default function GeradorCarrosselClient({ business }: Props) {
     setSlideImages(map);
   }
 
+  // ── Direct generate (skip wizard, IA decides everything) ──
+  async function handleDirectGenerate() {
+    if (!topic.trim()) return;
+    setLoading(true);
+    setError(null);
+    const nextSeed = Math.floor(Math.random() * 200);
+    setRegenSeed(nextSeed);
+    const inferred = inferFromText(topic);
+    const autoUrls = getNicheImageUrls(business.niche ?? "default", slideCount, nextSeed);
+    const autoMap: Record<number, string> = {};
+    autoUrls.forEach((url, i) => { if (i < slideCount - 1) autoMap[i] = url; });
+    try {
+      const h = await getAuthHeaders();
+      const res = await fetch("/api/carousel/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...h },
+        body: JSON.stringify({
+          business_id: business.id,
+          topic: topic.trim(),
+          objective: inferred.objective,
+          visual_style: inferred.visualStyle,
+          format,
+          selected_images: autoUrls,
+          slide_images_map: autoMap,
+          slide_count: slideCount,
+          regeneration_seed: nextSeed,
+          primary_color: accentColor,
+          direct_generate: true,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setError(err.message ?? "Erro ao gerar carrossel.");
+        setLoading(false);
+        return;
+      }
+      const data: PremiumCarousel = await res.json();
+      setCarousel(data);
+      setObjective(inferred.objective);
+      setStyle(inferred.visualStyle);
+      setImageMode("auto");
+      setActiveSlide(0);
+      setStep(3);
+    } catch { setError("Erro de conexão. Tente novamente."); }
+    setLoading(false);
+  }
+
   // ── Generate carousel ────────────────────────────────────
   async function handleGenerate() {
     if (!topic.trim()) return;
@@ -339,10 +421,22 @@ export default function GeradorCarrosselClient({ business }: Props) {
     setError(null);
     try {
       const h = await getAuthHeaders();
-      const assignedUrls = Object.values(slideImages);
-      const rawImages = [...uploadedImages.map(u => u.url), ...galleryImages.filter(g => assignedUrls.includes(g.image_url)).map(g => g.image_url)];
-      const seen2 = new Set<string>();
-      const allImages = rawImages.filter(u => { if (seen2.has(u)) return false; seen2.add(u); return true; });
+
+      // Auto images mode: inject curated Unsplash photos
+      let effectiveSlideImages = slideImages;
+      let effectiveAllImages: string[] = [];
+      if (imageMode === "auto") {
+        const autoUrls = getNicheImageUrls(business.niche ?? "default", slideCount, regenSeed);
+        const autoMap: Record<number, string> = {};
+        autoUrls.forEach((url, i) => { if (i < slideCount - 1) autoMap[i] = url; });
+        effectiveSlideImages = autoMap;
+        effectiveAllImages = autoUrls;
+      } else {
+        const assignedUrls = Object.values(slideImages);
+        const rawImages = [...uploadedImages.map(u => u.url), ...galleryImages.filter(g => assignedUrls.includes(g.image_url)).map(g => g.image_url)];
+        const seen2 = new Set<string>();
+        effectiveAllImages = rawImages.filter(u => { if (seen2.has(u)) return false; seen2.add(u); return true; });
+      }
       const res = await fetch("/api/carousel/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...h },
@@ -352,9 +446,12 @@ export default function GeradorCarrosselClient({ business }: Props) {
           objective,
           visual_style: visualStyle,
           format,
-          selected_images: allImages,
-          slide_images_map: Object.keys(slideImages).length > 0 ? slideImages : undefined,
+          selected_images: effectiveAllImages,
+          slide_images_map: Object.keys(effectiveSlideImages).length > 0 ? effectiveSlideImages : undefined,
           slide_count: slideCount,
+          regeneration_seed: regenSeed,
+          regenerate_hint: regenHint,
+          primary_color: accentColor,
         }),
       });
       if (!res.ok) {
@@ -369,6 +466,104 @@ export default function GeradorCarrosselClient({ business }: Props) {
       setStep(3);
     } catch { setError("Erro de conexão. Tente novamente."); }
     setLoading(false);
+  }
+
+  async function handleRegenerate(hint?: string) {
+    if (!topic.trim()) return;
+    setLoading(true);
+    setError(null);
+    const nextSeed = regenSeed + 1;
+    setRegenSeed(nextSeed);
+    setRegenHint(hint);
+    try {
+      const h = await getAuthHeaders();
+
+      // Auto images: rotate to new set of photos on each regeneration
+      let effectiveSlideImages = slideImages;
+      let effectiveAllImages: string[] = [];
+      if (imageMode === "auto") {
+        const autoUrls = getNicheImageUrls(business.niche ?? "default", slideCount, nextSeed);
+        const autoMap: Record<number, string> = {};
+        autoUrls.forEach((url, i) => { if (i < slideCount - 1) autoMap[i] = url; });
+        effectiveSlideImages = autoMap;
+        effectiveAllImages = autoUrls;
+      } else {
+        const assignedUrls = Object.values(slideImages);
+        const rawImages = [...uploadedImages.map(u => u.url), ...galleryImages.filter(g => assignedUrls.includes(g.image_url)).map(g => g.image_url)];
+        const seen2 = new Set<string>();
+        effectiveAllImages = rawImages.filter(u => { if (seen2.has(u)) return false; seen2.add(u); return true; });
+      }
+
+      const res = await fetch("/api/carousel/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...h },
+        body: JSON.stringify({
+          business_id: business.id,
+          topic: topic.trim(),
+          objective,
+          visual_style: visualStyle,
+          format,
+          selected_images: effectiveAllImages,
+          slide_images_map: Object.keys(effectiveSlideImages).length > 0 ? effectiveSlideImages : undefined,
+          slide_count: slideCount,
+          regeneration_seed: nextSeed,
+          regenerate_hint: hint,
+          primary_color: accentColor,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setError(err.message ?? "Erro ao gerar carrossel.");
+        setLoading(false);
+        return;
+      }
+      const data: PremiumCarousel = await res.json();
+      setCarousel(data);
+      setActiveSlide(0);
+      setSaved(false);
+    } catch { setError("Erro de conexão. Tente novamente."); }
+    setLoading(false);
+  }
+
+  // ── Per-slide image controls (Step 3) ───────────────────
+  const [s3GalleryOpen, setS3GalleryOpen] = useState(false);
+  const [s3SwapSeed, setS3SwapSeed]       = useState(100);
+  const s3FileRef                         = useRef<HTMLInputElement>(null);
+
+  function updateSlideImage(slideIdx: number, url: string | undefined) {
+    setCarousel(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        slides: prev.slides.map((s, i) =>
+          i === slideIdx ? { ...s, imageUrl: url } : s
+        ),
+      };
+    });
+  }
+
+  function swapAutoImage() {
+    const newSeed = s3SwapSeed + 1;
+    setS3SwapSeed(newSeed);
+    const urls = getNicheImageUrls(business.niche ?? "default", 1, newSeed * 7 + activeSlide);
+    updateSlideImage(activeSlide, urls[0]);
+  }
+
+  async function handleS3FileUpload(files: FileList) {
+    if (!files.length) return;
+    const file = files[0];
+    const form = new FormData();
+    form.append("file", file);
+    form.append("business_id", business.id);
+    form.append("image_type", "general");
+    try {
+      const h = await getAuthHeaders();
+      const res = await fetch("/api/gallery", { method: "POST", headers: h, body: form });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.image_url) updateSlideImage(activeSlide, data.image_url);
+      }
+    } catch {}
   }
 
   async function handleSave() {
@@ -413,14 +608,16 @@ export default function GeradorCarrosselClient({ business }: Props) {
     setDownloadAll(false);
   }
 
-  function copy(text: string, k: "caption" | "whatsapp") {
+  function copy(text: string, k: "caption" | "whatsapp" | "reels") {
     navigator.clipboard.writeText(text).then(() => { setCopied(k); setTimeout(() => setCopied(null), 2200); });
   }
 
   function reset() {
     setStep(1); setTopic(""); setObjective("vender"); setSlideCount(6); setStyle("moderno");
     setFormat("4/5"); setSlideImages({}); setUploaded([]); setCarousel(null);
-    setSaved(false); setError(null); setActiveSlide(0);
+    setSaved(false); setError(null); setActiveSlide(0); setRegenSeed(0); setRegenHint(undefined);
+    setShowReels(false); setLiked(false); setImageMode("minhas");
+    setAccentColor(business.primary_color || "#7c3aed");
   }
 
   // ── Preview sizing ────────────────────────────────────────
@@ -432,9 +629,10 @@ export default function GeradorCarrosselClient({ business }: Props) {
   // STEP 1
   // ─────────────────────────────────────────────────────────
   if (step === 1) {
-    const selectedStyle = STYLES.find(s => s.id === visualStyle)!;
-    const selectedObj   = OBJECTIVES.find(o => o.id === objective)!;
     const selectedFmt   = FORMATS.find(f => f.id === format)!;
+    const inferred      = inferFromText(topic);
+    const inferredObjLabel   = OBJECTIVES.find(o => o.id === inferred.objective)?.label ?? "Automático";
+    const inferredStyleLabel = STYLES.find(s => s.id === inferred.visualStyle)?.label ?? "Automático";
 
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -459,62 +657,93 @@ export default function GeradorCarrosselClient({ business }: Props) {
           {/* ── Left: Form ──────────────────────────────── */}
           <div className="flex-1 min-w-0 space-y-8">
 
-            {/* Topic */}
-            <section>
-              <label className="block text-sm font-bold text-gray-800 dark:text-gray-100 mb-1">
-                Sobre o que é o seu carrossel?
-              </label>
-              <p className="text-xs text-gray-400 mb-3">Descreva em uma frase o que você quer comunicar.</p>
+            {/* ── Quick Generate Card ─────────────────────── */}
+            <section className="rounded-2xl border border-violet-200 dark:border-violet-800 bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-950/40 dark:to-indigo-950/40 p-5">
+              <div className="flex items-center gap-2 mb-1">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-violet-600 dark:text-violet-400 flex-shrink-0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span className="text-sm font-bold text-violet-700 dark:text-violet-300">Descreva e gere</span>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-600 text-white ml-auto">IA</span>
+              </div>
+              <p className="text-xs text-violet-600/70 dark:text-violet-400/70 mb-3">
+                Escreva o que você quer. A IA detecta objetivo, estilo e monta os slides automaticamente.
+              </p>
               <textarea
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
-                placeholder={`Ex: apresentar ${business.main_service}, promoção de ${business.main_service}, chamar clientes para o WhatsApp...`}
+                placeholder={`Ex: "5 motivos para contratar um ${business.main_service}. Tom profissional, foco em convencer novos clientes."`}
                 rows={3}
-                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none transition"
+                className="w-full rounded-xl border border-violet-200 dark:border-violet-700 bg-white dark:bg-gray-900 px-4 py-3 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none transition"
               />
-              {/* Suggestions */}
-              <div className="flex flex-wrap gap-2 mt-2.5">
+              {/* Quick suggestions */}
+              <div className="flex flex-wrap gap-2 mt-2.5 mb-4">
                 {SUGGESTIONS.map(s => (
                   <button
                     key={s}
                     onClick={() => setTopic(s)}
-                    className="text-xs px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:border-violet-300 hover:text-violet-700 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/50 transition font-medium"
+                    className="text-xs px-3 py-1.5 rounded-full border border-violet-200 dark:border-violet-700 bg-white dark:bg-gray-900 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950 transition font-medium"
                   >
                     {s}
                   </button>
                 ))}
               </div>
+              {/* Detected params preview */}
+              {topic.trim() && (() => {
+                const inf = inferFromText(topic);
+                const objLabel = OBJECTIVES.find(o => o.id === inf.objective)?.label ?? "Automático";
+                const stLabel  = STYLES.find(s => s.id === inf.visualStyle)?.label ?? "Automático";
+                return (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-violet-200 dark:border-violet-700 text-violet-700 dark:text-violet-300 font-medium">
+                      Objetivo: {objLabel}
+                    </span>
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-violet-200 dark:border-violet-700 text-violet-700 dark:text-violet-300 font-medium">
+                      Estilo: {stLabel}
+                    </span>
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-violet-200 dark:border-violet-700 text-violet-700 dark:text-violet-300 font-medium">
+                      Imagens: automáticas
+                    </span>
+                  </div>
+                );
+              })()}
+              {/* Generate button */}
+              <button
+                onClick={handleDirectGenerate}
+                disabled={!topic.trim() || loading}
+                className="w-full py-3.5 rounded-xl font-bold text-white text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center justify-center gap-2"
+                style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)" }}
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                    Gerando carrossel...
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Gerar Carrossel
+                  </>
+                )}
+              </button>
+              {error && (
+                <p className="mt-3 text-xs text-red-600 dark:text-red-400 text-center">{error}</p>
+              )}
             </section>
 
-            {/* Objective */}
+            {/* ── Divider ──────────────────────────────────── */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+              <span className="text-xs text-gray-400 font-medium">ou configure manualmente</span>
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+            </div>
+
+            {/* ── Topic (manual mode) ───────────────────────── */}
             <section>
-              <label className="block text-sm font-bold text-gray-800 dark:text-gray-100 mb-3">Objetivo</label>
-              <div className="grid grid-cols-3 gap-2">
-                {OBJECTIVES.map(o => {
-                  const active = objective === o.id;
-                  return (
-                    <button
-                      key={o.id}
-                      onClick={() => setObjective(o.id)}
-                      className={`flex flex-col items-start gap-2 p-3.5 rounded-xl border text-left transition-all
-                        ${active
-                          ? "border-violet-500 bg-violet-50 dark:bg-violet-950/60"
-                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-600"}`}
-                    >
-                      <div className={`${active ? "text-violet-600 dark:text-violet-400" : "text-gray-400"}`}>
-                        {o.icon}
-                      </div>
-                      <div>
-                        <div className={`text-xs font-bold ${active ? "text-violet-700 dark:text-violet-300" : "text-gray-800 dark:text-gray-100"}`}>
-                          {o.label}
-                        </div>
-                        <div className="text-xs text-gray-400 leading-tight mt-0.5">{o.desc}</div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+              <label className="block text-sm font-bold text-gray-800 dark:text-gray-100 mb-1">
+                Tema (modo manual)
+              </label>
+              <p className="text-xs text-gray-400 mb-3">O campo acima já está preenchido — você pode ajustar e continuar para personalizar estilo e imagens.</p>
             </section>
+
 
             {/* Slide count */}
             <section>
@@ -538,31 +767,40 @@ export default function GeradorCarrosselClient({ business }: Props) {
               <p className="text-xs text-gray-400 mt-2">Inclui capa e slide de CTA (chamada para ação).</p>
             </section>
 
-            {/* Visual style */}
+
+            {/* Accent color */}
             <section>
-              <label className="block text-sm font-bold text-gray-800 dark:text-gray-100 mb-3">Estilo visual</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {STYLES.map(s => {
-                  const active = visualStyle === s.id;
-                  return (
-                    <button
-                      key={s.id}
-                      onClick={() => setStyle(s.id)}
-                      className={`flex flex-col gap-2 p-3 rounded-xl border text-left transition-all
-                        ${active
-                          ? "border-violet-500 bg-violet-50 dark:bg-violet-950/60"
-                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300"}`}
-                    >
-                      <StylePreview style={s} />
-                      <div>
-                        <div className={`text-xs font-bold ${active ? "text-violet-700 dark:text-violet-300" : "text-gray-800 dark:text-gray-100"}`}>
-                          {s.label}
-                        </div>
-                        <div className="text-xs text-gray-400">{s.desc}</div>
-                      </div>
-                    </button>
-                  );
-                })}
+              <div className="flex items-center gap-2 mb-3">
+                <label className="text-sm font-bold text-gray-800 dark:text-gray-100">Cor do carrossel</label>
+                <div className="w-5 h-5 rounded-full border-2 border-white shadow flex-shrink-0" style={{ background: accentColor }} />
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {["#7c3aed","#4f46e5","#0ea5e9","#10b981","#f59e0b","#ef4444","#ec4899","#f97316","#14b8a6","#111111"].map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setAccentColor(c)}
+                    className="w-9 h-9 rounded-xl flex-shrink-0 transition-all flex items-center justify-center"
+                    style={{
+                      background: c,
+                      outline: accentColor === c ? `3px solid ${c}` : "3px solid transparent",
+                      outlineOffset: "2px",
+                    }}
+                  >
+                    {accentColor === c && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    )}
+                  </button>
+                ))}
+                {/* Custom color picker */}
+                <label className="relative w-9 h-9 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center cursor-pointer hover:border-violet-400 transition overflow-hidden flex-shrink-0" title="Cor personalizada">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <input
+                    type="color"
+                    value={accentColor}
+                    onChange={e => setAccentColor(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                </label>
               </div>
             </section>
 
@@ -599,7 +837,13 @@ export default function GeradorCarrosselClient({ business }: Props) {
 
             {/* CTA */}
             <button
-              onClick={() => topic.trim() && setStep(2)}
+              onClick={() => {
+                if (!topic.trim()) return;
+                const inf = inferFromText(topic);
+                setObjective(inf.objective);
+                setStyle(inf.visualStyle);
+                setStep(2);
+              }}
               disabled={!topic.trim()}
               className="w-full py-3.5 rounded-xl font-bold text-white text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center justify-center gap-2"
               style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)" }}
@@ -617,9 +861,9 @@ export default function GeradorCarrosselClient({ business }: Props) {
               <div className="p-4 space-y-3">
                 {[
                   { label: "Tema", value: topic || "—" },
-                  { label: "Objetivo", value: selectedObj?.label ?? "—" },
+                  { label: "Objetivo", value: topic.trim() ? inferredObjLabel : "Automático" },
                   { label: "Slides", value: `${slideCount} slides` },
-                  { label: "Estilo", value: selectedStyle?.label ?? "—" },
+                  { label: "Estilo", value: topic.trim() ? inferredStyleLabel : "Automático" },
                   { label: "Formato", value: selectedFmt?.label ?? "—" },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex justify-between items-start gap-2">
@@ -628,13 +872,6 @@ export default function GeradorCarrosselClient({ business }: Props) {
                   </div>
                 ))}
               </div>
-
-              {/* Style preview */}
-              {selectedStyle && (
-                <div className="mx-4 mb-4 rounded-xl overflow-hidden">
-                  <StylePreview style={selectedStyle} />
-                </div>
-              )}
 
               <div className="px-4 pb-4">
                 <div className="rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800" style={{ background: "#f8f8fa" }}>
@@ -646,11 +883,11 @@ export default function GeradorCarrosselClient({ business }: Props) {
                         style={{
                           width: FORMATS.find(f => f.id === format)!.w * 2,
                           height: FORMATS.find(f => f.id === format)!.h * 2,
-                          background: selectedStyle?.bg ?? "#eee",
+                          background: STYLES.find(s => s.id === inferred.visualStyle)?.bg ?? "#0d0d14",
                           display: "flex", alignItems: "center", justifyContent: "center",
                         }}
                       >
-                        <div style={{ width: "50%", height: "3px", background: selectedStyle?.accent, borderRadius: "2px" }} />
+                        <div style={{ width: "50%", height: "3px", background: STYLES.find(s => s.id === inferred.visualStyle)?.accent ?? "#7c3aed", borderRadius: "2px" }} />
                       </div>
                     </div>
                   </div>
@@ -680,11 +917,33 @@ export default function GeradorCarrosselClient({ business }: Props) {
 
         <div className="mb-6">
           <h2 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-1">
-            Selecione suas fotos
+            Imagens dos slides
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Envie imagens ou escolha da galeria. Você pode atribuir cada imagem a um slide específico.
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Imagens transformam o visual do carrossel — sem elas, o fundo usa só as cores da sua marca.
           </p>
+
+          {/* Mode toggle */}
+          <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl w-fit">
+            <button
+              onClick={() => setImageMode("auto")}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${imageMode === "auto" ? "bg-white dark:bg-gray-700 text-violet-700 dark:text-violet-300 shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
+            >
+              ✦ Automáticas
+            </button>
+            <button
+              onClick={() => setImageMode("minhas")}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${imageMode === "minhas" ? "bg-white dark:bg-gray-700 text-violet-700 dark:text-violet-300 shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
+            >
+              Minhas fotos
+            </button>
+          </div>
+
+          {imageMode === "auto" && (
+            <div className="mt-3 p-3 rounded-xl bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800 text-xs text-violet-700 dark:text-violet-400 font-medium">
+              Fotos profissionais do seu nicho serão aplicadas automaticamente nos slides. Você pode trocar depois pelas suas próprias fotos.
+            </div>
+          )}
         </div>
 
         {galleryOpen && (
@@ -705,7 +964,7 @@ export default function GeradorCarrosselClient({ business }: Props) {
           onChange={e => { if (e.target.files) handleFileUpload(e.target.files); e.target.value = ""; }}
         />
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className={`grid lg:grid-cols-2 gap-6 ${imageMode === "auto" ? "opacity-40 pointer-events-none" : ""}`}>
           {/* ── Left: Upload + available images ─────────── */}
           <div className="space-y-4">
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-5">
@@ -911,7 +1170,20 @@ export default function GeradorCarrosselClient({ business }: Props) {
           <h2 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
             {carousel.title}
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{totalSlides} slides gerados com sucesso</p>
+          {carousel.interpretedTheme && (
+            <p className="text-xs text-violet-600 dark:text-violet-400 font-semibold mt-1 flex items-center gap-1.5">
+              <IconBulbSmall />
+              Tema: {carousel.interpretedTheme}
+            </p>
+          )}
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400">{totalSlides} slides gerados com sucesso</p>
+            {(carousel as any).aiGenerated && (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                ✦ IA
+              </span>
+            )}
+          </div>
         </div>
         <button
           onClick={reset}
@@ -986,6 +1258,58 @@ export default function GeradorCarrosselClient({ business }: Props) {
                 </button>
               );
             })}
+          </div>
+
+          {/* ── Image controls per slide ─────────────────── */}
+          <input
+            ref={s3FileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={e => { if (e.target.files) handleS3FileUpload(e.target.files); e.target.value = ""; }}
+          />
+          {s3GalleryOpen && (
+            <GalleryModal
+              images={galleryImages}
+              targetSlide={activeSlide}
+              onSelect={url => updateSlideImage(activeSlide, url)}
+              onClose={() => setS3GalleryOpen(false)}
+            />
+          )}
+          <div className="mt-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">
+              Imagem — Slide {activeSlide + 1}
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={swapAutoImage}
+                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-violet-400 hover:text-violet-600 transition"
+              >
+                <IconShuffle /> Trocar imagem
+              </button>
+              <button
+                onClick={() => s3FileRef.current?.click()}
+                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-violet-400 hover:text-violet-600 transition"
+              >
+                <IconUpload /> Minha foto
+              </button>
+              {galleryImages.length > 0 && (
+                <button
+                  onClick={() => setS3GalleryOpen(true)}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-violet-400 hover:text-violet-600 transition"
+                >
+                  <IconImages /> Galeria
+                </button>
+              )}
+              {currentSlide.imageUrl && (
+                <button
+                  onClick={() => updateSlideImage(activeSlide, undefined)}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-red-200 dark:border-red-900 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition"
+                >
+                  <IconX /> Remover
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Download buttons */}
@@ -1073,6 +1397,128 @@ export default function GeradorCarrosselClient({ business }: Props) {
               ))}
             </div>
           </div>
+
+          {/* Regenerate panel */}
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Feedback e variações</p>
+
+            {/* Feedback row */}
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={() => { setLiked(true); }}
+                disabled={liked}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border text-xs font-semibold transition-all
+                  ${liked
+                    ? "bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400"
+                    : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-green-300 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30"}`}
+              >
+                <IconHeart /> {liked ? "Obrigado!" : "Gostei"}
+              </button>
+              <button
+                onClick={() => handleRegenerate(undefined)}
+                disabled={loading}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border border-violet-300 dark:border-violet-700 text-xs font-semibold text-violet-700 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/40 transition disabled:opacity-40"
+              >
+                {loading ? <><div className="w-3 h-3 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" /></> : <><IconShuffle /> Outra versão</>}
+              </button>
+            </div>
+
+            {/* Hints grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+              {([
+                ["mais_vendedor",    "Mais vendedor"],
+                ["mais_educativo",   "Mais educativo"],
+                ["mais_promocional", "Mais promo"],
+                ["mais_direto",      "Mais direto"],
+                ["mais_criativo",    "Mais criativo"],
+                ["menos_generico",   "Menos genérico"],
+                ["menos_texto",      "Menos texto"],
+                ["mais_contexto",    "Mais contexto"],
+                ["mais_institucional","Institucional"],
+                ["outra_paleta",     "Outra paleta"],
+              ] as [string, string][]).map(([hint, label]) => (
+                <button
+                  key={hint}
+                  onClick={() => { setLiked(false); handleRegenerate(hint); }}
+                  disabled={loading}
+                  className="py-1.5 px-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:border-violet-300 hover:text-violet-700 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30 transition disabled:opacity-40 text-center leading-tight"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {regenSeed > 0 && (
+              <p className="text-xs text-gray-400 mt-2 text-center">Versão {regenSeed + 1} gerada</p>
+            )}
+          </div>
+
+          {/* Reels script card */}
+          {carousel.reelsScript && (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+              <button
+                onClick={() => setShowReels(r => !r)}
+                className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-violet-100 dark:bg-violet-950 flex items-center justify-center text-violet-600 dark:text-violet-400">
+                    <IconVideo />
+                  </div>
+                  <p className="text-xs font-bold text-gray-700 dark:text-gray-200">Roteiro para Reels</p>
+                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-violet-100 dark:bg-violet-950 text-violet-600 dark:text-violet-400 font-semibold">Novo</span>
+                </div>
+                {showReels ? <IconChevronUp /> : <IconChevronDown />}
+              </button>
+
+              {showReels && (
+                <div className="px-5 pb-5 space-y-4 border-t border-gray-100 dark:border-gray-800 pt-4">
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Gancho inicial (primeiros 3 seg)</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-violet-50 dark:bg-violet-950/30 rounded-xl px-3 py-2.5 border border-violet-100 dark:border-violet-900 font-medium">
+                      {carousel.reelsScript.hook}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Roteiro completo (fala)</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                      {carousel.reelsScript.script}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Texto na tela (5 cards)</p>
+                    <div className="flex flex-col gap-1.5">
+                      {carousel.reelsScript.screenText.map((t, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center text-xs font-bold text-gray-500">{i + 1}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-200 font-medium">{t}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">CTA final</p>
+                    <p className="text-sm font-semibold text-violet-700 dark:text-violet-400">{carousel.reelsScript.cta}</p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      const rs = carousel.reelsScript!;
+                      const text = `GANCHO:\n${rs.hook}\n\nROTEIRO:\n${rs.script}\n\nTEXTO NA TELA:\n${rs.screenText.map((t, i) => `${i + 1}. ${t}`).join("\n")}\n\nCTA:\n${rs.cta}`;
+                      copy(text, "reels");
+                    }}
+                    className={`w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-xs font-semibold transition-all
+                      ${copied === "reels"
+                        ? "bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
+                        : "border-gray-200 dark:border-gray-700 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800"}`}
+                  >
+                    {copied === "reels" ? <><IconCheck /> Roteiro copiado</> : <><IconCopy /> Copiar roteiro completo</>}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Actions */}
           <div className="space-y-2.5">

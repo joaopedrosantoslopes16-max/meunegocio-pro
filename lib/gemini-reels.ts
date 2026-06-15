@@ -11,6 +11,11 @@ export interface GeminiReelsInput {
   mainService: string;
   services?: string[];
   shortDescription?: string;
+  targetAudience?: string;
+  goals?: string[];
+  tone?: string;
+  differentiator?: string;
+  customerPain?: string;
   platform?: VideoPlatform;
   angle?: string;
 }
@@ -30,6 +35,16 @@ const NICHE_LABELS: Record<string, string> = {
   imobiliaria: "imobiliária",
   restaurante: "restaurante",
   serralheria: "serralheria",
+  "salao-beleza": "salão de beleza",
+  "pet-shop": "pet shop / clínica veterinária",
+  fisioterapia: "clínica de fisioterapia e pilates",
+  nutricao: "consultório de nutrição",
+  fotografia: "estúdio de fotografia e filmagem",
+  construcao: "empresa de construção e reformas",
+  confeitaria: "confeitaria artesanal",
+  coaching: "coaching e mentoria",
+  "escola-cursos": "escola / cursos e treinamentos",
+  tatuagem: "estúdio de tatuagem e piercing",
   outro: "negócio local",
 };
 
@@ -41,6 +56,10 @@ function buildPrompt(
   const nicheLabel = NICHE_LABELS[input.niche] ?? "negócio local";
   const servicesList = input.services?.slice(0, 5).join(", ") || input.mainService;
   const desc = input.shortDescription ? `\nDescrição do negócio: ${input.shortDescription}` : "";
+  const audience = input.targetAudience ? `\nPúblico-alvo: ${input.targetAudience}` : "";
+  const goalsLine = input.goals && input.goals.length > 0
+    ? `\nObjetivos do negócio: ${input.goals.join(", ")}`
+    : "";
   const platform = input.platform ?? "reels";
 
   const ANGLE_INSTRUCTIONS: Record<string, string> = {
@@ -71,26 +90,51 @@ Plataforma: Instagram Reels
 - cta: "Chame no WhatsApp — link na bio"
 - whatsapp_message: "Olá ${input.businessName}! Vi o Reels e quero saber mais."`;
 
+  const TONE_MAP: Record<string, string> = {
+    informal: "próximo e informal — fale como um amigo que entende do assunto, use linguagem do dia a dia",
+    profissional: "profissional e sério — transmita credibilidade e expertise, linguagem cuidada",
+    inspirador: "motivador e inspirador — emocione, use frases que tocam e que dão vontade de agir",
+    direto: "direto ao ponto — objetivo, sem rodeios, foco total no resultado e na ação",
+  };
+  const audienceBlock = input.targetAudience
+    ? `\nPÚBLICO-ALVO (descrito pelo dono — use como lente principal de tudo):\n"${input.targetAudience}"`
+    : "";
+  const painBlock = input.customerPain
+    ? `\nMAIOR DOR DO CLIENTE (o momento que faz ele te buscar):\n"${input.customerPain}"`
+    : "";
+  const diffBlock = input.differentiator
+    ? `\nDIFERENCIAL DO NEGÓCIO:\n"${input.differentiator}"`
+    : "";
+  const toneBlock = input.tone
+    ? `\nTOM DE VOZ OBRIGATÓRIO: ${TONE_MAP[input.tone] ?? input.tone}`
+    : "";
+  const goalsBlock = input.goals && input.goals.length > 0
+    ? `\nOBJETIVOS: ${input.goals.join(", ")}`
+    : "";
+
   return `Você é um especialista em marketing de conteúdo para pequenos negócios locais no Brasil.
 
-Negócio: "${input.businessName}" — ${nicheLabel} em ${input.city}
-Serviços: ${servicesList}${desc}
+PERFIL DO NEGÓCIO
+Nome: "${input.businessName}" — ${nicheLabel} em ${input.city}
+Serviços: ${servicesList}${desc}${audienceBlock}${painBlock}${diffBlock}${toneBlock}${goalsBlock}
 
-O dono do negócio escreveu: "${input.topic}"
+INSTRUÇÃO CENTRAL: Todo o roteiro deve ser escrito PARA o público-alvo acima, usando o tom de voz definido. Cada palavra das falas deve ressoar com a realidade, dor, desejo e linguagem DESSA pessoa específica. Se não há público-alvo descrito, deduza pelo nicho.
+
+O dono do negócio quer falar sobre: "${input.topic}"
 Intenção detectada: ${intent}
 Assunto/tema interpretado: ${tema}
 ${angleInstruction ? `\n${angleInstruction}` : ""}
 ${platformInstructions}
 
-Seu trabalho: transformar o que o dono escreveu em um roteiro de vídeo vertical (9:16) de alta qualidade.
-NUNCA repita literalmente o que o dono digitou. Use o que ele escreveu apenas como SINAL DE INTENÇÃO.
-${angleInstruction ? "Respeite o ângulo escolhido — ele define a estrutura narrativa do roteiro." : ""}
-O roteiro deve falar com o PÚBLICO-ALVO (possíveis clientes), baseado no nicho e no que eles sentem, querem ou temem.
+Seu trabalho: criar um roteiro de vídeo vertical (9:16) que PARE o scroll da pessoa certa — o público-alvo descrito acima.
+NUNCA repita literalmente o que o dono digitou. Use como SINAL DE INTENÇÃO, não como script.
+${angleInstruction ? "Respeite o ângulo escolhido — ele define a estrutura narrativa." : ""}
+O gancho (cena 1) deve ser uma situação, dor ou desejo que o PÚBLICO-ALVO reconhece imediatamente como sendo sobre ele.
 
 Escreva um roteiro com EXATAMENTE este formato JSON (sem markdown, sem explicações, só o JSON):
 {
   "title": "título descritivo do vídeo (máx 60 chars)",
-  "gancho": "por que esse gancho funciona para parar o scroll — 1 frase",
+  "gancho": "por que esse gancho para o scroll dessa pessoa específica — 1 frase",
   "duracaoTotal": "XX–YY segundos",
   "vibeEdicao": "instrução de edição e câmera — 1 linha objetiva",
   "musicaSugerida": "tipo de música sugerida — 1 linha",
@@ -99,45 +143,45 @@ Escreva um roteiro com EXATAMENTE este formato JSON (sem markdown, sem explicaç
       "scene": 1,
       "duracao": "0–5s",
       "description": "instrução de câmera e postura para essa cena",
-      "fala": "frase de abertura que PARA o scroll — fala sobre a situação do público, nunca anuncia o negócio",
+      "fala": "frase de abertura que PARA o scroll — fala da situação/dor/desejo do público-alvo, nunca anuncia o negócio",
       "textoNaTela": "texto sobreposto curto (máx 35 chars)"
     },
     {
       "scene": 2,
       "duracao": "6–25s",
       "description": "instrução de gravação",
-      "fala": "desenvolvimento: aprofunda a dor, o cenário ou o desejo do público com detalhes do nicho",
+      "fala": "aprofunda a dor ou desejo com detalhes específicos do nicho e desse público",
       "textoNaTela": "texto sobreposto curto"
     },
     {
       "scene": 3,
       "duracao": "26–38s",
       "description": "instrução de gravação",
-      "fala": "virada: o que muda com o profissional certo — resultado real, não promessa vaga",
+      "fala": "virada: resultado real e concreto que essa pessoa específica obtém — não promessa genérica",
       "textoNaTela": "texto sobreposto curto"
     },
     {
       "scene": 4,
       "duracao": "39–45s",
       "description": "CTA — olhe para a câmera com confiança",
-      "fala": "CTA natural e direto — sem robotizar",
+      "fala": "CTA natural e direto, voltado para o próximo passo que FAZ SENTIDO para esse público",
       "textoNaTela": "texto sobreposto do CTA"
     }
   ],
   "screen_text": "${input.businessName} — ${input.city}",
-  "caption": "legenda completa para o post (2–4 linhas naturais + emojis discretos + CTA)",
+  "caption": "legenda completa (2–4 linhas naturais + emojis discretos + CTA) escrita para o público-alvo",
   "cta": "texto do CTA",
-  "whatsapp_message": "mensagem de WhatsApp sugerida"
+  "whatsapp_message": "mensagem de WhatsApp como se o público-alvo viesse do vídeo"
 }
 
 Regras obrigatórias:
-- Cada fala deve soar como CONVERSA REAL, não anúncio
-- Nunca comece com "Olá", "Passando para avisar", "Agenda aberta" ou frases de anúncio
-- Fale da situação, dor ou desejo do PÚBLICO nos primeiros 5 segundos
+- Cada fala deve soar como CONVERSA REAL com a pessoa do público-alvo, não anúncio
+- Nunca comece com "Olá", "Passando para avisar", "Agenda aberta"
+- Os primeiros 5 segundos falam da SITUAÇÃO DO PÚBLICO, não do negócio
 - Use "você" — segunda pessoa direta
-- Português brasileiro natural, coloquial sem ser informal demais
+- Português brasileiro natural e coloquial
 - Duração total: entre 30 e 50 segundos
-- Os textos na tela devem ser curtos, legíveis e complementar a fala (não repetir)`;
+- Textos na tela: curtos, legíveis, complementam a fala (nunca repetem)`;
 }
 
 async function callGemini(prompt: string, maxTokens = 1500): Promise<string | null> {

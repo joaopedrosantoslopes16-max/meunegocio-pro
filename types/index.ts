@@ -117,6 +117,12 @@ export interface Business {
   opening_hours_json: Record<string, string>;
   google_maps_url: string | null;
   services_json: string[];
+  target_audience?: string | null;
+  goals_json?: string[] | null;
+  tone?: string | null;
+  differentiator?: string | null;
+  customer_pain?: string | null;
+  custom_niche?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -480,21 +486,38 @@ export interface BusinessFormData {
   services: string;
   primary_color: string;
   tagline?: string;
+  target_audience?: string;
+  goals?: string[];
+  tone?: string;
+  differentiator?: string;
+  customer_pain?: string;
+  custom_niche?: string;
 }
 
 // ─── Premium Carousel ─────────────────────────────────────────
 export type CarouselLayout =
-  | "cover_hero"         // full-bleed image/gradient, big headline bottom
+  // ── Covers (3 types) ─────────────────────────────────────────
+  | "cover_hero"         // full-bleed image/gradient, big headline bottom-left
+  | "cover_split"        // image 50% left + dark text panel 50% right
+  | "cover_minimal"      // no image — oversized centered text on dark bg
+  | "cover_magazine"     // full image, bottom-anchored title, brand band footer
+  // ── Content slides ───────────────────────────────────────────
   | "bold_statement"     // solid dark/brand bg, oversized title
   | "split_image"        // image left (45%) + content right
   | "card_glass"         // full-bleed image + frosted glass card
   | "content_list"       // clean bg, title + bullet list
   | "image_overlay"      // full image + bottom gradient + text
-  | "cta_final"          // dark bg, CTA + WhatsApp button
+  | "feature_highlight"  // dark bg, accent glow, title + numbered list
   | "before_after"       // split antes/depois comparison — niche-specific
   | "stats_card"         // big number + secondary stats — proof/numbers
   | "testimonial_quote"  // large quote testimonial — social proof
-  | "steps_process";     // numbered 3-step process — how it works
+  | "steps_process"      // numbered 3-step process — how it works
+  | "full_color"         // entire slide in brand color, bold white text — visual break
+  | "editorial_top"      // image top 45% (no overlay) + clean white text panel below
+  // ── CTAs (3 types) ───────────────────────────────────────────
+  | "cta_final"          // dark bg, CTA + WhatsApp button (bold)
+  | "cta_minimal"        // white bg, clean minimal CTA
+  | "cta_split";         // image panel left + CTA text panel right
 
 export type CarouselObjective =
   | "vender" | "educar" | "promocao" | "servico"

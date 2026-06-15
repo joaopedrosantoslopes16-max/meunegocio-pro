@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
   // Busca dados completos do negócio para contexto rico
   const { data: business } = await supabaseAdmin
     .from("businesses")
-    .select("id, business_name, niche, city, whatsapp, main_service, services_json, short_description, services")
+    .select("id, business_name, niche, city, whatsapp, main_service, services_json, short_description, services, target_audience, goals_json, tone, differentiator, customer_pain, custom_niche")
     .eq("id", business_id)
     .single();
 
@@ -125,6 +125,8 @@ export async function POST(req: NextRequest) {
     refinementMode,
     services: allServices.length > 0 ? allServices : undefined,
     shortDescription: business.short_description ?? undefined,
+    targetAudience: business.target_audience ?? undefined,
+    goals: Array.isArray(business.goals_json) && business.goals_json.length > 0 ? business.goals_json : undefined,
   };
 
   // Gera interpretação do pedido (para retornar ao frontend)
@@ -132,14 +134,24 @@ export async function POST(req: NextRequest) {
 
   // Input Gemini reutilizado em headlines e roteiro
   const videoPlatform = platform ?? "reels";
+  // Quando o nicho é "outro", usar o custom_niche descrito pelo dono
+  const effectiveNiche = (business.niche === "outro" && business.custom_niche)
+    ? business.custom_niche
+    : business.niche;
+
   const geminiInput = {
     topic,
-    niche: business.niche,
+    niche: effectiveNiche,
     businessName: business.business_name,
     city: business.city,
     mainService: business.main_service,
     services: allServices.length > 0 ? allServices : undefined,
     shortDescription: business.short_description ?? undefined,
+    targetAudience: business.target_audience ?? undefined,
+    customerPain: business.customer_pain ?? undefined,
+    differentiator: business.differentiator ?? undefined,
+    tone: business.tone ?? undefined,
+    goals: Array.isArray(business.goals_json) && business.goals_json.length > 0 ? business.goals_json : undefined,
     platform: videoPlatform,
     angle,
   };

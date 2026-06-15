@@ -78,6 +78,12 @@ export async function POST(request: NextRequest) {
       services,
       primary_color: form.primary_color,
       slug,
+      target_audience: form.target_audience ?? null,
+      goals_json: form.goals && form.goals.length > 0 ? form.goals : null,
+      tone: form.tone ?? null,
+      differentiator: form.differentiator ?? null,
+      customer_pain: form.customer_pain ?? null,
+      custom_niche: form.custom_niche ?? null,
     })
     .select()
     .maybeSingle();
