@@ -236,7 +236,40 @@ const NICHE_HINTS: Record<string, {
   },
 };
 
-function getNicheHints(niche: string) {
+function detectNicheKey(text: string): string {
+  const t = text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if (t.match(/barb|cabelei/)) return "barbearia";
+  if (t.match(/salao|salon|beleza/)) return "salao-beleza";
+  if (t.match(/estet|sobrancelh|depilac/)) return "estetica";
+  if (t.match(/odonto|dent|ortodon/)) return "odontologia";
+  if (t.match(/clinic|medic|saude|hospital/)) return "clinica-medica";
+  if (t.match(/fisio|pilates|reabili/)) return "fisioterapia";
+  if (t.match(/nutri|alimentar|dieta/)) return "nutricao";
+  if (t.match(/psicol|terapia|mental|psicoter/)) return "psicologia";
+  if (t.match(/personal|treino|academia|fitness|musculac/)) return "personal-trainer";
+  if (t.match(/coach|mentor|consultori|assessori|market|agencia|trafego|social media|publicidade/)) return "coaching";
+  if (t.match(/otica|ocul|lente de contato/)) return "otica";
+  if (t.match(/pet|vet|animal|caes|gatos/)) return "pet-shop";
+  if (t.match(/restaur|comida|delivery|lanch|pizza|hamburger|padaria/)) return "restaurante";
+  if (t.match(/confeit|bolo|doce|brigadeiro|bem.casado/)) return "confeitaria";
+  if (t.match(/roupa|moda|vestuario|acessorio|loja de/)) return "loja-roupa";
+  if (t.match(/fotogr|filmag|video|audiovisual/)) return "fotografia";
+  if (t.match(/imobil|imovel|corretor|aluguel/)) return "imobiliaria";
+  if (t.match(/construc|reforma|obra|pintora|alvenar|eletric/)) return "construcao";
+  if (t.match(/mecanic|autom|carro|oficina|funilaria/)) return "mecanica";
+  if (t.match(/serral|portao|grade|metal|estrutura/)) return "serralheria";
+  if (t.match(/advog|juridic|direito|processo/)) return "advogacia";
+  if (t.match(/contab|fiscal|imposto|contador|mei|empresa/)) return "contabilidade";
+  if (t.match(/escola|curso|aula|ensino|educac|treinamento/)) return "escola-cursos";
+  if (t.match(/tatua|piercing|studio|estudio/)) return "tatuagem";
+  return "outro";
+}
+
+function getNicheHints(niche: string, customNiche?: string) {
+  if (niche === "outro" && customNiche?.trim()) {
+    const detected = detectNicheKey(customNiche);
+    if (detected !== "outro") return NICHE_HINTS[detected];
+  }
   return NICHE_HINTS[niche] ?? NICHE_HINTS["outro"];
 }
 
@@ -314,7 +347,10 @@ export default function GerarKitPage() {
     custom_niche: "",
   });
 
-  const selectedNiche = form.niche ? NICHE_CONFIG[form.niche] : null;
+  const effectiveNicheKey = form.niche === "outro" && form.custom_niche?.trim()
+    ? detectNicheKey(form.custom_niche)
+    : form.niche;
+  const selectedNiche = effectiveNicheKey ? NICHE_CONFIG[effectiveNicheKey] : null;
 
   function set(field: string, value: unknown) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -500,7 +536,7 @@ export default function GerarKitPage() {
               <input
                 value={form.services}
                 onChange={(e) => set("services", e.target.value)}
-                placeholder={getNicheHints(form.niche || "outro").servicesPlaceholder}
+                placeholder={getNicheHints(form.niche || "outro", form.custom_niche).servicesPlaceholder}
                 style={{ color: "#111827", backgroundColor: "#ffffff" }}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
               />
@@ -517,7 +553,7 @@ export default function GerarKitPage() {
               <textarea
                 value={form.differentiator}
                 onChange={(e) => set("differentiator", e.target.value)}
-                placeholder={getNicheHints(form.niche || "outro").differentiatorPlaceholder}
+                placeholder={getNicheHints(form.niche || "outro", form.custom_niche).differentiatorPlaceholder}
                 rows={3}
                 style={{ color: "#111827", backgroundColor: "#ffffff" }}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"
@@ -532,7 +568,7 @@ export default function GerarKitPage() {
               <input
                 value={form.tagline ?? ""}
                 onChange={(e) => set("tagline", e.target.value)}
-                placeholder={getNicheHints(form.niche || "outro").taglinePlaceholder}
+                placeholder={getNicheHints(form.niche || "outro", form.custom_niche).taglinePlaceholder}
                 style={{ color: "#111827", backgroundColor: "#ffffff" }}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
               />
@@ -558,7 +594,7 @@ export default function GerarKitPage() {
               <textarea
                 value={form.target_audience ?? ""}
                 onChange={(e) => set("target_audience", e.target.value)}
-                placeholder={getNicheHints(form.niche || "outro").audiencePlaceholder}
+                placeholder={getNicheHints(form.niche || "outro", form.custom_niche).audiencePlaceholder}
                 rows={5}
                 style={{ color: "#111827", backgroundColor: "#ffffff" }}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"
@@ -576,7 +612,7 @@ export default function GerarKitPage() {
               <textarea
                 value={form.customer_pain}
                 onChange={(e) => set("customer_pain", e.target.value)}
-                placeholder={getNicheHints(form.niche || "outro").painPlaceholder}
+                placeholder={getNicheHints(form.niche || "outro", form.custom_niche).painPlaceholder}
                 rows={3}
                 style={{ color: "#111827", backgroundColor: "#ffffff" }}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"
