@@ -52,6 +52,194 @@ const GOALS = [
   { id: "online",         label: "Vender online" },
 ];
 
+const NICHE_HINTS: Record<string, {
+  servicesPlaceholder: string;
+  differentiatorPlaceholder: string;
+  taglinePlaceholder: string;
+  audiencePlaceholder: string;
+  painPlaceholder: string;
+}> = {
+  "barbearia": {
+    servicesPlaceholder: "Ex: Corte infantil, Barba, Pigmentação, Hot towel...",
+    differentiatorPlaceholder: "Ex: Atendimento com hora marcada, sem espera. Ambiente masculino com TV e bebida durante o serviço...",
+    taglinePlaceholder: "Ex: Onde o estilo encontra o respeito",
+    audiencePlaceholder: "Ex: Homens de 18 a 40 anos que se preocupam com aparência e autoestima. Trabalham no mercado formal, têm orgulho do próprio estilo e buscam atendimento de qualidade...",
+    painPlaceholder: "Ex: Cansado de esperar horas na barbearia sem hora marcada, ou sair com um corte que não ficou como queria...",
+  },
+  "salao-beleza": {
+    servicesPlaceholder: "Ex: Coloração, Progressiva, Escova, Manicure, Pedicure...",
+    differentiatorPlaceholder: "Ex: Produtos veganos e sem amônia, ambiente aconchegante com agendamento online e sem fila...",
+    taglinePlaceholder: "Ex: Realçando a sua beleza natural",
+    audiencePlaceholder: "Ex: Mulheres de 25 a 55 anos que cuidam da aparência e valorizam um salão de confiança onde saem satisfeitas sempre...",
+    painPlaceholder: "Ex: Cabelo danificado por químicas ruins, dificuldade de encontrar um profissional que entenda o tipo de cabelo dela...",
+  },
+  "estetica": {
+    servicesPlaceholder: "Ex: Limpeza de pele, Sobrancelha, Depilação, Massagem, Drenagem...",
+    differentiatorPlaceholder: "Ex: Atendimento humanizado com hora marcada. Usamos produtos importados e o resultado dura 3x mais que a média...",
+    taglinePlaceholder: "Ex: Cuidado que transforma",
+    audiencePlaceholder: "Ex: Mulheres de 25 a 45 anos que investem em autocuidado e querem se sentir mais bonitas e confiantes no dia a dia...",
+    painPlaceholder: "Ex: Pele com manchas, oleosidade ou cravos que ela não consegue tratar em casa. Busca resultado visível, não só relaxamento...",
+  },
+  "odontologia": {
+    servicesPlaceholder: "Ex: Clareamento, Limpeza, Implante, Invisalign, Restauração...",
+    differentiatorPlaceholder: "Ex: Consultório com tecnologia digital, sem dor, com sedação consciente para pacientes ansiosos...",
+    taglinePlaceholder: "Ex: Sorrisos que transformam vidas",
+    audiencePlaceholder: "Ex: Adultos de 25 a 50 anos que querem melhorar o sorriso mas têm medo de dentista ou não sabem por onde começar...",
+    painPlaceholder: "Ex: Vergonha do próprio sorriso, medo de ir ao dentista, ou dor de dente que vem adiando há meses...",
+  },
+  "clinica-medica": {
+    servicesPlaceholder: "Ex: Consulta clínica, Check-up, Pediatria, Dermatologia, Exames...",
+    differentiatorPlaceholder: "Ex: Atendimento humanizado sem fila, agendamento online e retorno rápido de exames pelo WhatsApp...",
+    taglinePlaceholder: "Ex: Cuidando da sua saúde com atenção",
+    audiencePlaceholder: "Ex: Famílias e adultos de 30 a 60 anos que buscam um médico de confiança para acompanhamento contínuo da saúde...",
+    painPlaceholder: "Ex: Dificuldade de encontrar consulta rápida e médico que explique tudo com clareza, sem apressar o paciente...",
+  },
+  "fisioterapia": {
+    servicesPlaceholder: "Ex: Pilates, RPG, Fisioterapia ortopédica, Dry needling, Pós-cirúrgico...",
+    differentiatorPlaceholder: "Ex: Atendimento individualizado, sem dividir sessão com outros pacientes. Profissional com pós-graduação em ortopedia...",
+    taglinePlaceholder: "Ex: Movimento é saúde",
+    audiencePlaceholder: "Ex: Adultos de 30 a 60 anos com dor crônica, pós-operatório ou lesões esportivas. Querem voltar a se mover sem dor...",
+    painPlaceholder: "Ex: Dor nas costas ou joelho que limita a vida, piora com o dia a dia e não melhora com remédio...",
+  },
+  "nutricao": {
+    servicesPlaceholder: "Ex: Plano alimentar, Reeducação alimentar, Nutrição esportiva, Acompanhamento online...",
+    differentiatorPlaceholder: "Ex: Acompanhamento por aplicativo com retorno semanal. Dieta flexível sem proibir tudo que a pessoa gosta...",
+    taglinePlaceholder: "Ex: Saúde que cabe na sua rotina",
+    audiencePlaceholder: "Ex: Mulheres e homens de 25 a 45 anos que querem emagrecer, mas já tentaram várias dietas sem resultado duradouro...",
+    painPlaceholder: "Ex: Efeito sanfona constante, não saber o que comer, ou fazer dieta restritiva demais que não sustenta...",
+  },
+  "psicologia": {
+    servicesPlaceholder: "Ex: Terapia individual, Terapia de casal, Psicoterapia online, Avaliação psicológica...",
+    differentiatorPlaceholder: "Ex: Atendimento online com flexibilidade de horário, abordagem cognitivo-comportamental com resultados práticos...",
+    taglinePlaceholder: "Ex: Um espaço seguro para se reconectar",
+    audiencePlaceholder: "Ex: Adultos de 25 a 40 anos com ansiedade, relacionamentos difíceis ou que sentem que algo está errado mas não sabem nomear...",
+    painPlaceholder: "Ex: Ansiedade que não passa, dificuldade nos relacionamentos ou sensação de estar preso num padrão que se repete...",
+  },
+  "personal-trainer": {
+    servicesPlaceholder: "Ex: Treino funcional, Musculação, Treino online, Emagrecimento, Hipertrofia...",
+    differentiatorPlaceholder: "Ex: Treinos de 45 minutos adaptados para cada biotipo. Acompanhamento semanal por app com ajuste de carga...",
+    taglinePlaceholder: "Ex: Resultados reais para vidas reais",
+    audiencePlaceholder: "Ex: Mulheres e homens de 25 a 50 anos que querem emagrecer ou ganhar massa, mas não têm disciplina ou motivação sozinhos...",
+    painPlaceholder: "Ex: Meses na academia sem resultado, não saber o que fazer ou sentir que o treino não está certo para o objetivo...",
+  },
+  "coaching": {
+    servicesPlaceholder: "Ex: Coaching de carreira, Mentoria de negócios, Desenvolvimento pessoal, Palestra...",
+    differentiatorPlaceholder: "Ex: Metodologia com ferramentas práticas, não só teoria. Acompanhamento semanal com metas reais e acompanhamento de progresso...",
+    taglinePlaceholder: "Ex: Do potencial à realização",
+    audiencePlaceholder: "Ex: Profissionais de 28 a 45 anos que se sentem estagnados na carreira ou querem empreender mas não sabem por onde começar...",
+    painPlaceholder: "Ex: Sensação de estar preso numa rotina que não satisfaz, sem clareza do próximo passo ou falta de foco nos objetivos...",
+  },
+  "otica": {
+    servicesPlaceholder: "Ex: Óculos de grau, Lentes de contato, Óculos de sol, Exame de vista, Ajuste...",
+    differentiatorPlaceholder: "Ex: Exame de vista incluído na compra, modelos de marcas nacionais e importadas, laboratório próprio para lentes...",
+    taglinePlaceholder: "Ex: Ver bem é tudo",
+    audiencePlaceholder: "Ex: Famílias e adultos que precisam de óculos de grau ou sol, e buscam boa qualidade com preço justo e atendimento rápido...",
+    painPlaceholder: "Ex: Dificuldade de enxergar que prejudica o trabalho e a direção, ou óculos quebrado sem saber onde fazer rápido e bem...",
+  },
+  "pet-shop": {
+    servicesPlaceholder: "Ex: Banho e tosa, Veterinário, Vacinas, Hotel pet, Ração e acessórios...",
+    differentiatorPlaceholder: "Ex: Atendimento com hora marcada, equipe capacitada e fotos do pet durante o banho enviadas pelo WhatsApp...",
+    taglinePlaceholder: "Ex: Seu pet em boas mãos",
+    audiencePlaceholder: "Ex: Tutores de cães e gatos de 25 a 45 anos que tratam o pet como membro da família e priorizam saúde e bem-estar do animal...",
+    painPlaceholder: "Ex: Medo de deixar o pet em mãos que não conhece, ou não saber se o animal está sendo bem tratado durante o banho...",
+  },
+  "restaurante": {
+    servicesPlaceholder: "Ex: Almoço executivo, Delivery, Jantar especial, Cardápio fitness, Refeições por kg...",
+    differentiatorPlaceholder: "Ex: Ingredientes frescos comprados todo dia, cardápio que muda semanalmente, ambiente familiar e aconchegante...",
+    taglinePlaceholder: "Ex: Sabor de casa todo dia",
+    audiencePlaceholder: "Ex: Trabalhadores e famílias da região que buscam almoço rápido, saboroso e com preço justo durante a semana...",
+    painPlaceholder: "Ex: Comer mal no trabalho por falta de opção boa por perto, ou gastar caro em delivery sem saber se vai ser bom...",
+  },
+  "confeitaria": {
+    servicesPlaceholder: "Ex: Bolo no pote, Bem-casado, Trufas, Bolos decorados, Encomendas personalizadas...",
+    differentiatorPlaceholder: "Ex: Produção artesanal com ingredientes selecionados, sem conservantes, embalagem caprichada para presentear...",
+    taglinePlaceholder: "Ex: Feito com amor, entregue com cuidado",
+    audiencePlaceholder: "Ex: Mulheres de 25 a 45 anos que encomendam doces para eventos, presentear ou consumo próprio. Valorizam qualidade e apresentação...",
+    painPlaceholder: "Ex: Receber doces sem capricho na apresentação, ou não encontrar confeiteira confiável para eventos importantes...",
+  },
+  "loja-roupa": {
+    servicesPlaceholder: "Ex: Roupas femininas, Moda plus size, Acessórios, Consultoria de estilo, Looks do dia...",
+    differentiatorPlaceholder: "Ex: Peças exclusivas que não são encontradas em grandes lojas, curadoria de estilo personalizada e atendimento por WhatsApp...",
+    taglinePlaceholder: "Ex: Estilo que combina com você",
+    audiencePlaceholder: "Ex: Mulheres de 20 a 40 anos que gostam de se vestir bem mas têm dificuldade de montar looks ou encontrar peças que caibam bem...",
+    painPlaceholder: "Ex: Gastar dinheiro em roupas que não ficam boas ou não saber como combinar peças do guarda-roupa...",
+  },
+  "fotografia": {
+    servicesPlaceholder: "Ex: Ensaio feminino, Fotografia de casamento, Newborn, Foto de produto, Filmagem...",
+    differentiatorPlaceholder: "Ex: Entrega em até 15 dias, galeria online para baixar fotos, direção de poses incluída no serviço...",
+    taglinePlaceholder: "Ex: Momentos que ficam para sempre",
+    audiencePlaceholder: "Ex: Casais, mães e empresários de 25 a 45 anos que querem registrar momentos importantes com qualidade profissional...",
+    painPlaceholder: "Ex: Fotos amadoras que não fazem jus ao momento, ou não saber como se comportar na frente da câmera...",
+  },
+  "imobiliaria": {
+    servicesPlaceholder: "Ex: Venda de imóveis, Aluguel, Avaliação, Financiamento, Gestão de propriedades...",
+    differentiatorPlaceholder: "Ex: Atendimento consultivo, não empurra imóvel — entende o que o cliente precisa e apresenta só opções que fazem sentido...",
+    taglinePlaceholder: "Ex: O lar certo, na hora certa",
+    audiencePlaceholder: "Ex: Famílias e jovens casais de 28 a 45 anos querendo comprar o primeiro imóvel ou investir, mas perdidos no processo de financiamento...",
+    painPlaceholder: "Ex: Medo de fazer mau negócio, não entender o processo de financiamento ou encontrar um corretor que suma depois da venda...",
+  },
+  "construcao": {
+    servicesPlaceholder: "Ex: Reforma residencial, Pintura, Instalação elétrica, Alvenaria, Acabamento...",
+    differentiatorPlaceholder: "Ex: Orçamento detalhado e por escrito, prazo cumprido com contrato, equipe própria sem terceirização de obra...",
+    taglinePlaceholder: "Ex: Obra com qualidade e prazo garantido",
+    audiencePlaceholder: "Ex: Proprietários de 30 a 55 anos que querem reformar a casa mas têm medo de empreiteiro que some, estoura o orçamento ou faz mal-feito...",
+    painPlaceholder: "Ex: Já foi enganado por prestador que sumiu no meio da obra, ou reforma que custou o dobro do orçado...",
+  },
+  "mecanica": {
+    servicesPlaceholder: "Ex: Revisão geral, Troca de óleo, Freios, Suspensão, Diagnóstico eletrônico...",
+    differentiatorPlaceholder: "Ex: Orçamento antes de começar, peças originais com nota fiscal, laudo técnico por escrito e garantia de 90 dias...",
+    taglinePlaceholder: "Ex: Seu carro em boas mãos",
+    audiencePlaceholder: "Ex: Motoristas de 25 a 55 anos que dependem do carro para trabalhar e querem mecânica honesta que não invente problema...",
+    painPlaceholder: "Ex: Medo de ser enganado na mecânica, pagar caro por algo que não precisava ou não ter laudo do que foi feito...",
+  },
+  "serralheria": {
+    servicesPlaceholder: "Ex: Portão automático, Grade de segurança, Escada, Estrutura metálica, Cobertura...",
+    differentiatorPlaceholder: "Ex: Fabricação própria, visita técnica gratuita, garantia de 2 anos nos produtos instalados...",
+    taglinePlaceholder: "Ex: Segurança e resistência em cada peça",
+    audiencePlaceholder: "Ex: Proprietários de residências e comércios que precisam de proteção e estética em portões e grades, priorizando durabilidade...",
+    painPlaceholder: "Ex: Portão quebrado ou grade com ferrugem que compromete a segurança e a aparência do imóvel...",
+  },
+  "advogacia": {
+    servicesPlaceholder: "Ex: Direito trabalhista, Direito de família, Inventário, Contratos, Defesa criminal...",
+    differentiatorPlaceholder: "Ex: Atendimento transparente com honorários claros desde a primeira consulta, sem surpresas no meio do processo...",
+    taglinePlaceholder: "Ex: Seus direitos, nossa prioridade",
+    audiencePlaceholder: "Ex: Pessoas de 30 a 55 anos que estão passando por separação, demissão injusta ou processo judicial e não sabem seus direitos...",
+    painPlaceholder: "Ex: Sentir que foi prejudicado e não saber como agir, medo de perder o processo ou de honorários absurdos...",
+  },
+  "contabilidade": {
+    servicesPlaceholder: "Ex: Abertura de empresa, Declaração de IR, Folha de pagamento, BPO Financeiro, MEI...",
+    differentiatorPlaceholder: "Ex: Atendimento por WhatsApp sem demora, relatórios mensais em linguagem simples, sem jargão contábil...",
+    taglinePlaceholder: "Ex: Sua empresa em ordem, você em paz",
+    audiencePlaceholder: "Ex: MEIs, pequenos empresários e autônomos de 25 a 45 anos que querem regularizar o negócio mas não entendem de contabilidade...",
+    painPlaceholder: "Ex: Medo de multa da Receita Federal, confusão com impostos ou não saber se o contador atual está fazendo o trabalho direito...",
+  },
+  "escola-cursos": {
+    servicesPlaceholder: "Ex: Curso online, Aulas presenciais, Mentoria em grupo, Certificado, Workshop...",
+    differentiatorPlaceholder: "Ex: Metodologia prática com projetos reais, suporte individual por WhatsApp e certificado reconhecido pelo mercado...",
+    taglinePlaceholder: "Ex: O conhecimento que muda carreiras",
+    audiencePlaceholder: "Ex: Jovens de 18 a 35 anos que querem mudar de área, aprender uma habilidade nova ou se qualificar para ganhar mais...",
+    painPlaceholder: "Ex: Cursos longos e caros que não ensinam o que o mercado quer, ou conteúdo muito teórico sem aplicação prática...",
+  },
+  "tatuagem": {
+    servicesPlaceholder: "Ex: Tatuagem realista, Blackwork, Fine line, Aquarela, Coverup, Piercing...",
+    differentiatorPlaceholder: "Ex: Arte 100% autoral, orçamento com desenho antes de tatuar e cuidados pós-tattoo incluídos no atendimento...",
+    taglinePlaceholder: "Ex: Arte que conta a sua história",
+    audiencePlaceholder: "Ex: Jovens e adultos de 18 a 35 anos apaixonados por arte corporal que querem uma tattoo com significado e feita por um artista de confiança...",
+    painPlaceholder: "Ex: Medo de tatuar e arrepender, ou já ter tido experiência ruim com tatuador que não entendeu o que queria...",
+  },
+  "outro": {
+    servicesPlaceholder: "Ex: Serviço A, Serviço B, Serviço C...",
+    differentiatorPlaceholder: "Ex: O que faz seu negócio diferente — atendimento, resultado, tecnologia, localização, preço, experiência...",
+    taglinePlaceholder: "Ex: Uma frase curta que resume o que você entrega",
+    audiencePlaceholder: "Ex: Quem são seus clientes típicos, idade, situação de vida, o que eles querem e o que eles temem...",
+    painPlaceholder: "Ex: Qual o principal problema que seu cliente resolve ao te contratar...",
+  },
+};
+
+function getNicheHints(niche: string) {
+  return NICHE_HINTS[niche] ?? NICHE_HINTS["outro"];
+}
+
 const TOTAL_STEPS = 6;
 
 const STEP_LABELS = ["Negócio", "Serviços", "Público", "Comunicação", "Objetivos", "Contato"];
@@ -312,7 +500,7 @@ export default function GerarKitPage() {
               <input
                 value={form.services}
                 onChange={(e) => set("services", e.target.value)}
-                placeholder="Ex: Barba, Sobrancelha, Progressiva..."
+                placeholder={getNicheHints(form.niche || "outro").servicesPlaceholder}
                 style={{ color: "#111827", backgroundColor: "#ffffff" }}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
               />
@@ -329,7 +517,7 @@ export default function GerarKitPage() {
               <textarea
                 value={form.differentiator}
                 onChange={(e) => set("differentiator", e.target.value)}
-                placeholder="Ex: Atendimento humanizado com hora marcada, sem fila. Usamos produtos importados e o resultado dura 3x mais que a média..."
+                placeholder={getNicheHints(form.niche || "outro").differentiatorPlaceholder}
                 rows={3}
                 style={{ color: "#111827", backgroundColor: "#ffffff" }}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"
@@ -344,7 +532,7 @@ export default function GerarKitPage() {
               <input
                 value={form.tagline ?? ""}
                 onChange={(e) => set("tagline", e.target.value)}
-                placeholder="Ex: Tradição e qualidade desde 2010"
+                placeholder={getNicheHints(form.niche || "outro").taglinePlaceholder}
                 style={{ color: "#111827", backgroundColor: "#ffffff" }}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
               />
@@ -370,15 +558,7 @@ export default function GerarKitPage() {
               <textarea
                 value={form.target_audience ?? ""}
                 onChange={(e) => set("target_audience", e.target.value)}
-                placeholder={
-                  form.niche === "personal-trainer"
-                    ? "Ex: Mulheres de 30 a 50 anos que querem emagrecer e ganhar disposição, mas não têm tempo para academia convencional. Muitas são mães, trabalham fora e buscam um treino que caiba na rotina delas..."
-                    : form.niche === "barbearia"
-                    ? "Ex: Homens de 20 a 40 anos que se preocupam com a aparência profissional. Trabalham no mercado formal ou têm seu próprio negócio. Querem atendimento de qualidade sem esperar horas..."
-                    : form.niche === "estetica"
-                    ? "Ex: Mulheres de 25 a 45 anos que investem em autocuidado e querem se sentir mais bonitas e confiantes no dia a dia. Geralmente indicam o serviço para amigas..."
-                    : "Ex: Pessoas de [faixa etária] que [situação de vida]. Elas querem [objetivo] mas enfrentam [dificuldade]. Geralmente [característica marcante]..."
-                }
+                placeholder={getNicheHints(form.niche || "outro").audiencePlaceholder}
                 rows={5}
                 style={{ color: "#111827", backgroundColor: "#ffffff" }}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"
@@ -396,7 +576,7 @@ export default function GerarKitPage() {
               <textarea
                 value={form.customer_pain}
                 onChange={(e) => set("customer_pain", e.target.value)}
-                placeholder="Ex: A pessoa estava há meses tentando emagrecer sozinha sem resultado. Estava desmotivada e com autoestima baixa..."
+                placeholder={getNicheHints(form.niche || "outro").painPlaceholder}
                 rows={3}
                 style={{ color: "#111827", backgroundColor: "#ffffff" }}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"
