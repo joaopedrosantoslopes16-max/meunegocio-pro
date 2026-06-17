@@ -379,6 +379,24 @@ export default function GerarKitPage() {
     return true;
   }
 
+  function getMissingHint(): string | null {
+    if (canAdvance()) return null;
+    if (step === 1) {
+      if (!form.business_name.trim()) return "Preencha o nome do seu negócio para continuar";
+      if (!form.niche) return "Selecione o segmento do seu negócio";
+      if (form.niche === "outro" && !form.custom_niche.trim()) return "Descreva o seu segmento exato para continuar";
+    }
+    if (step === 2) return "Preencha o serviço principal para continuar";
+    if (step === 3) {
+      if (!form.target_audience?.trim()) return "Descreva o seu cliente ideal para continuar";
+      if (!form.city.trim()) return "Informe a cidade de atendimento";
+    }
+    if (step === 4) return "Escolha o tom de voz do seu negócio";
+    if (step === 5) return "Selecione pelo menos um objetivo para continuar";
+    if (step === 6) return "Informe o seu WhatsApp para continuar";
+    return null;
+  }
+
   function next() {
     if (!canAdvance()) {
       setError("Preencha os campos obrigatórios para continuar.");
@@ -833,8 +851,18 @@ export default function GerarKitPage() {
           </div>
         )}
 
+        {/* Dica de campo faltando */}
+        {getMissingHint() && (
+          <p className="mt-4 text-xs text-amber-600 font-medium flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            {getMissingHint()}
+          </p>
+        )}
+
         {/* Navegação */}
-        <div className="mt-8 flex items-center gap-3">
+        <div className="mt-4 flex items-center gap-3">
           {step > 1 && (
             <button
               type="button"
